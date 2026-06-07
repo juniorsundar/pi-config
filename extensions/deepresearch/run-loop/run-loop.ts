@@ -1,0 +1,562 @@
+/**
+ * Research Run loop — the Research Orchestrator's main loop.
+ *
+ * Coordinates the Research Brain (intent proposal) with the Research
+ * Orchestrator (side-effect execution). Each round:
+ * 1. Ask the Brain for the next structured intent via generate()
+ * 2. Parse and validate the intent
+ * 3. Execute the corresponding side effect
+ * 4. Append to the Claim/Evidence Ledger
+ * 5. Track budget usage against approved limits
+ * 6. Refresh the Run Summary for the next round
+ * 7. Repeat until synthesize_brief, stop_early, or budget exhaustion
+ */
+
+import { join } from "path";
+import {
+  existsSync,
+  mkdirSync,
+  writeFileSync,
+  appendFileSync,
+  readFileSync,
+  readdirSync,
+} from "fs";
+import { getRun, updateStatus } from "../lifecycle/run-store";
+import { getStorePath } from "../workspace/store";
+import type { Budget } from "../budgets/budget";
+import { trackUsage, isExhausted, remainingBudget } from "../budgets/budget";
+import type { ResearchBrain } from "../brain/harness/types";
+import { VALID_INTENTS } from "../brain/harness/types";
+import type {
+  RunLoopOptions,
+  ResearchRunMeta,
+  LedgerEntry,
+  SourceNoteData,
+  ParsedIntent,
+} from "./types";
+
+// ── Constants ──────────────────────────────────────────────────────────────
+
+const MAX_ROUNDS = 50;
+
+// ── Path helpers ───────────────────────────────────────────────────────────
+
+function runDir(cwd: string, runId: string): string {
+  return join(getStorePath(cwd), "runs", runId);
+}
+
+function ledgerPath(cwd: string, runId: string): string {
+  return join(runDir(cwd, runId), "ledger.jsonl");
+}
+
+function summaryPath(cwd: string, runId: string): string {
+  return join(runDir(cwd, runId), "run-summary.md");
+}
+
+function briefFilePath(cwd: string, runId: string): string {
+  return join(runDir(cwd, runId), "brief.md");
+}
+
+function sourceNotesDir(cwd: string, runId: string): string {
+  return join(runDir(cwd, runId), "source-notes");
+}
+
+// ── Ledger ─────────────────────────────────────────────────────────────────
+
+function appendLedger(cwd: string, runId: string, entry: LedgerEntry): void {
+  appendFileSync(ledgerPath(cwd, runId), JSON.stringify(entry) + "\n");
+}
+
+function readLedger(cwd: string, runId: string): LedgerEntry[] {
+  const path = ledgerPath(cwd, runId);
+  if (!existsSync(path)) return [];
+  const raw = readFileSync(path, "utf-8");
+  return raw
+    .split("\n")
+    .filter((l) => l.trim().length > 0)
+    .map((l) => JSON.parse(l) as LedgerEntry);
+}
+
+// ── Source Notes ───────────────────────────────────────────────────────────
+
+function writeSourceNote(cwd: string, runId: string, note: SourceNoteData): void {
+  const dir = sourceNotesDir(cwd, runId);
+  const pad = String(note.citationNumber).padStart(3, "0");
+  const filePath = join(dir, `note-${pad}.md`);
+
+  const lines: string[] = [
+    `# Source Note ${note.citationNumber}`,
+    "",
+    `**Source**: ${note.source}`,
+    note.finalUrl ? `**Final URL**: ${note.finalUrl}` : "",
+    `**Title**: ${note.title}`,
+    `**Type**: ${note.sourceType}`,
+    `**Retrieved**: ${note.retrievedAt}`,
+    `**Content Type**: ${note.contentType}`,
+    note.truncated ? `**Note**: Content was truncated.` : "",
+    "",
+    `## Snippets`,
+    "",
+  ];
+
+  for (let i = 0; i < note.snippets.length; i++) {
+    lines.push(`- [${note.citationNumber}:${i + 1}] ${note.snippets[i]}`);
+  }
+
+  lines.push("");
+
+  writeFileSync(filePath, lines.join("\n"));
+}
+
+// ── Run Summary ────────────────────────────────────────────────────────────
+
+function refreshSummary(
+  cwd: string,
+  runId: string,
+  question: string,
+  budget: Budget,
+  rounds: number,
+): void {
+  const ledger = readLedger(cwd, runId);
+  const notesDir = sourceNotesDir(cwd, runId);
+  const noteFiles = existsSync(notesDir)
+    ? readdirSync(notesDir).filter((f) => f.endsWith(".md"))
+    : [];
+
+  const remaining = remainingBudget(budget);
+
+  const lines: string[] = [
+    `# Run Summary`,
+    "",
+    `**Question**: ${question}`,
+    `**Rounds Completed**: ${rounds}`,
+    `**Source Notes**: ${noteFiles.length}`,
+    `**Ledger Entries**: ${ledger.length}`,
+    "",
+    `## Budget Remaining`,
+    "",
+    `| Category | Remaining |`,
+    `|----------|-----------|`,
+    `| Searches | ${remaining.searches} |`,
+    `| Fetch Attempts | ${remaining.fetchAttempts} |`,
+    `| Source Visits | ${remaining.sourceVisits} |`,
+    `| Synthesis Rounds | ${remaining.synthesisRounds} |`,
+    `| Model Calls | ${remaining.modelCalls} |`,
+    "",
+    `## Recent Ledger Entries`,
+    "",
+  ];
+
+  for (const entry of ledger.slice(-5)) {
+    lines.push(`- **Round ${entry.round} [${entry.intent}]**: ${entry.content.slice(0, 120)}`);
+  }
+
+  lines.push("");
+
+  writeFileSync(summaryPath(cwd, runId), lines.join("\n"));
+}
+
+// ── Prompt construction ────────────────────────────────────────────────────
+
+function buildPrompt(
+  question: string,
+  currentSummary: string,
+  budget: Budget,
+): string {
+  const remaining = remainingBudget(budget);
+
+  return [
+    `You are a Research Brain conducting a bounded research investigation.`,
+    ``,
+    `Research Question: ${question}`,
+    ``,
+    `Current Run Summary:`,
+    currentSummary || `No work done yet — begin new research.`,
+    ``,
+    `Budget remaining:`,
+    `  - Searches: ${remaining.searches}`,
+    `  - Fetch attempts: ${remaining.fetchAttempts}`,
+    `  - Source visits: ${remaining.sourceVisits}`,
+    `  - Synthesis rounds: ${remaining.synthesisRounds}`,
+    `  - Model calls: ${remaining.modelCalls}`,
+    ``,
+    `Valid intents: ${VALID_INTENTS.join(", ")}`,
+    ``,
+    `Respond with a JSON object containing your chosen intent and any parameters.`,
+    `For "search", include a "query" field.`,
+    `For "select_sources", include a "selectedUrls" array and "reasoningPerUrl".`,
+    `For "update_findings", include "snippets" array and "reasoning".`,
+    `For "synthesize_brief", include "briefDraft", "confidence", and "gaps".`,
+    `For "stop_early", include "reasoning".`,
+    ``,
+    `Your response must be valid JSON only, no surrounding text.`,
+  ].join("\n");
+}
+
+// ── Negative Evidence check ───────────────────────────────────────────────
+
+/**
+ * Check the ledger for recorded Negative Evidence that may justify
+ * early synthesis even when minimum source notes aren't met.
+ *
+ * Negative Evidence includes:
+ * - Searches that returned zero results
+ * - Fetch failures
+ * - Explicit negative_evidence entries
+ */
+function hasRecordedNegativeEvidence(cwd: string, runId: string): boolean {
+  const ledger = readLedger(cwd, runId);
+  return ledger.some((entry) => {
+    if (entry.intent === "fetch_failed") return true;
+    if (
+      entry.intent === "search" &&
+      entry.meta &&
+      (entry.meta as any).resultCount === 0
+    )
+      return true;
+    if (entry.intent === "negative_evidence") return true;
+    return false;
+  });
+}
+
+// ── Intent parsing ────────────────────────────────────────────────────────
+
+function parseIntent(raw: string): ParsedIntent | null {
+  try {
+    const parsed = JSON.parse(raw);
+    if (typeof parsed.intent !== "string") return null;
+    return parsed as ParsedIntent;
+  } catch {
+    return null;
+  }
+}
+
+// ── Main loop ─────────────────────────────────────────────────────────────
+
+/**
+ * Execute a bounded Research Run from start to finish.
+ *
+ * The loop strictly follows the Brain-vs-Orchestrator boundary: the Brain
+ * proposes structured intents and the Orchestrator executes all side-effecting
+ * operations (search, fetch, artifact writes, budget accounting).
+ *
+ * @param cwd   - Workspace root directory
+ * @param runId - Research Run identity
+ * @param brain - Research Brain instance (intent proposer)
+ * @param budget - Research Budget for tracking and enforcement
+ * @param options - Injection seams for orchestrator side effects
+ * @param minimumSourceNotes - Minimum Source Notes required before early stop is accepted (default 1)
+ * @returns Metadata about the completed run
+ */
+export async function executeResearchRun(
+  cwd: string,
+  runId: string,
+  brain: ResearchBrain,
+  budget: Budget,
+  options: RunLoopOptions,
+  minimumSourceNotes: number = 1,
+): Promise<ResearchRunMeta> {
+  const run = getRun(cwd, runId);
+  if (!run) throw new Error(`Run not found: ${runId}`);
+
+  // ── Initialize artifacts ──────────────────────────────────────────────
+  const notesDir = sourceNotesDir(cwd, runId);
+  mkdirSync(notesDir, { recursive: true });
+  writeFileSync(ledgerPath(cwd, runId), ""); // empty file to start
+
+  let roundCount = 0;
+  let sourceNoteCount = 0;
+  let briefPathResult = "";
+  let currentSummary = "";
+  let completed = false;
+  /** URLs selected by the Brain in select_sources, pending fetch in update_findings. */
+  let pendingUrls: string[] = [];
+
+  const startTimeMs = Date.now();
+
+  while (!completed && roundCount < MAX_ROUNDS) {
+    roundCount++;
+
+    // Elapsed-time check at the top of each round
+    const elapsedSec = (Date.now() - startTimeMs) / 1000;
+    if (elapsedSec >= budget.limits.maxElapsedSeconds) {
+      appendLedger(cwd, runId, {
+        round: roundCount,
+        intent: "time_exhausted",
+        timestamp: new Date().toISOString(),
+        content: `Elapsed time ${elapsedSec.toFixed(0)}s exceeded limit of ${budget.limits.maxElapsedSeconds}s`,
+      });
+      if (!briefPathResult) {
+        briefPathResult = briefFilePath(cwd, runId);
+        writeFileSync(
+          briefPathResult,
+          [
+            "# Research Brief (Time Exhausted)",
+            "",
+            `Elapsed time (${elapsedSec.toFixed(0)}s) exceeded the budget limit (${budget.limits.maxElapsedSeconds}s).`,
+            "Research was interrupted before the brief could be completed.",
+          ].join("\n"),
+        );
+      }
+      updateStatus(cwd, runId, "budget_exhausted");
+      refreshSummary(cwd, runId, run.question, budget, roundCount);
+      completed = true;
+      break;
+    }
+
+    // 1. Account for this model call
+    budget = trackUsage(budget, { modelCalls: 1 });
+
+    // 2. Ask the Brain for the next structured intent
+    const prompt = buildPrompt(run.question, currentSummary, budget);
+    const rawResponse = await brain.generate(prompt);
+    const intent = parseIntent(rawResponse);
+
+    // 3. Validate and handle parse errors
+    if (!intent || !VALID_INTENTS.includes(intent.intent as any)) {
+      appendLedger(cwd, runId, {
+        round: roundCount,
+        intent: "parse_error",
+        timestamp: new Date().toISOString(),
+        content: "Failed to parse valid intent from Brain response",
+        meta: { raw: rawResponse.slice(0, 200) },
+      });
+      continue;
+    }
+
+    // 4. Execute based on intent type
+    switch (intent.intent) {
+      // ── search ───────────────────────────────────────────────────────
+      case "search": {
+        const query = intent.query ?? run.question;
+        const results = await options.search(query);
+        budget = trackUsage(budget, { searches: 1 });
+
+        appendLedger(cwd, runId, {
+          round: roundCount,
+          intent: "search",
+          timestamp: new Date().toISOString(),
+          content: `Search: "${query}" returned ${results.length} result(s)`,
+          meta: {
+            query,
+            resultCount: results.length,
+            results: results.map((r) => ({ url: r.url, title: r.title })),
+          },
+        });
+        break;
+      }
+
+      // ── select_sources ───────────────────────────────────────────────
+      case "select_sources": {
+        const urls = intent.selectedUrls ?? [];
+        pendingUrls = urls;
+
+        appendLedger(cwd, runId, {
+          round: roundCount,
+          intent: "select_sources",
+          timestamp: new Date().toISOString(),
+          content: `Selected ${urls.length} source(s) for review`,
+          meta: {
+            selectedUrls: urls,
+            reasoning: intent.reasoning,
+          },
+        });
+        break;
+      }
+
+      // ── update_findings ──────────────────────────────────────────────
+      case "update_findings": {
+        // Orchestrator-phase: fetch any selected sources and create Source Notes
+        const urlsToFetch = pendingUrls.length > 0 ? pendingUrls : [];
+
+        for (const url of urlsToFetch) {
+          budget = trackUsage(budget, { fetchAttempts: 1 });
+
+          let fetched;
+          try {
+            fetched = await options.fetch(url);
+          } catch (err: any) {
+            appendLedger(cwd, runId, {
+              round: roundCount,
+              intent: "fetch_failed",
+              timestamp: new Date().toISOString(),
+              content: `Failed to fetch ${url}: ${err.message ?? String(err)}`,
+            });
+            continue;
+          }
+
+          budget = trackUsage(budget, { sourceVisits: 1 });
+          sourceNoteCount++;
+
+          const note: SourceNoteData = {
+            source: url,
+            finalUrl: fetched.finalUrl,
+            title: fetched.title,
+            sourceType: "web",
+            retrievedAt: fetched.retrievedAt,
+            citationNumber: sourceNoteCount,
+            snippets: intent.snippets ?? ["[Content retrieved]"],
+            contentType: fetched.contentType,
+            truncated: fetched.truncated,
+          };
+
+          writeSourceNote(cwd, runId, note);
+
+          appendLedger(cwd, runId, {
+            round: roundCount,
+            intent: "source_note_created",
+            timestamp: new Date().toISOString(),
+            content: `Created Source Note ${note.citationNumber} for ${url}`,
+            meta: {
+              sourceNoteNumber: note.citationNumber,
+              snippetCount: note.snippets.length,
+              truncated: fetched.truncated,
+            },
+          });
+        }
+
+        // Also handle Brain-provided findings that aren't tied to a specific URL
+        if (urlsToFetch.length === 0 && intent.snippets && intent.snippets.length > 0) {
+          sourceNoteCount++;
+          const note: SourceNoteData = {
+            source: "brain-provided",
+            title: "Brain-extracted findings",
+            sourceType: "web",
+            retrievedAt: new Date().toISOString(),
+            citationNumber: sourceNoteCount,
+            snippets: intent.snippets,
+            contentType: "text/markdown",
+            truncated: false,
+          };
+          writeSourceNote(cwd, runId, note);
+
+          appendLedger(cwd, runId, {
+            round: roundCount,
+            intent: "source_note_created",
+            timestamp: new Date().toISOString(),
+            content: `Created Source Note ${note.citationNumber} from Brain findings`,
+            meta: { snippetCount: note.snippets.length },
+          });
+        }
+
+        pendingUrls = [];
+        break;
+      }
+
+      // ── synthesize_brief ─────────────────────────────────────────────
+      case "synthesize_brief": {
+        const draft = intent.briefDraft ?? "# Research Brief\n\nNo draft provided.";
+        briefPathResult = briefFilePath(cwd, runId);
+        writeFileSync(briefPathResult, draft);
+
+        appendLedger(cwd, runId, {
+          round: roundCount,
+          intent: "synthesize_brief",
+          timestamp: new Date().toISOString(),
+          content: "Research Brief drafted",
+          meta: {
+            confidence: intent.confidence,
+            gaps: intent.gaps,
+            reasoning: intent.reasoning,
+          },
+        });
+
+        budget = trackUsage(budget, { synthesisRounds: 1 });
+        completed = true;
+        break;
+      }
+
+      // ── stop_early ───────────────────────────────────────────────────
+      case "stop_early": {
+        appendLedger(cwd, runId, {
+          round: roundCount,
+          intent: "stop_early",
+          timestamp: new Date().toISOString(),
+          content: `Brain recommended early stop: ${intent.reasoning ?? "no reason given"}`,
+        });
+
+        // Check the early-synthesis gate:
+        // Accept if minimum source notes met OR recorded Negative Evidence exists
+        const evidenceMet = sourceNoteCount >= minimumSourceNotes;
+        const hasNegative = hasRecordedNegativeEvidence(cwd, runId);
+
+        if (evidenceMet || hasNegative) {
+          // Accept early stop
+          completed = true;
+
+          if (!briefPathResult) {
+            briefPathResult = briefFilePath(cwd, runId);
+            const reason = evidenceMet
+              ? `Sufficient evidence (${sourceNoteCount} source notes).`
+              : `Negative Evidence justifies early stop.`;
+            writeFileSync(
+              briefPathResult,
+              [
+                "# Research Brief (Early Stop)",
+                "",
+                reason,
+                intent.reasoning ? `\n**Brain Reasoning**: ${intent.reasoning}\n` : "",
+              ].join("\n"),
+            );
+          }
+        } else {
+          // Reject early stop — insufficient evidence
+          const needed = minimumSourceNotes - sourceNoteCount;
+          appendLedger(cwd, runId, {
+            round: roundCount,
+            intent: "early_stop_rejected",
+            timestamp: new Date().toISOString(),
+            content:
+              `Early stop rejected: need ${needed} more source note(s) (have ${sourceNoteCount}, need ${minimumSourceNotes}) and no Negative Evidence recorded.`,
+          });
+          // Continue the loop — Brain will be asked again
+        }
+        break;
+      }
+    }
+
+    // 5. Check budget exhaustion after every round
+    if (isExhausted(budget)) {
+      if (!briefPathResult) {
+        briefPathResult = briefFilePath(cwd, runId);
+        writeFileSync(
+          briefPathResult,
+          [
+            "# Research Brief (Budget Exhausted)",
+            "",
+            "Budget was exhausted before the Research Brief could be completed.",
+            "Consider continuing with an additional budget allocation.",
+          ].join("\n"),
+        );
+      }
+      updateStatus(cwd, runId, "budget_exhausted");
+      refreshSummary(cwd, runId, run.question, budget, roundCount);
+      completed = true;
+      break;
+    }
+
+    // 6. Refresh Run Summary for next round
+    refreshSummary(cwd, runId, run.question, budget, roundCount);
+    currentSummary = readFileSync(summaryPath(cwd, runId), "utf-8");
+  }
+
+  // ── Finalize ──────────────────────────────────────────────────────────
+
+  const finalRun = getRun(cwd, runId);
+  if (finalRun && finalRun.status === "running") {
+    // If loop exited without drafting a brief, mark as failed
+    const targetStatus = briefPathResult ? "completed" : "failed";
+    updateStatus(cwd, runId, targetStatus as any);
+  }
+
+  refreshSummary(cwd, runId, run.question, budget, roundCount);
+
+  const finalLedger = readLedger(cwd, runId);
+
+  return {
+    briefPath: briefPathResult,
+    sourceNoteCount,
+    ledgerEntryCount: finalLedger.length,
+    roundCount,
+  };
+}
