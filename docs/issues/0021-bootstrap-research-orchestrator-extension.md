@@ -16,12 +16,12 @@ User stories covered: 14, 15, 39, 54, 56, 57, 60.
 
 ### Acceptance criteria
 
-- [ ] The Research Orchestrator extension registers a human research command and a high-level `deepresearch` agent tool
-- [ ] The command and tool can report that no Research Runs or Research Proposals exist in a fresh workspace
-- [ ] The Workspace Research Store is initialized under the active Pi session workspace, not the global Pi agent directory
-- [ ] The extension exposes tested seams for model setup, run storage, budgets, source access, and renderers
-- [ ] The one-active-run v1 constraint is represented in the lifecycle skeleton even before execution exists
-- [ ] Unit tests verify registration, workspace scoping, and empty status behavior
+- [x] The Research Orchestrator extension registers a human research command and a high-level `deepresearch` agent tool
+- [x] The command and tool can report that no Research Runs or Research Proposals exist in a fresh workspace
+- [x] The Workspace Research Store is initialized under the active Pi session workspace, not the global Pi agent directory
+- [x] The extension exposes tested seams for model setup, run storage, budgets, source access, and renderers
+- [x] The one-active-run v1 constraint is represented in the lifecycle skeleton even before execution exists
+- [x] Unit tests verify registration, workspace scoping, and empty status behavior
 
 ### Blocked by
 

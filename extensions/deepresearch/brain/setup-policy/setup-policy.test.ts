@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { resolveModel, validateOverride, recordMetadata, readinessGate, doctor, generatePolicyDoc, CONVENTIONAL_DEFAULT } from "./setup-policy.js";
 import type { ResolvedModel, ResearchProposal } from "./setup-policy.js";
-import type { DeepresearchConfig } from "../research-brain-harness/config.js";
+import type { DeepresearchConfig } from "../harness/config.js";
 
 describe("resolveModel", () => {
   // ── Tier 1: Proposal override ───────────────────────────────────────

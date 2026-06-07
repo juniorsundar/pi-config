@@ -1,6 +1,6 @@
-import type { DeepresearchConfig } from "../research-brain-harness/config.js";
-import type { ResearchBrain, HarnessResult } from "../research-brain-harness/types.js";
-import { runHarness } from "../research-brain-harness/probe-runner.js";
+import type { DeepresearchConfig } from "../harness/config.js";
+import type { ResearchBrain, HarnessResult } from "../harness/types.js";
+import { runHarness } from "../harness/probe-runner.js";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
