@@ -16,13 +16,13 @@ User stories covered: 7, 8, 9, 10, 11, 12, 13.
 
 ### Acceptance criteria
 
-- [ ] Quick reachability runs before creating or showing a normal approvable Research Proposal
-- [ ] Quick reachability failures produce setup-blocked guidance and may write Workspace Diagnostics without creating a proposal or run
-- [ ] Full readiness runs after approval and before source work using the exact resolved Research Brain model
-- [ ] Full readiness failures leave a stable readiness-failed Research Run artifact with Run Diagnostics
-- [ ] Doctor diagnostics can run on demand without creating a Research Run
-- [ ] Inline Thinking and malformed structured output are normalized or rejected according to the setup policy
-- [ ] Tests use mocked model responses for pass, recoverable, and hard-failure cases
+- [x] Quick reachability runs before creating or showing a normal approvable Research Proposal
+- [x] Quick reachability failures produce setup-blocked guidance and may write Workspace Diagnostics without creating a proposal or run
+- [x] Full readiness runs after approval and before source work using the exact resolved Research Brain model
+- [x] Full readiness failures leave a stable readiness-failed Research Run artifact with Run Diagnostics
+- [x] Doctor diagnostics can run on demand without creating a Research Run
+- [x] Inline Thinking and malformed structured output are normalized or rejected according to the setup policy
+- [x] Tests use mocked model responses for pass, recoverable, and hard-failure cases
 
 ### Blocked by
 

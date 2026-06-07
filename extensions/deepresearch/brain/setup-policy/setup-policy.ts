@@ -136,6 +136,11 @@ export interface BrainWithModel extends ResearchBrain {
   model: string;
 }
 
+export interface QuickReachabilityResult {
+  reachable: boolean;
+  error?: string;
+}
+
 export interface ReadinessResult {
   ready: boolean;
   testedModel: string;
@@ -143,11 +148,47 @@ export interface ReadinessResult {
   harness: HarnessResult;
 }
 
+// ── Quick reachability ────────────────────────────────────────────────────
+
+/**
+ * Run a minimal ping check to verify the Research Brain model is reachable.
+ * Uses a single lightweight generate() call — does NOT run the full harness.
+ *
+ * This runs before showing or creating a normal approvable Research Proposal.
+ * Never throws — always returns a QuickReachabilityResult.
+ */
+export async function quickReachability(
+  brain: ResearchBrain,
+): Promise<QuickReachabilityResult> {
+  try {
+    await brain.generate("ping");
+    return { reachable: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { reachable: false, error: message };
+  }
+}
+
+/**
+ * Thrown by readinessGate when the Model Readiness Check fails.
+ * Carries the harness results so downstream code can write diagnostics
+ * with actual probe data.
+ */
+export class ReadinessError extends Error {
+  constructor(
+    message: string,
+    public readonly harness: HarnessResult,
+  ) {
+    super(message);
+    this.name = "ReadinessError";
+  }
+}
+
 /**
  * Run the full Model Readiness Check against the exact resolved model.
  * Must be called immediately before source work begins.
  *
- * Hard-blocks (throws) if:
+ * Hard-blocks (throws ReadinessError) if:
  * - The brain's model does not match the resolved model
  * - Any probe failure is detected
  */
@@ -156,18 +197,20 @@ export async function readinessGate(
   brain: BrainWithModel,
 ): Promise<ReadinessResult> {
   if (brain.model !== resolved.model) {
-    throw new Error(
+    throw new ReadinessError(
       `Brain model '${brain.model}' does not match the resolved Research Brain model '${resolved.model}'. ` +
         "The full Model Readiness Check must test the exact resolved model immediately before source work begins.",
+      { results: [], summary: "model mismatch", diagnostics: [], passed: 0, recoverable: 0, failed: 1 },
     );
   }
 
   const harness = await runHarness(brain);
 
   if (harness.failed > 0) {
-    throw new Error(
+    throw new ReadinessError(
       `Model Readiness Check failed: ${harness.failed} probe(s) failed. ` +
         `See diagnostics for details.`,
+      harness,
     );
   }
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { resolveModel, validateOverride, recordMetadata, readinessGate, doctor, generatePolicyDoc, CONVENTIONAL_DEFAULT } from "./setup-policy.js";
-import type { ResolvedModel, ResearchProposal } from "./setup-policy.js";
+import { resolveModel, validateOverride, recordMetadata, readinessGate, ReadinessError, doctor, generatePolicyDoc, quickReachability, CONVENTIONAL_DEFAULT } from "./setup-policy.js";
+import type { ResolvedModel, ResearchProposal, QuickReachabilityResult } from "./setup-policy.js";
 import type { DeepresearchConfig } from "../harness/config.js";
 
 describe("resolveModel", () => {
@@ -429,6 +429,26 @@ describe("readinessGate", () => {
     expect(result.testedModel).toBe("tongyi-deepresearch:30b");
     expect(result.testedProvider).toBe("ollama");
   });
+
+  it("throws ReadinessError with harness results on probe failure", async () => {
+    const brain = {
+      model: "tongyi-deepresearch:30b",
+      generate: async (_prompt: string) => "gibberish not json at all",
+    };
+
+    let caught: ReadinessError | null = null;
+    try {
+      await readinessGate(resolved, brain);
+    } catch (err) {
+      caught = err as ReadinessError;
+    }
+
+    expect(caught).not.toBeNull();
+    expect(caught).toBeInstanceOf(ReadinessError);
+    expect(caught!.harness).toBeDefined();
+    expect(caught!.harness.failed).toBeGreaterThan(0);
+    expect(caught!.harness.results.length).toBeGreaterThan(0);
+  });
 });
 
 // ── doctor ────────────────────────────────────────────────────────────────
@@ -560,6 +580,100 @@ describe("generatePolicyDoc", () => {
     expect(doc).toContain("gpt-4");
     expect(doc).toContain("provider-specific template");
     expect(doc).toContain("provider-specific stop tokens");
+  });
+});
+
+// ── quickReachability ─────────────────────────────────────────────────────
+
+describe("quickReachability", () => {
+  /** Brain that returns a canned response (reachable). */
+  function reachableBrain() {
+    return {
+      generate: async (_prompt: string) => "ok",
+    };
+  }
+
+  /** Brain that throws on generate (unreachable). */
+  function unreachableBrain(message: string) {
+    return {
+      generate: async (_prompt: string) => {
+        throw new Error(message);
+      },
+    };
+  }
+
+  it("returns reachable:true when brain responds", async () => {
+    const result = await quickReachability(reachableBrain());
+
+    expect(result.reachable).toBe(true);
+    expect(result.error).toBeUndefined();
+  });
+
+  it("uses a minimal ping prompt to verify connectivity", async () => {
+    const prompts: string[] = [];
+    const brain = {
+      generate: async (prompt: string) => {
+        prompts.push(prompt);
+        return "ok";
+      },
+    };
+
+    await quickReachability(brain);
+
+    expect(prompts.length).toBe(1);
+    // The prompt should be minimal — a reachability ping, not a full probe
+    expect(prompts[0].length).toBeLessThan(200);
+  });
+
+  it("returns reachable:false with error when brain throws", async () => {
+    const result = await quickReachability(
+      unreachableBrain("Connection refused"),
+    );
+
+    expect(result.reachable).toBe(false);
+    expect(result.error).toContain("Connection refused");
+  });
+
+  it("captures Ollama model-not-found errors", async () => {
+    const result = await quickReachability(
+      unreachableBrain("model 'bad-model' not found"),
+    );
+
+    expect(result.reachable).toBe(false);
+    expect(result.error).toContain("not found");
+  });
+
+  it("captures Ollama host unreachable errors", async () => {
+    const result = await quickReachability(
+      unreachableBrain("fetch failed"),
+    );
+
+    expect(result.reachable).toBe(false);
+    expect(result.error).toContain("fetch failed");
+  });
+
+  it("does not throw — always returns a result", async () => {
+    // Quick reachability must never throw — it guards proposal creation
+    const result = await quickReachability(
+      unreachableBrain("boom"),
+    );
+
+    expect(result).toBeDefined();
+    expect(typeof result.reachable).toBe("boolean");
+  });
+
+  it("runs quickly — single generate call only", async () => {
+    let callCount = 0;
+    const brain = {
+      generate: async (_prompt: string) => {
+        callCount++;
+        return "ok";
+      },
+    };
+
+    await quickReachability(brain);
+
+    expect(callCount).toBe(1);
   });
 });
 

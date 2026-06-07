@@ -3,6 +3,9 @@ import { mkdtempSync, rmSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import * as statusModule from "../lifecycle/status";
+import { registerDeepresearchTool } from "./tool";
+import { registerResearchCommand } from "./command";
+import type { ResearchBrain } from "../brain/harness/types";
 
 // ── Module import ──
 
@@ -28,6 +31,27 @@ function mockExtensionAPI(): {
     registerCommand: vi.fn(),
     on: vi.fn(),
   };
+}
+
+/** Mock brain factory that returns a reachable brain for tests. */
+function mockBrainFactory(): () => Promise<ResearchBrain> {
+  return async () => ({
+    generate: async (_prompt: string) => "ok",
+  });
+}
+
+/** Mock brain factory that returns an unreachable brain. */
+function unreachableBrainFactory(message: string): () => Promise<ResearchBrain> {
+  return async () => ({
+    generate: async (_prompt: string) => {
+      throw new Error(message);
+    },
+  });
+}
+
+/** Register the tool with a reachable mock brain by default. */
+function registerToolWithMockBrain(pi: ReturnType<typeof mockExtensionAPI>) {
+  registerDeepresearchTool(pi, mockBrainFactory());
 }
 
 afterEach(() => {
@@ -149,7 +173,7 @@ describe("deepresearch tool status action", () => {
   it("returns empty results for a fresh workspace", async () => {
     const workDir = makeWorkDir();
     const pi = mockExtensionAPI();
-    deepresearchEntryPoint(pi as any);
+    registerToolWithMockBrain(pi);
 
     const toolDef = pi.registerTool.mock.calls[0][0];
     const result = await toolDef.execute(
@@ -178,7 +202,7 @@ describe("deepresearch tool propose action", () => {
   it("creates a draft proposal and returns preview", async () => {
     const workDir = makeWorkDir();
     const pi = mockExtensionAPI();
-    deepresearchEntryPoint(pi as any);
+    registerToolWithMockBrain(pi);
 
     const toolDef = pi.registerTool.mock.calls[0][0];
     const result = await toolDef.execute(
@@ -213,7 +237,7 @@ describe("deepresearch tool propose action", () => {
   it("returns error when question is missing", async () => {
     const workDir = makeWorkDir();
     const pi = mockExtensionAPI();
-    deepresearchEntryPoint(pi as any);
+    registerToolWithMockBrain(pi);
 
     const toolDef = pi.registerTool.mock.calls[0][0];
     const result = await toolDef.execute(
@@ -233,7 +257,7 @@ describe("deepresearch tool propose action", () => {
   it("returns error when trigger is missing", async () => {
     const workDir = makeWorkDir();
     const pi = mockExtensionAPI();
-    deepresearchEntryPoint(pi as any);
+    registerToolWithMockBrain(pi);
 
     const toolDef = pi.registerTool.mock.calls[0][0];
     const result = await toolDef.execute(
@@ -253,7 +277,7 @@ describe("deepresearch tool propose action", () => {
   it("accepts a valid decision-relevant trigger", async () => {
     const workDir = makeWorkDir();
     const pi = mockExtensionAPI();
-    deepresearchEntryPoint(pi as any);
+    registerToolWithMockBrain(pi);
 
     const toolDef = pi.registerTool.mock.calls[0][0];
     const result = await toolDef.execute(
@@ -280,7 +304,7 @@ describe("deepresearch tool propose action", () => {
   it("refuses a routine lookup trigger with clear guidance", async () => {
     const workDir = makeWorkDir();
     const pi = mockExtensionAPI();
-    deepresearchEntryPoint(pi as any);
+    registerToolWithMockBrain(pi);
 
     const toolDef = pi.registerTool.mock.calls[0][0];
     const result = await toolDef.execute(
@@ -309,7 +333,7 @@ describe("deepresearch tool propose action", () => {
   it("refuses a local-codebase exploration trigger with clear guidance", async () => {
     const workDir = makeWorkDir();
     const pi = mockExtensionAPI();
-    deepresearchEntryPoint(pi as any);
+    registerToolWithMockBrain(pi);
 
     const toolDef = pi.registerTool.mock.calls[0][0];
     const result = await toolDef.execute(
@@ -338,7 +362,7 @@ describe("deepresearch tool propose action", () => {
   it("refuses a curiosity-only trigger with clear guidance", async () => {
     const workDir = makeWorkDir();
     const pi = mockExtensionAPI();
-    deepresearchEntryPoint(pi as any);
+    registerToolWithMockBrain(pi);
 
     const toolDef = pi.registerTool.mock.calls[0][0];
     const result = await toolDef.execute(
@@ -363,6 +387,87 @@ describe("deepresearch tool propose action", () => {
     const proposals = statusModule.getStatus(workDir).proposals;
     expect(proposals.length).toBe(0);
   });
+
+  // ── Quick reachability guard ──────────────────────────────────────────
+
+  it("returns setup-blocked when quick reachability fails", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerDeepresearchTool(pi, unreachableBrainFactory("Connection refused"));
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-reach-1",
+      {
+        action: "propose",
+        question: "Should we use Rust or Go?",
+        trigger: "Choosing a language for a high-performance service",
+      },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    const textContent = result.content.find(
+      (c: { type: string }) => c.type === "text",
+    );
+    expect(textContent.text).toContain("Setup Blocked");
+    expect(textContent.text).toContain("Connection refused");
+    expect(result.details.status).toBe("setup_blocked");
+
+    // Verify no proposal was created
+    const proposals = statusModule.getStatus(workDir).proposals;
+    expect(proposals.length).toBe(0);
+  });
+
+  it("setup-blocked result includes /research doctor guidance", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerDeepresearchTool(pi, unreachableBrainFactory("model 'bad-model' not found"));
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-reach-2",
+      {
+        action: "propose",
+        question: "Which database to use?",
+        trigger: "Evaluating database options",
+      },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    const textContent = result.content.find(
+      (c: { type: string }) => c.type === "text",
+    );
+    expect(textContent.text).toContain("/research doctor");
+  });
+
+  it("writes workspace diagnostic on reachability failure", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerDeepresearchTool(pi, unreachableBrainFactory("timeout"));
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-reach-3",
+      {
+        action: "propose",
+        question: "Which framework?",
+        trigger: "Evaluating frameworks",
+      },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    // Diagnostic path should be in details
+    expect(result.details.diagnosticPath).toBeDefined();
+    expect(result.details.diagnosticPath).toContain(
+      ".pi/research/diagnostics/reachability-",
+    );
+  });
 });
 
 // ── Forbidden action surface (C4, C5, C6) ─────────────────────────────
@@ -370,7 +475,7 @@ describe("deepresearch tool propose action", () => {
 describe("deepresearch tool forbidden actions", () => {
   it("action enum excludes approve, deny, start, resume, cancel, force_synthesis", () => {
     const pi = mockExtensionAPI();
-    deepresearchEntryPoint(pi as any);
+    registerToolWithMockBrain(pi);
 
     const toolDef = pi.registerTool.mock.calls[0][0];
     const allowedActions = toolDef.parameters.properties.action.enum;
@@ -393,7 +498,7 @@ describe("deepresearch tool forbidden actions", () => {
 
   it("rejects additional properties (steering injection prevention)", () => {
     const pi = mockExtensionAPI();
-    deepresearchEntryPoint(pi as any);
+    registerToolWithMockBrain(pi);
 
     const toolDef = pi.registerTool.mock.calls[0][0];
     expect(toolDef.parameters.additionalProperties).toBe(false);
@@ -402,7 +507,7 @@ describe("deepresearch tool forbidden actions", () => {
   it("propose action does not auto-approve — proposal stays draft", async () => {
     const workDir = makeWorkDir();
     const pi = mockExtensionAPI();
-    deepresearchEntryPoint(pi as any);
+    registerToolWithMockBrain(pi);
 
     const toolDef = pi.registerTool.mock.calls[0][0];
     await toolDef.execute(
@@ -461,7 +566,7 @@ describe("/research propose command", () => {
   it("creates a draft proposal and prints confirmation", async () => {
     const workDir = makeWorkDir();
     const pi = mockExtensionAPI();
-    deepresearchEntryPoint(pi as any);
+    registerResearchCommand(pi, mockBrainFactory());
 
     const cmdOpts = pi.registerCommand.mock.calls[0][1];
     const mockLog: string[] = [];
@@ -491,7 +596,7 @@ describe("/research propose command", () => {
   it("prints usage hint when called without arguments", async () => {
     const workDir = makeWorkDir();
     const pi = mockExtensionAPI();
-    deepresearchEntryPoint(pi as any);
+    registerResearchCommand(pi, mockBrainFactory());
 
     const cmdOpts = pi.registerCommand.mock.calls[0][1];
     const mockLog: string[] = [];
@@ -506,5 +611,106 @@ describe("/research propose command", () => {
 
     const output = mockLog.join("\n");
     expect(output).toContain("Usage");
+  });
+
+  // ── Quick reachability guard ──────────────────────────────────────────
+
+  it("prints setup-blocked when reachability fails", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerResearchCommand(
+      pi,
+      unreachableBrainFactory("Connection refused"),
+    );
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler(
+      'propose "Which database?" --trigger "Choosing a database"',
+      ctx,
+    );
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("Setup Blocked");
+    expect(output).toContain("Connection refused");
+    expect(output).toContain("/research doctor");
+    expect(output).not.toContain("Draft proposal created");
+
+    // Verify no proposal was created
+    const proposals = statusModule.getStatus(workDir).proposals;
+    expect(proposals.length).toBe(0);
+  });
+});
+
+// ── Doctor command ────────────────────────────────────────────────────────
+
+describe("/research doctor command", () => {
+  it("runs diagnostics and displays results", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerResearchCommand(pi, mockBrainFactory());
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler("doctor", ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("Running doctor diagnostics");
+    // Summary should be present (even if all probes fail on mock)
+    expect(output.length).toBeGreaterThan(0);
+  });
+
+  it("does not create a Research Run", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerResearchCommand(pi, mockBrainFactory());
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler("doctor", ctx);
+
+    const status = statusModule.getStatus(workDir);
+    expect(status.runs.length).toBe(0);
+  });
+
+  it("supports --model override", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerResearchCommand(pi, mockBrainFactory());
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler('doctor --model custom-model:latest', ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("custom-model:latest");
   });
 });

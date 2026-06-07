@@ -1,7 +1,23 @@
 import type { ExtensionAPI, ToolDefinition } from "@earendil-works/pi-coding-agent";
 import { getStatus } from "../lifecycle/status";
-import { createProposal } from "../proposals/proposal-manager";
 import { validateTrigger } from "../proposals/trigger-validation";
+import { proposeWithReadiness } from "../proposals/propose-with-readiness";
+import type { ResearchBrain } from "../brain/harness/types";
+import { OllamaBrain } from "../brain/harness/ollama-brain";
+import { loadDeepresearchConfig } from "../brain/harness/config";
+
+/** Factory type for creating a ResearchBrain. Injectable for testing. */
+export type BrainFactory = () => Promise<ResearchBrain>;
+
+const defaultBrainFactory: BrainFactory = async () => {
+  const config = await loadDeepresearchConfig();
+  return new OllamaBrain({
+    model: config.model,
+    host: config.ollamaHost,
+    systemPrompt: config.systemPrompt,
+    options: config.options,
+  });
+};
 
 /**
  * Preserve parameter inference for tool definitions.
@@ -14,7 +30,10 @@ function defineTool<TParams, TDetails = unknown, TState = any>(
 }
 
 /** Register the agent-facing high-level `deepresearch` tool. */
-export function registerDeepresearchTool(pi: ExtensionAPI): void {
+export function registerDeepresearchTool(
+  pi: ExtensionAPI,
+  getBrain: BrainFactory = defaultBrainFactory,
+): void {
   const deepresearchTool = defineTool({
     name: "deepresearch",
     label: "Deep Research",
@@ -149,12 +168,36 @@ export function registerDeepresearchTool(pi: ExtensionAPI): void {
           };
         }
 
-        const meta = createProposal(cwd, {
+        // Run quick reachability before creating the proposal
+        const brain = await getBrain();
+        const proposeResult = await proposeWithReadiness(brain, cwd, {
           question,
           trigger,
           triggerSource: "agent",
         });
 
+        if (proposeResult.type === "setup_blocked") {
+          return {
+            content: [
+              {
+                type: "text",
+                text:
+                  `## Setup Blocked\n\n` +
+                  `**Error**: ${proposeResult.error}\n\n` +
+                  `${proposeResult.guidance}\n\n` +
+                  `**Diagnostic**: \`${proposeResult.diagnosticPath ?? "not written"}\``,
+              },
+            ],
+            details: {
+              action: "propose",
+              status: "setup_blocked",
+              error: proposeResult.error,
+              diagnosticPath: proposeResult.diagnosticPath,
+            },
+          };
+        }
+
+        const meta = proposeResult.meta;
         const proposalPath = `.pi/research/proposals/${meta.identity.id}/proposal.md`;
 
         return {
