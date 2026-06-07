@@ -6,7 +6,7 @@ PRD: `docs/prd/0004-agent-description-auto-load.md`
 
 ### What to build
 
-Update `docs/CONTEXT.md` to reflect the new architecture:
+Update `CONTEXT.md` to reflect the new architecture:
 
 - Remove any reference to `subagent-reference.md` as a living document
 - Add or update a note that agent descriptions now live in the auto-generated `subagent` tool description (sourced from YAML frontmatter in `agents/*.md`)

@@ -47,7 +47,7 @@ The result: agent descriptions are DRY (defined once in each agent's `.md` file)
 
 - Delete entirely. Its content (detailed per-agent guidance, example prompts) is superseded by the auto-loaded tool description and the prompt contract in `AGENTS.md`.
 
-**Module: `docs/CONTEXT.md`**
+**Module: `CONTEXT.md`**
 
 - Update the glossary to note that agent descriptions now live in the auto-generated tool description.
 - Remove any reference to `subagent-reference.md` as a living document.
