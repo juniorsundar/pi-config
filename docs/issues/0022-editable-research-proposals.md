@@ -16,13 +16,13 @@ User stories covered: 1, 2, 3, 4, 6, 46, 47.
 
 ### Acceptance criteria
 
-- [ ] Human-initiated requests create draft Research Proposals with all required editable fields
-- [ ] Proposal artifacts include a human-editable source of truth and a generated parsed cache for validation and preview
-- [ ] Approval always re-reads and validates the editable proposal before creating any Research Run
-- [ ] Parse or validation failures block approval with actionable feedback
-- [ ] Denied proposals are recorded as proposals and do not become Research Runs
-- [ ] Proposal generation does not consume approved Research Budget
-- [ ] Tests cover create, edit-then-approve, invalid edit, and deny flows
+- [x] Human-initiated requests create draft Research Proposals with all required editable fields
+- [x] Proposal artifacts include a human-editable source of truth and a generated parsed cache for validation and preview
+- [x] Approval always re-reads and validates the editable proposal before creating any Research Run
+- [x] Parse or validation failures block approval with actionable feedback
+- [x] Denied proposals are recorded as proposals and do not become Research Runs
+- [x] Proposal generation does not consume approved Research Budget
+- [x] Tests cover create, edit-then-approve, invalid edit, and deny flows
 
 ### Blocked by
 

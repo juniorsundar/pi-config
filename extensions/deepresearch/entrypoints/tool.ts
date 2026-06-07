@@ -1,5 +1,6 @@
 import type { ExtensionAPI, ToolDefinition } from "@earendil-works/pi-coding-agent";
 import { getStatus } from "../lifecycle/status";
+import { createProposal } from "../proposals/proposal-manager";
 
 /**
  * Preserve parameter inference for tool definitions.
@@ -92,14 +93,71 @@ export function registerDeepresearchTool(pi: ExtensionAPI): void {
       }
 
       if (action === "propose") {
+        const question = params.question as string | undefined;
+        const trigger = params.trigger as string | undefined;
+
+        if (!question || question.trim().length === 0) {
+          return {
+            content: [
+              {
+                type: "text",
+                text:
+                  "**Error**: Research Question is required for proposal creation. " +
+                  "Please provide a `question` parameter.",
+              },
+            ],
+            details: { action: "propose", status: "error",
+              reason: "missing_question" },
+          };
+        }
+
+        if (!trigger || trigger.trim().length === 0) {
+          return {
+            content: [
+              {
+                type: "text",
+                text:
+                  "**Error**: Research Trigger is required for proposal creation. " +
+                  "Please provide a `trigger` parameter describing the external " +
+                  "decision-relevant uncertainty.",
+              },
+            ],
+            details: { action: "propose", status: "error",
+              reason: "missing_trigger" },
+          };
+        }
+
+        const meta = createProposal(cwd, {
+          question,
+          trigger,
+          triggerSource: "agent",
+        });
+
+        const proposalPath = `.pi/research/proposals/${meta.identity.id}/proposal.md`;
+
         return {
           content: [
             {
               type: "text",
-              text: "Proposal creation is not yet implemented. Use /research propose in the chat.",
+              text:
+                `## Research Proposal (draft)\n\n` +
+                `**ID**: \`${meta.identity.id}\`\n` +
+                `**Status**: ${meta.status}\n` +
+                `**Question**: ${meta.question}\n` +
+                `**Trigger**: ${meta.trigger}\n` +
+                `**Trigger Source**: agent\n\n` +
+                `**Proposal file**: \`${proposalPath}\`\n\n` +
+                `Review and edit \`${proposalPath}\` before approving.`,
             },
           ],
-          details: { action: "propose", status: "not_implemented" },
+          details: {
+            action: "propose",
+            status: "draft",
+            proposal: {
+              id: meta.identity.id,
+              path: proposalPath,
+            },
+          },
         };
       }
 

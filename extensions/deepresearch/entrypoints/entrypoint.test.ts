@@ -93,14 +93,13 @@ describe("deepresearch entry point", () => {
     expect(toolDef.parameters.required).toContain("action");
   });
 
-  it("deepresearch tool supports status action", () => {
+  it("deepresearch tool supports propose action", () => {
     const pi = mockExtensionAPI();
     deepresearchEntryPoint(pi as any);
 
     const toolDef = pi.registerTool.mock.calls[0][0];
     const actionProp = toolDef.parameters.properties.action;
-    expect(actionProp).toHaveProperty("enum");
-    expect(actionProp.enum).toContain("status");
+    expect(actionProp.enum).toContain("propose");
   });
 
   it("deepresearch tool execute handler is a function", () => {
@@ -173,6 +172,85 @@ describe("deepresearch tool status action", () => {
   });
 });
 
+// ── Propose via tool ─────────────────────────────────────────────────────
+
+describe("deepresearch tool propose action", () => {
+  it("creates a draft proposal and returns preview", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-2",
+      {
+        action: "propose",
+        question: "Is Deno better than Node.js for CLI tools?",
+        trigger: "Evaluating runtime options for a new CLI project",
+      },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    const textContent = result.content.find(
+      (c: { type: string }) => c.type === "text",
+    );
+    expect(textContent).toBeDefined();
+    expect(textContent.text).toContain("Research Proposal");
+    expect(textContent.text).toContain(
+      "Is Deno better than Node.js for CLI tools?",
+    );
+    expect(textContent.text).toContain("draft");
+    expect(textContent.text).toContain("proposal.md");
+
+    // Verify it's persisted
+    const proposals = statusModule.getStatus(workDir).proposals;
+    expect(proposals.length).toBe(1);
+    expect(proposals[0].status).toBe("draft");
+  });
+
+  it("returns error when question is missing", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-3",
+      { action: "propose", trigger: "Some trigger" },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    const textContent = result.content.find(
+      (c: { type: string }) => c.type === "text",
+    );
+    expect(textContent.text).toContain("Error");
+  });
+
+  it("returns error when trigger is missing", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-4",
+      { action: "propose", question: "A question?" },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    const textContent = result.content.find(
+      (c: { type: string }) => c.type === "text",
+    );
+    expect(textContent.text).toContain("Error");
+  });
+});
+
 // ── Status via /research command ──────────────────────────────────────────
 
 describe("/research status command", () => {
@@ -184,7 +262,6 @@ describe("/research status command", () => {
     const cmdOpts = pi.registerCommand.mock.calls[0][1];
     expect(cmdOpts.handler).toBeTypeOf("function");
 
-    // Subcommand "status" should trigger status output
     const mockLog: string[] = [];
     const ctx = {
       cwd: workDir,
@@ -197,5 +274,59 @@ describe("/research status command", () => {
     const output = mockLog.join("\n");
     expect(output).toContain("No active research run");
     expect(output).toContain("No research proposals");
+  });
+});
+
+// ── Propose via /research command ────────────────────────────────────────
+
+describe("/research propose command", () => {
+  it("creates a draft proposal and prints confirmation", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler(
+      'propose "Is Deno good?" --trigger "Evaluating runtimes"',
+      ctx,
+    );
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("Draft proposal created");
+    expect(output).toContain("Is Deno good?");
+    expect(output).toContain("draft");
+
+    // Verify persisted
+    const proposals = statusModule.getStatus(workDir).proposals;
+    expect(proposals.length).toBe(1);
+    expect(proposals[0].status).toBe("draft");
+  });
+
+  it("prints usage hint when called without arguments", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler("propose", ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("Usage");
   });
 });
