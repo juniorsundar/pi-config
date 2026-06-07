@@ -5,6 +5,9 @@ import { tmpdir } from "os";
 import * as statusModule from "../lifecycle/status";
 import { registerDeepresearchTool } from "./tool";
 import { registerResearchCommand } from "./command";
+import { initStore } from "../workspace/store";
+import { createProposal } from "../proposals/proposal-manager";
+import { createRun, updateStatus } from "../lifecycle/run-store";
 import type { ResearchBrain } from "../brain/harness/types";
 
 // ── Module import ──
@@ -37,6 +40,34 @@ function mockExtensionAPI(): {
 function mockBrainFactory(): () => Promise<ResearchBrain> {
   return async () => ({
     generate: async (_prompt: string) => "ok",
+  });
+}
+
+/** Brain factory that passes all readiness probes. */
+function passingBrainFactory(): () => Promise<ResearchBrain> {
+  const responses: Record<string, string> = {
+    "structured-intents": JSON.stringify({ intent: "search" }),
+    "inline-thinking": "Clean response without thinking tags.",
+    "stop-behavior": JSON.stringify({
+      intent: "stop_early",
+      reasoning: "sufficient",
+    }),
+    "fenced-output": JSON.stringify({ intent: "search" }),
+    "source-note": JSON.stringify({
+      url: "https://example.com",
+      title: "Example",
+      snippets: ["Finding"],
+      citation_number: 1,
+    }),
+    synthesis: "Findings show results [1] and [2] support the conclusion.",
+  };
+  return async () => ({
+    generate: async (prompt: string) => {
+      for (const [key, value] of Object.entries(responses)) {
+        if (prompt.includes(`probe: ${key}`)) return value;
+      }
+      return "";
+    },
   });
 }
 
@@ -712,5 +743,126 @@ describe("/research doctor command", () => {
 
     const output = mockLog.join("\n");
     expect(output).toContain("custom-model:latest");
+  });
+});
+
+// ── Approve command ──────────────────────────────────────────────────────
+
+describe("/research approve command", () => {
+  it("prints usage when called without proposal ID", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerResearchCommand(pi, passingBrainFactory());
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler("approve", ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("Usage");
+    expect(output).toContain("approve");
+  });
+
+  it("approves a proposal and activates the run (no active run)", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerResearchCommand(pi, passingBrainFactory());
+
+    // Create a draft proposal first
+    initStore(workDir);
+    const proposal = createProposal(workDir, {
+      question: "Should we use Rust or Go?",
+      trigger: "Choosing a language for a high-performance service",
+      mode: "blocking",
+    });
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler(`approve ${proposal.identity.id}`, ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("Proposal approved");
+    expect(output).toContain(proposal.identity.id);
+    expect(output).toContain("Activated:  yes");
+    expect(output).toContain("running");
+
+    // Verify a run was created
+    const status = statusModule.getStatus(workDir);
+    expect(status.runs.length).toBe(1);
+    expect(status.runs[0].status).toBe("running");
+  });
+
+  it("approves a proposal and queues when active run exists", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerResearchCommand(pi, passingBrainFactory());
+
+    // Create a draft proposal first
+    initStore(workDir);
+
+    // Create an active run first
+    const activeRun = createRun(workDir, "Already active");
+    updateStatus(workDir, activeRun.identity.id, "running");
+
+    // Now create a proposal
+    const proposal = createProposal(workDir, {
+      question: "Queued proposal?",
+      trigger: "A valid trigger",
+    });
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler(`approve ${proposal.identity.id}`, ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("Proposal approved");
+    expect(output).toContain("Activated:  no");
+    expect(output).toContain("queued behind active run");
+
+    // Verify runs: 1 active + 1 queued
+    const status = statusModule.getStatus(workDir);
+    expect(status.runs.length).toBe(2);
+    expect(status.activeRun).not.toBeNull();
+  });
+
+  it("shows error when proposal ID not found", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerResearchCommand(pi, mockBrainFactory());
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler("approve nonexistent-id", ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("Proposal not found");
   });
 });

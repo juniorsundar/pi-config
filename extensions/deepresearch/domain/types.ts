@@ -65,6 +65,19 @@ export interface RunMeta {
   updatedAt: string;
   /** Optional: termination reason when status is terminal. */
   terminationReason?: string;
+  /** Blocking or background mode (carried from approved proposal). */
+  mode?: "blocking" | "background";
+  /** The decision-relevant trigger (carried from approved proposal). */
+  trigger?: string;
+  /** Approved budget limits (carried from approved proposal). */
+  budgetLimits?: Partial<import("../budgets/budget").BudgetLimits>;
+  /** Optional: resume metadata for interrupted or budget_exhausted runs. */
+  resumeMetadata?: {
+    /** When the run was paused (ISO 8601). */
+    pausedAt?: string;
+    /** Last checkpoint artifact (e.g., ledger line, source note index). */
+    lastCheckpoint?: string;
+  };
 }
 
 /**

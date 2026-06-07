@@ -16,13 +16,13 @@ User stories covered: 6, 14, 15, 18, 20, 41, 42.
 
 ### Acceptance criteria
 
-- [ ] Approval creates a Research Run with readable date, slug, and short-id identity
-- [ ] Approved proposal content is carried into the Research Run as the human-readable approved request
-- [ ] Run status records lifecycle state, trigger, blocking/background mode, timestamps, and resume metadata
-- [ ] The one-active-run constraint treats only running and synthesizing runs as active
-- [ ] Additional approved runs become queued or request user action when another run is active
-- [ ] Queued runs do not consume search, source, model-call, or elapsed-time research budget
-- [ ] Tests cover immediate activation, queued activation, and readiness-failed transition
+- [x] Approval creates a Research Run with readable date, slug, and short-id identity
+- [x] Approved proposal content is carried into the Research Run as the human-readable approved request
+- [x] Run status records lifecycle state, trigger, blocking/background mode, timestamps, and resume metadata
+- [x] The one-active-run constraint treats only running and synthesizing runs as active
+- [x] Additional approved runs become queued or request user action when another run is active
+- [x] Queued runs do not consume search, source, model-call, or elapsed-time research budget
+- [x] Tests cover immediate activation, queued activation, and readiness-failed transition
 
 ### Blocked by
 

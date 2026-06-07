@@ -1,7 +1,9 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { getStatus } from "../lifecycle/status";
 import { proposeWithReadiness } from "../proposals/propose-with-readiness";
-import { doctor } from "../brain/setup-policy/setup-policy";
+import { approveAndActivateRun } from "../lifecycle/approve-and-create-run";
+import { getProposal } from "../proposals/proposal-manager";
+import { doctor, resolveModel } from "../brain/setup-policy/setup-policy";
 import { writeDoctorDiagnostic } from "../brain/setup-policy/diagnostics";
 import type { BrainFactory } from "./tool";
 import { OllamaBrain } from "../brain/harness/ollama-brain";
@@ -187,9 +189,91 @@ export function registerResearchCommand(
             `Diagnostic artifact: ${writtenPath}`,
           );
         }
+      } else if (args.startsWith("approve")) {
+        // Parse: /research approve <proposal-id>
+        const proposalId = args.slice("approve".length).trim();
+
+        if (proposalId.length === 0) {
+          ctx.print("Usage: /research approve <proposal-id>");
+          ctx.print("");
+          ctx.print(
+            "Approves a draft Research Proposal, creates a Research Run, and either",
+          );
+          ctx.print(
+            "activates it immediately or queues it behind an active run.",
+          );
+          return;
+        }
+
+        // Read the proposal to get any model override
+        const proposal = getProposal(cwd, proposalId);
+        if (!proposal) {
+          ctx.print(`Proposal not found: ${proposalId}`);
+          return;
+        }
+
+        // Load config and resolve model (with proposal for modelOverride tier)
+        const config = await loadDeepresearchConfig();
+        const resolved = resolveModel({
+          config,
+          proposal,
+        });
+
+        // Get the brain for readiness checking
+        let brain: Awaited<ReturnType<BrainFactory>>;
+        if (resolved.model !== config.model) {
+          brain = new OllamaBrain({
+            model: resolved.model,
+            host: config.ollamaHost,
+            systemPrompt: config.systemPrompt,
+            options: config.options,
+          });
+        } else {
+          brain = await getBrain();
+        }
+
+        try {
+          const result = await approveAndActivateRun(
+            cwd,
+            proposalId,
+            resolved,
+            Object.assign(brain, { model: resolved.model }),
+          );
+
+          ctx.print(`Proposal approved: ${proposalId}`);
+          ctx.print(`  Run ID:     ${result.run.identity.id}`);
+          ctx.print(`  Status:     ${result.run.status}`);
+          ctx.print(`  Question:   ${result.run.question}`);
+
+          if (result.activated) {
+            ctx.print(`  Activated:  yes (readiness passed)`);
+            ctx.print(
+              `  Model:      ${result.activationResult!.testedModel}`,
+            );
+          } else {
+            ctx.print(`  Activated:  no (queued behind active run)`);
+          }
+
+          ctx.print(
+            `  Path:       .pi/research/runs/${result.run.identity.id}/`,
+          );
+        } catch (err: any) {
+          const message = err.message ?? String(err);
+          if (message.includes("Readiness Check") || message.includes("readiness")) {
+            ctx.print(`Proposal approved but readiness check failed: ${message}`);
+            ctx.print(
+              "The run was created in readiness_failed status. " +
+              "Check run diagnostics for details and retry after fixing the model setup.",
+            );
+          } else if (message.includes("not found")) {
+            ctx.print(`Approval failed: ${message}`);
+          } else {
+            ctx.print(`Approval failed: ${message}`);
+          }
+        }
       } else {
         ctx.print(`Unknown research subcommand: ${args.slice(0, 50)}`);
-        ctx.print("Available: status, propose, doctor");
+        ctx.print("Available: status, propose, approve, doctor");
       }
     },
   });

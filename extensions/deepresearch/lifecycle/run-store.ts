@@ -23,7 +23,15 @@ function runDirPath(cwd: string, runId: string): string {
  * Creates the run directory and writes initial status.json.
  * Initial status is `queued`.
  */
-export function createRun(cwd: string, question: string): RunMeta {
+export function createRun(
+  cwd: string,
+  question: string,
+  opts?: {
+    mode?: "blocking" | "background";
+    trigger?: string;
+    budgetLimits?: import("../domain/types").RunMeta["budgetLimits"];
+  },
+): RunMeta {
   const identity = generateIdentity(question);
   const now = new Date().toISOString();
   const runPath = runDirPath(cwd, identity.id);
@@ -36,6 +44,9 @@ export function createRun(cwd: string, question: string): RunMeta {
     question,
     createdAt: now,
     updatedAt: now,
+    mode: opts?.mode,
+    trigger: opts?.trigger,
+    budgetLimits: opts?.budgetLimits,
   };
 
   writeFileSync(statusPath(cwd, identity.id), JSON.stringify(meta, null, 2));
