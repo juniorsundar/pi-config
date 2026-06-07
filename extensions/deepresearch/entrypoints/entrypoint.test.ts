@@ -249,6 +249,184 @@ describe("deepresearch tool propose action", () => {
     );
     expect(textContent.text).toContain("Error");
   });
+
+  it("accepts a valid decision-relevant trigger", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-5",
+      {
+        action: "propose",
+        question: "Should we use Bun or Node.js for this project?",
+        trigger: "Evaluating runtime performance for our API server",
+      },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    expect(result.details.action).toBe("propose");
+    expect(result.details.status).toBe("draft");
+
+    // Verify proposal persisted with draft status
+    const proposals = statusModule.getStatus(workDir).proposals;
+    expect(proposals.length).toBe(1);
+    expect(proposals[0].status).toBe("draft");
+  });
+
+  it("refuses a routine lookup trigger with clear guidance", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-6",
+      {
+        action: "propose",
+        question: "What is the current version of React?",
+        trigger: "What is the current version of React?",
+      },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    const textContent = result.content.find(
+      (c: { type: string }) => c.type === "text",
+    );
+    expect(textContent.text).toContain("Error");
+    expect(textContent.text).toContain("web_search");
+
+    // Verify no proposal was created
+    const proposals = statusModule.getStatus(workDir).proposals;
+    expect(proposals.length).toBe(0);
+  });
+
+  it("refuses a local-codebase exploration trigger with clear guidance", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-7",
+      {
+        action: "propose",
+        question: "Where is the proposal manager?",
+        trigger: "Find all TypeScript files in this project",
+      },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    const textContent = result.content.find(
+      (c: { type: string }) => c.type === "text",
+    );
+    expect(textContent.text).toContain("Error");
+    expect(textContent.text).toContain("bash");
+
+    // Verify no proposal was created
+    const proposals = statusModule.getStatus(workDir).proposals;
+    expect(proposals.length).toBe(0);
+  });
+
+  it("refuses a curiosity-only trigger with clear guidance", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-8",
+      {
+        action: "propose",
+        question: "I wonder how Rust stacks up",
+        trigger: "I wonder how Rust compares to Go for web servers",
+      },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    const textContent = result.content.find(
+      (c: { type: string }) => c.type === "text",
+    );
+    expect(textContent.text).toContain("Error");
+    expect(textContent.text).toContain("rephrase");
+
+    // Verify no proposal was created
+    const proposals = statusModule.getStatus(workDir).proposals;
+    expect(proposals.length).toBe(0);
+  });
+});
+
+// ── Forbidden action surface (C4, C5, C6) ─────────────────────────────
+
+describe("deepresearch tool forbidden actions", () => {
+  it("action enum excludes approve, deny, start, resume, cancel, force_synthesis", () => {
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const allowedActions = toolDef.parameters.properties.action.enum;
+
+    const forbiddenActions = [
+      "approve",
+      "deny",
+      "start",
+      "resume",
+      "cancel",
+      "force_synthesis",
+      "steer",
+      "add_instruction",
+    ];
+
+    for (const forbidden of forbiddenActions) {
+      expect(allowedActions).not.toContain(forbidden);
+    }
+  });
+
+  it("rejects additional properties (steering injection prevention)", () => {
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    expect(toolDef.parameters.additionalProperties).toBe(false);
+  });
+
+  it("propose action does not auto-approve — proposal stays draft", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    await toolDef.execute(
+      "call-guard-1",
+      {
+        action: "propose",
+        question: "Should we use X or Y?",
+        trigger: "Choosing a database for production",
+      },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    const status = statusModule.getStatus(workDir);
+    // No run was created (C5: human approval required)
+    expect(status.runs.length).toBe(0);
+    expect(status.activeRun).toBeNull();
+
+    // All proposals are draft
+    for (const p of status.proposals) {
+      expect(p.status).toBe("draft");
+    }
+  });
 });
 
 // ── Status via /research command ──────────────────────────────────────────

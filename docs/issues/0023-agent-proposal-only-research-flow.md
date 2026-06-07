@@ -16,12 +16,12 @@ User stories covered: 5, 46, 47, 48.
 
 ### Acceptance criteria
 
-- [ ] The `deepresearch` tool supports proposal creation without starting a Research Run
-- [ ] Agent-triggered proposal creation requires a valid Research Trigger
-- [ ] Routine lookup, local-codebase-only exploration, and curiosity-only requests are refused with clear guidance
-- [ ] The tool cannot approve, deny, start, resume, cancel, force synthesis, or add Steering Instructions
-- [ ] Human approval is required before any agent-triggered proposal becomes a Research Run
-- [ ] Tests verify allowed and forbidden agent actions
+- [x] The `deepresearch` tool supports proposal creation without starting a Research Run
+- [x] Agent-triggered proposal creation requires a valid Research Trigger
+- [x] Routine lookup, local-codebase-only exploration, and curiosity-only requests are refused with clear guidance
+- [x] The tool cannot approve, deny, start, resume, cancel, force synthesis, or add Steering Instructions
+- [x] Human approval is required before any agent-triggered proposal becomes a Research Run
+- [x] Tests verify allowed and forbidden agent actions
 
 ### Blocked by
 

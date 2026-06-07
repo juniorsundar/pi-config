@@ -1,6 +1,7 @@
 import type { ExtensionAPI, ToolDefinition } from "@earendil-works/pi-coding-agent";
 import { getStatus } from "../lifecycle/status";
 import { createProposal } from "../proposals/proposal-manager";
+import { validateTrigger } from "../proposals/trigger-validation";
 
 /**
  * Preserve parameter inference for tool definitions.
@@ -25,7 +26,8 @@ export function registerDeepresearchTool(pi: ExtensionAPI): void {
       "read_brief (read a completed Research Brief), " +
       "render_view (render a Human Research View), " +
       "recommend_resume (check if a run can be resumed). " +
-      "The tool cannot approve, deny, start, resume, cancel, or steer runs.",
+      "The tool cannot approve, deny, start, resume, cancel, " +
+      "force synthesis, add steering instructions, or otherwise steer runs.",
     parameters: {
       type: "object",
       properties: {
@@ -124,6 +126,26 @@ export function registerDeepresearchTool(pi: ExtensionAPI): void {
             ],
             details: { action: "propose", status: "error",
               reason: "missing_trigger" },
+          };
+        }
+
+        // Validate trigger quality for agent-triggered proposals.
+        const triggerValidation = validateTrigger(trigger);
+        if (!triggerValidation.valid) {
+          return {
+            content: [
+              {
+                type: "text",
+                text:
+                  `**Error**: Invalid Research Trigger. ${triggerValidation.reason}`,
+              },
+            ],
+            details: {
+              action: "propose",
+              status: "error",
+              reason: "invalid_trigger",
+              triggerValidation,
+            },
           };
         }
 
