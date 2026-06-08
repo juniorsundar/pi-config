@@ -2,6 +2,11 @@ import type { ExtensionAPI, ToolDefinition } from "@earendil-works/pi-coding-age
 import { getStatus } from "../lifecycle/status";
 import { validateTrigger } from "../proposals/trigger-validation";
 import { proposeWithReadiness } from "../proposals/propose-with-readiness";
+import { renderRun } from "../rendering/human-view-facade";
+import { getRun } from "../lifecycle/run-store";
+import { getStorePath } from "../workspace/store";
+import { readFileSync, existsSync } from "fs";
+import { join } from "path";
 import type { ResearchBrain } from "../brain/harness/types";
 import { OllamaBrain } from "../brain/harness/ollama-brain";
 import { loadDeepresearchConfig } from "../brain/harness/config";
@@ -292,6 +297,162 @@ export function registerDeepresearchTool(
               id: meta.identity.id,
               path: proposalPath,
             },
+          },
+        };
+      }
+
+      // render_view — generate a Human Research View from run artifacts
+      if (action === "render_view") {
+        const runId = params.run_id as string | undefined;
+
+        if (!runId || runId.trim().length === 0) {
+          return {
+            content: [
+              {
+                type: "text",
+                text:
+                  "**Error**: Research Run ID is required for render_view. " +
+                  "Please provide a `run_id` parameter.",
+              },
+            ],
+            details: { action: "render_view", status: "error", reason: "missing_run_id" },
+          };
+        }
+
+        try {
+          const viewPath = await renderRun(cwd, runId);
+          return {
+            content: [
+              {
+                type: "text",
+                text:
+                  `## Human Research View\n\n` +
+                  `**Run**: \`${runId}\`\n` +
+                  `**View path**: \`${viewPath}\``,
+              },
+            ],
+            details: {
+              action: "render_view",
+              status: "success",
+              runId,
+              viewPath,
+            },
+          };
+        } catch (err: any) {
+          return {
+            content: [
+              {
+                type: "text",
+                text:
+                  `**Error**: ${err.message ?? String(err)}`,
+              },
+            ],
+            details: {
+              action: "render_view",
+              status: "error",
+              runId,
+              reason: err.message ?? String(err),
+            },
+          };
+        }
+      }
+
+      // read_brief — read the Research Brief markdown
+      if (action === "read_brief") {
+        const runId = params.run_id as string | undefined;
+
+        if (!runId || runId.trim().length === 0) {
+          return {
+            content: [
+              {
+                type: "text",
+                text:
+                  "**Error**: Research Run ID is required for read_brief. " +
+                  "Please provide a `run_id` parameter.",
+              },
+            ],
+            details: { action: "read_brief", status: "error", reason: "missing_run_id" },
+          };
+        }
+
+        // Use getRun to find the run, check status policy, read brief.md
+        const meta = getRun(cwd, runId);
+
+        if (!meta) {
+          return {
+            content: [
+              { type: "text", text: `**Error**: Run not found: ${runId}` },
+            ],
+            details: { action: "read_brief", status: "error", runId, reason: "not_found" },
+          };
+        }
+
+        // Only completed and budget_exhausted produce readable briefs
+        const readableStatuses = new Set(["completed", "budget_exhausted"]);
+        if (!readableStatuses.has(meta.status)) {
+          if (meta.status === "failed" && (meta as any).previousBriefAvailable) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text:
+                    `**Error**: Run ${runId} has status "failed". ` +
+                    `A previous brief version exists but may be stale. ` +
+                    `Use the status action to inspect, or run ` +
+                    `\`/research render ${runId} --allow-failed\` ` +
+                    `for explicit human inspection.`,
+                },
+              ],
+              details: { action: "read_brief", status: "error", runId, reason: "failed_with_previous_brief" },
+            };
+          }
+          return {
+            content: [
+              {
+                type: "text",
+                text:
+                  `**Error**: Run ${runId} has status "${meta.status}". ` +
+                  `Briefs can only be read for completed or budget_exhausted runs.`,
+              },
+            ],
+            details: { action: "read_brief", status: "error", runId, reason: "unreadable_status" },
+          };
+        }
+
+        // Try to read brief.md
+        const briefPath = join(getStorePath(cwd), "runs", runId, "brief.md");
+
+        if (!existsSync(briefPath)) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `**Error**: No brief.md found for run ${runId}. ` +
+                  `The run has status "${meta.status}" but the brief file is missing.`,
+              },
+            ],
+            details: { action: "read_brief", status: "error", runId, reason: "missing_brief" },
+          };
+        }
+
+        const briefContent = readFileSync(briefPath, "utf-8");
+
+        return {
+          content: [
+            {
+              type: "text",
+              text:
+                `## Research Brief: ${runId}\n\n` +
+                `**Status**: ${meta.status}\n\n` +
+                briefContent,
+            },
+          ],
+          details: {
+            action: "read_brief",
+            status: "success",
+            runId,
+            briefPath,
+            sections: meta.status,
           },
         };
       }

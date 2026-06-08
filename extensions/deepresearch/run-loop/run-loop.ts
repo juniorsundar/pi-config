@@ -36,6 +36,7 @@ import type {
   ParsedIntent,
 } from "./types";
 import { renderProgressDigest, type ProgressDigestInput } from "../rendering/progress-digest";
+import { renderRun } from "../rendering/human-view-facade";
 import { extractFromWebSource, chunkContent, mergeChunkExtractions, DEFAULT_CHUNK_THRESHOLD } from "../source-notes/extractor";
 import { writeRawContentToDiagnostics } from "../source-notes/diagnostics";
 import { EvidenceMix } from "../domain/evidence-mix";
@@ -1020,6 +1021,20 @@ export async function executeResearchRun(
 
   refreshSummary(cwd, runId, run.question, budget, roundCount);
   refreshProgressDigest(cwd, runId, run.question, currentRunStatus, budget, roundCount, sourceNoteCount, evidenceMix, negativeEvidence, briefPathResult, (Date.now() - startTimeMs) / 1000);
+
+  // Auto-generate Human Research View for human-initiated completed or budget_exhausted runs
+  const readableForView = new Set(["completed", "budget_exhausted"]);
+  if (
+    currentRunStatus &&
+    readableForView.has(currentRunStatus) &&
+    run.triggerSource === "human"
+  ) {
+    try {
+      await renderRun(cwd, runId);
+    } catch {
+      // Auto-generation is best-effort — don't fail the run if view rendering fails
+    }
+  }
 
   const finalLedger = readLedger(cwd, runId);
 

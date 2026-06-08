@@ -1626,4 +1626,140 @@ describe("Research Run loop — citation validation and trigger gating", () => {
     expect(briefContent).toContain("## Implications for Current Task");
     expect(briefContent).toContain("Use Approach A in Pi now [1].");
   });
+
+  it("auto-generates Human Research View for human-initiated completed runs", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    // Human-triggered run
+    const run = createRun(workDir, "Auto-view test?", {
+      triggerSource: "human",
+      budgetLimits: {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 1,
+        maxElapsedSeconds: 300,
+      },
+    });
+    const runId = run.identity.id;
+    updateStatus(workDir, runId, "running");
+
+    const budget = createBudget({
+      maxSearches: 5,
+      maxFetchAttempts: 5,
+      maxSourceVisits: 5,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 1,
+      maxElapsedSeconds: 300,
+    });
+
+    const brain = createMockBrain([
+      "search",
+      "select_sources",
+      "update_findings",
+      "synthesize_brief",
+    ]);
+    const options = mockRunLoopOptions();
+
+    await executeResearchRun(workDir, runId, brain, budget, options);
+
+    // View should be auto-generated
+    const viewPath = join(workDir, ".pi", "research", "runs", runId, "view", "index.html");
+    expect(existsSync(viewPath)).toBe(true);
+
+    const html = readFileSync(viewPath, "utf-8");
+    expect(html).toContain("Completed");
+    expect(html).not.toContain("<link");
+    expect(html).toContain("<style>");
+  });
+
+  it("does not auto-generate Human Research View for agent-triggered runs", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const run = createRun(workDir, "Agent auto-view test?", {
+      triggerSource: "agent",
+      budgetLimits: {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 1,
+        maxElapsedSeconds: 300,
+      },
+    });
+    const runId = run.identity.id;
+    updateStatus(workDir, runId, "running");
+
+    const budget = createBudget({
+      maxSearches: 5,
+      maxFetchAttempts: 5,
+      maxSourceVisits: 5,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 1,
+      maxElapsedSeconds: 300,
+    });
+
+    const brain = createMockBrain([
+      "search",
+      "select_sources",
+      "update_findings",
+      "synthesize_brief",
+    ]);
+    const options = mockRunLoopOptions();
+
+    await executeResearchRun(workDir, runId, brain, budget, options);
+
+    // View should NOT be auto-generated for agent-triggered runs
+    const viewPath = join(workDir, ".pi", "research", "runs", runId, "view", "index.html");
+    expect(existsSync(viewPath)).toBe(false);
+  });
+
+  it("auto-generates Human Research View for human-initiated budget_exhausted runs", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const run = createRun(workDir, "Budget exhaust view test?", {
+      triggerSource: "human",
+      budgetLimits: {
+        maxSearches: 1,
+        maxFetchAttempts: 1,
+        maxSourceVisits: 1,
+        maxSynthesisRounds: 1,
+        maxModelCalls: 0, // Exhausts immediately
+        maxRetryAttempts: 1,
+        maxElapsedSeconds: 300,
+      },
+    });
+    const runId = run.identity.id;
+    updateStatus(workDir, runId, "running");
+
+    const budget = createBudget({
+      maxSearches: 1,
+      maxFetchAttempts: 1,
+      maxSourceVisits: 1,
+      maxSynthesisRounds: 1,
+      maxModelCalls: 0,
+      maxRetryAttempts: 1,
+      maxElapsedSeconds: 300,
+    });
+
+    const brain = createMockBrain(["search"]);
+    const options = mockRunLoopOptions();
+
+    await executeResearchRun(workDir, runId, brain, budget, options);
+
+    // View should be auto-generated for budget_exhausted
+    const viewPath = join(workDir, ".pi", "research", "runs", runId, "view", "index.html");
+    expect(existsSync(viewPath)).toBe(true);
+
+    const html = readFileSync(viewPath, "utf-8");
+    expect(html).toContain("Budget Exhausted");
+  });
 });

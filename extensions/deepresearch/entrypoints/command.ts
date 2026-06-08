@@ -5,6 +5,7 @@ import { approveAndActivateRun } from "../lifecycle/approve-and-create-run";
 import { getProposal } from "../proposals/proposal-manager";
 import { doctor, resolveModel } from "../brain/setup-policy/setup-policy";
 import { writeDoctorDiagnostic } from "../brain/setup-policy/diagnostics";
+import { renderRun } from "../rendering/human-view-facade";
 import type { BrainFactory } from "./tool";
 import { OllamaBrain } from "../brain/harness/ollama-brain";
 import { loadDeepresearchConfig } from "../brain/harness/config";
@@ -334,9 +335,42 @@ export function registerResearchCommand(
             ctx.print(`Approval failed: ${message}`);
           }
         }
+      } else if (args.startsWith("render")) {
+        const rest = args.slice("render".length).trim();
+
+        // Parse optional --allow-failed flag
+        let runId = rest;
+        let allowFailed = false;
+        if (runId.includes("--allow-failed")) {
+          allowFailed = true;
+          runId = runId.replace("--allow-failed", "").trim();
+        }
+
+        if (runId.length === 0) {
+          ctx.print("Usage: /research render <run-id> [--allow-failed]");
+          ctx.print("");
+          ctx.print(
+            "Generates a Human Research View for the given run. " +
+            "Only works for completed or budget_exhausted runs. " +
+            "Use --allow-failed to inspect a failed run explicitly.",
+          );
+          return;
+        }
+
+        try {
+          const viewPath = await renderRun(cwd, runId, { allowFailed });
+          ctx.print(`Human Research View written to:`);
+          ctx.print(`  ${viewPath}`);
+          ctx.print("");
+          ctx.print(
+            "Open this file in your browser to view the formatted research results.",
+          );
+        } catch (err: any) {
+          ctx.print(`Error: ${err.message ?? String(err)}`);
+        }
       } else {
         ctx.print(`Unknown research subcommand: ${args.slice(0, 50)}`);
-        ctx.print("Available: status, propose, approve, doctor");
+        ctx.print("Available: status, propose, approve, doctor, render");
       }
     },
   });

@@ -16,7 +16,7 @@ describe("Human Research View renderer (seam)", () => {
     expect(html).toContain("<!DOCTYPE html>");
     expect(html).toContain("<html");
     expect(html).toContain("Test question?");
-    expect(html).toContain("completed");
+    expect(html).toContain("Completed");
   });
 
   it("renderHumanView includes budget summary", async () => {
@@ -30,7 +30,7 @@ describe("Human Research View renderer (seam)", () => {
 
     const html = await renderHumanView(input);
 
-    expect(html).toContain("budget exhausted");
+    expect(html).toContain("Budget Exhausted");
     expect(html).toContain("5");
   });
 
