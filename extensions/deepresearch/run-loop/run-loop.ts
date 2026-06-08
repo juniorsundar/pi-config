@@ -34,6 +34,13 @@ import type {
   SourceNoteData,
   ParsedIntent,
 } from "./types";
+import { EvidenceMix } from "../domain/evidence-mix";
+import { CandidateFilter, type AnnotatedCandidate } from "../domain/candidate-filter";
+import {
+  NegativeEvidence,
+  coverageToPromptSection,
+  justifiesEarlyStop,
+} from "../domain/negative-evidence";
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -162,16 +169,40 @@ function buildPrompt(
   question: string,
   currentSummary: string,
   budget: Budget,
+  coverageSection?: string,
+  candidates?: AnnotatedCandidate[],
 ): string {
   const remaining = remainingBudget(budget);
 
-  return [
+  const lines: string[] = [
     `You are a Research Brain conducting a bounded research investigation.`,
     ``,
     `Research Question: ${question}`,
     ``,
     `Current Run Summary:`,
     currentSummary || `No work done yet — begin new research.`,
+  ];
+
+  // Include evidence coverage state
+  if (coverageSection) {
+    lines.push(``, coverageSection);
+  }
+
+  // Include filtered (annotated, ranked) candidates for source selection
+  if (candidates && candidates.length > 0) {
+    lines.push(``, `## Filtered Candidates (annotated & ranked)`, ``);
+    for (let i = 0; i < candidates.length; i++) {
+      const c = candidates[i];
+      lines.push(
+        `  ${i + 1}. [Score ${c.signalScore}] ${c.title}`,
+        `     URL: ${c.canonicalUrl}`,
+        `     ${c.isPrimary ? "Primary source" : "Secondary source"} — ${c.signalReason}`,
+        `     Snippet: ${c.snippet.slice(0, 100)}`,
+      );
+    }
+  }
+
+  lines.push(
     ``,
     `Budget remaining:`,
     `  - Searches: ${remaining.searches}`,
@@ -190,33 +221,9 @@ function buildPrompt(
     `For "stop_early", include "reasoning".`,
     ``,
     `Your response must be valid JSON only, no surrounding text.`,
-  ].join("\n");
-}
+  );
 
-// ── Negative Evidence check ───────────────────────────────────────────────
-
-/**
- * Check the ledger for recorded Negative Evidence that may justify
- * early synthesis even when minimum source notes aren't met.
- *
- * Negative Evidence includes:
- * - Searches that returned zero results
- * - Fetch failures
- * - Explicit negative_evidence entries
- */
-function hasRecordedNegativeEvidence(cwd: string, runId: string): boolean {
-  const ledger = readLedger(cwd, runId);
-  return ledger.some((entry) => {
-    if (entry.intent === "fetch_failed") return true;
-    if (
-      entry.intent === "search" &&
-      entry.meta &&
-      (entry.meta as any).resultCount === 0
-    )
-      return true;
-    if (entry.intent === "negative_evidence") return true;
-    return false;
-  });
+  return lines.join("\n");
 }
 
 // ── Intent parsing ────────────────────────────────────────────────────────
@@ -240,12 +247,18 @@ function parseIntent(raw: string): ParsedIntent | null {
  * proposes structured intents and the Orchestrator executes all side-effecting
  * operations (search, fetch, artifact writes, budget accounting).
  *
+ * Uses the new domain modules:
+ * - EvidenceMix to track intended categories and their statuses
+ * - CandidateFilter to deduplicate, annotate, and rank search results
+ * - NegativeEvidence to record failures, contradictions, and drops
+ *
  * @param cwd   - Workspace root directory
  * @param runId - Research Run identity
  * @param brain - Research Brain instance (intent proposer)
  * @param budget - Research Budget for tracking and enforcement
  * @param options - Injection seams for orchestrator side effects
  * @param minimumSourceNotes - Minimum Source Notes required before early stop is accepted (default 1)
+ * @param evidenceCategories - Intended evidence categories (from proposal's evidenceMix). Empty = no EvidenceMix tracking.
  * @returns Metadata about the completed run
  */
 export async function executeResearchRun(
@@ -255,6 +268,7 @@ export async function executeResearchRun(
   budget: Budget,
   options: RunLoopOptions,
   minimumSourceNotes: number = 1,
+  evidenceCategories: string[] = [],
 ): Promise<ResearchRunMeta> {
   const run = getRun(cwd, runId);
   if (!run) throw new Error(`Run not found: ${runId}`);
@@ -272,6 +286,15 @@ export async function executeResearchRun(
   /** URLs selected by the Brain in select_sources, pending fetch in update_findings. */
   let pendingUrls: string[] = [];
 
+  /** Annotated candidates from the last search round, for Brain prompt. */
+  let lastFilteredCandidates: AnnotatedCandidate[] = [];
+
+  // ── Domain module initialization ──────────────────────────────────────
+  const evidenceMix = evidenceCategories.length > 0
+    ? new EvidenceMix(evidenceCategories)
+    : null;
+  const negativeEvidence = new NegativeEvidence();
+
   const startTimeMs = Date.now();
 
   while (!completed && roundCount < MAX_ROUNDS) {
@@ -286,17 +309,25 @@ export async function executeResearchRun(
         timestamp: new Date().toISOString(),
         content: `Elapsed time ${elapsedSec.toFixed(0)}s exceeded limit of ${budget.limits.maxElapsedSeconds}s`,
       });
+
+      // Annotate not-searched categories before building the coverage section
+      evidenceMix?.markNotSearchedDueToBudget();
+
       if (!briefPathResult) {
         briefPathResult = briefFilePath(cwd, runId);
-        writeFileSync(
-          briefPathResult,
-          [
-            "# Research Brief (Time Exhausted)",
-            "",
-            `Elapsed time (${elapsedSec.toFixed(0)}s) exceeded the budget limit (${budget.limits.maxElapsedSeconds}s).`,
-            "Research was interrupted before the brief could be completed.",
-          ].join("\n"),
-        );
+        const draft = [
+          "# Research Brief (Time Exhausted)",
+          "",
+          `Elapsed time (${elapsedSec.toFixed(0)}s) exceeded the budget limit (${budget.limits.maxElapsedSeconds}s).`,
+          "Research was interrupted before the brief could be completed.",
+        ].join("\n");
+        const coverageSection = evidenceMix
+          ? coverageToPromptSection(evidenceMix, negativeEvidence)
+          : undefined;
+        const finalDraft = coverageSection
+          ? draft + "\n\n---\n\n" + coverageSection
+          : draft;
+        writeFileSync(briefPathResult, finalDraft);
       }
       updateStatus(cwd, runId, "budget_exhausted");
       refreshSummary(cwd, runId, run.question, budget, roundCount);
@@ -307,8 +338,17 @@ export async function executeResearchRun(
     // 1. Account for this model call
     budget = trackUsage(budget, { modelCalls: 1 });
 
-    // 2. Ask the Brain for the next structured intent
-    const prompt = buildPrompt(run.question, currentSummary, budget);
+    // 2. Build prompt with evidence coverage and filtered candidates
+    const coverageSection = evidenceMix
+      ? coverageToPromptSection(evidenceMix, negativeEvidence)
+      : undefined;
+    const prompt = buildPrompt(
+      run.question,
+      currentSummary,
+      budget,
+      coverageSection,
+      lastFilteredCandidates,
+    );
     const rawResponse = await brain.generate(prompt);
     const intent = parseIntent(rawResponse);
 
@@ -329,18 +369,67 @@ export async function executeResearchRun(
       // ── search ───────────────────────────────────────────────────────
       case "search": {
         const query = intent.query ?? run.question;
-        const results = await options.search(query);
+        const rawResults = await options.search(query);
         budget = trackUsage(budget, { searches: 1 });
+
+        // Apply Candidate Filtering — dedup, annotate, rank, drop low-signal
+        const filter = new CandidateFilter(query);
+        const filtered = filter.filter(rawResults);
+
+        // Store filtered candidates for the Brain's next select_sources prompt
+        lastFilteredCandidates = filtered.candidates;
+
+        // Record drops as negative evidence
+        for (const drop of filtered.drops) {
+          negativeEvidence.recordDroppedSource(drop);
+        }
+
+        // Record zero-result searches as negative evidence
+        if (rawResults.length === 0) {
+          negativeEvidence.recordFailedSearch(query);
+        }
+
+        // Update evidence categories using the explicit method
+        // (orchestrator doesn't know the category, but the heuristic may help)
+        if (evidenceMix) {
+          // Capture which categories were "missing" before markSearched
+          const beforeStatuses = new Map(
+            evidenceMix.categories.map((c) => [c.category, c.status]),
+          );
+          evidenceMix.markSearched(query, rawResults.length > 0);
+
+          // Record negative evidence for categories that just became "missing"
+          if (rawResults.length === 0) {
+            for (const cat of evidenceMix.categories) {
+              if (
+                cat.status === "missing" &&
+                beforeStatuses.get(cat.category) === "not-searched"
+              ) {
+                negativeEvidence.recordMissingCategory(
+                  cat.category,
+                  `Search "${query}" returned no results.`,
+                );
+              }
+            }
+          }
+        }
 
         appendLedger(cwd, runId, {
           round: roundCount,
           intent: "search",
           timestamp: new Date().toISOString(),
-          content: `Search: "${query}" returned ${results.length} result(s)`,
+          content: `Search: "${query}" returned ${rawResults.length} result(s) (${filtered.candidates.length} after filtering)`,
           meta: {
             query,
-            resultCount: results.length,
-            results: results.map((r) => ({ url: r.url, title: r.title })),
+            resultCount: rawResults.length,
+            filteredCount: filtered.candidates.length,
+            dropCount: filtered.drops.length,
+            results: filtered.candidates.map((r) => ({
+              url: r.canonicalUrl,
+              title: r.title,
+              score: r.signalScore,
+              primary: r.isPrimary,
+            })),
           },
         });
         break;
@@ -376,6 +465,7 @@ export async function executeResearchRun(
           try {
             fetched = await options.fetch(url);
           } catch (err: any) {
+            negativeEvidence.recordFetchFailed(url, err.message ?? String(err));
             appendLedger(cwd, runId, {
               round: roundCount,
               intent: "fetch_failed",
@@ -447,7 +537,15 @@ export async function executeResearchRun(
       case "synthesize_brief": {
         const draft = intent.briefDraft ?? "# Research Brief\n\nNo draft provided.";
         briefPathResult = briefFilePath(cwd, runId);
-        writeFileSync(briefPathResult, draft);
+
+        // Append coverage + negative evidence section to the brief
+        const coverageSection = evidenceMix
+          ? coverageToPromptSection(evidenceMix, negativeEvidence)
+          : undefined;
+        const finalDraft = coverageSection
+          ? draft + "\n\n---\n\n" + coverageSection
+          : draft;
+        writeFileSync(briefPathResult, finalDraft);
 
         appendLedger(cwd, runId, {
           round: roundCount,
@@ -458,6 +556,7 @@ export async function executeResearchRun(
             confidence: intent.confidence,
             gaps: intent.gaps,
             reasoning: intent.reasoning,
+            coveragePresent: !!coverageSection,
           },
         });
 
@@ -475,29 +574,32 @@ export async function executeResearchRun(
           content: `Brain recommended early stop: ${intent.reasoning ?? "no reason given"}`,
         });
 
-        // Check the early-synthesis gate:
-        // Accept if minimum source notes met OR recorded Negative Evidence exists
+        // Check the early-synthesis gate using domain modules
         const evidenceMet = sourceNoteCount >= minimumSourceNotes;
-        const hasNegative = hasRecordedNegativeEvidence(cwd, runId);
+        const canStopEarly = evidenceMix
+          ? justifiesEarlyStop(evidenceMix, negativeEvidence, minimumSourceNotes, sourceNoteCount)
+          : evidenceMet || negativeEvidence.hasAny;
 
-        if (evidenceMet || hasNegative) {
+        if (canStopEarly) {
           // Accept early stop
           completed = true;
 
           if (!briefPathResult) {
             briefPathResult = briefFilePath(cwd, runId);
+            const coverageSection = evidenceMix
+              ? coverageToPromptSection(evidenceMix, negativeEvidence)
+              : undefined;
             const reason = evidenceMet
               ? `Sufficient evidence (${sourceNoteCount} source notes).`
-              : `Negative Evidence justifies early stop.`;
-            writeFileSync(
-              briefPathResult,
-              [
-                "# Research Brief (Early Stop)",
-                "",
-                reason,
-                intent.reasoning ? `\n**Brain Reasoning**: ${intent.reasoning}\n` : "",
-              ].join("\n"),
-            );
+              : `Coverage assessment or Negative Evidence justifies early stop.`;
+            const draft = [
+              "# Research Brief (Early Stop)",
+              "",
+              reason,
+              intent.reasoning ? `\n**Brain Reasoning**: ${intent.reasoning}\n` : "",
+            ].join("\n");
+            const finalDraft = coverageSection ? draft + "\n\n---\n\n" + coverageSection : draft;
+            writeFileSync(briefPathResult, finalDraft);
           }
         } else {
           // Reject early stop — insufficient evidence
@@ -517,17 +619,22 @@ export async function executeResearchRun(
 
     // 5. Check budget exhaustion after every round
     if (isExhausted(budget)) {
+      evidenceMix?.markNotSearchedDueToBudget();
       if (!briefPathResult) {
         briefPathResult = briefFilePath(cwd, runId);
-        writeFileSync(
-          briefPathResult,
-          [
-            "# Research Brief (Budget Exhausted)",
-            "",
-            "Budget was exhausted before the Research Brief could be completed.",
-            "Consider continuing with an additional budget allocation.",
-          ].join("\n"),
-        );
+        const draft = [
+          "# Research Brief (Budget Exhausted)",
+          "",
+          "Budget was exhausted before the Research Brief could be completed.",
+          "Consider continuing with an additional budget allocation.",
+        ].join("\n");
+        const coverageSection = evidenceMix
+          ? coverageToPromptSection(evidenceMix, negativeEvidence)
+          : undefined;
+        const finalDraft = coverageSection
+          ? draft + "\n\n---\n\n" + coverageSection
+          : draft;
+        writeFileSync(briefPathResult, finalDraft);
       }
       updateStatus(cwd, runId, "budget_exhausted");
       refreshSummary(cwd, runId, run.question, budget, roundCount);

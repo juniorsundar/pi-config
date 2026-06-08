@@ -7,7 +7,7 @@ import { createRun, updateStatus, getRun } from "../lifecycle/run-store";
 import { createBudget, type BudgetLimits } from "../budgets/budget";
 import type { ResearchBrain } from "../brain/harness/types";
 import { executeResearchRun } from "./run-loop";
-import type { RunLoopOptions } from "./types";
+import type { RunLoopOptions, LedgerEntry } from "./types";
 
 /** Fake search results for the mock seam. */
 const FAKE_SEARCH_RESULTS = [
@@ -565,5 +565,235 @@ describe("Research Run loop — budget enforcement", () => {
     const updatedRun = getRun(workDir, runId);
     expect(updatedRun!.status).toBe("completed");
     expect(result.roundCount).toBeGreaterThanOrEqual(4);
+  });
+
+  it("marks remaining categories as budget-not-searched when budget exhausted", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "Some question?",
+      {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 0, // Exhaust immediately
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    const brain = createMockBrain(["search"]);
+    const options = mockRunLoopOptions();
+
+    // Run with evidence categories — budget exhaustion should annotate them
+    await executeResearchRun(workDir, runId, brain, budget, options, 5, ["docs", "benchmarks"]);
+
+    // Brief should contain the budget-related evidence coverage section
+    const briefContent = readFileSync(
+      join(workDir, ".pi", "research", "runs", runId, "brief.md"),
+      "utf-8",
+    );
+    // The brief mentions budget exhaustion in its title
+    expect(briefContent).toContain("Budget Exhausted");
+    // But more importantly, the Evidence Coverage section should show
+    // which categories were not searched due to budget
+    expect(briefContent).toContain("Evidence Coverage");
+  });
+});
+
+// ── Evidence Mix Integration (AC 1) ────────────────────────────────────────
+
+describe("Research Run loop — Evidence Mix integration (AC 1)", () => {
+  it("creates EvidenceMix from evidenceCategories and tracks category statuses through the loop", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "What is the best approach?",
+      {
+        maxSearches: 10,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    const brain = createMockBrain([
+      "search",
+      "select_sources",
+      "update_findings",
+      "synthesize_brief",
+    ]);
+    const options = mockRunLoopOptions();
+    const evidenceCategories = ["docs", "benchmarks", "tutorials"];
+
+    await executeResearchRun(
+      workDir, runId, brain, budget, options, 1, evidenceCategories,
+    );
+
+    // Brief should contain evidence coverage section
+    const briefContent = readFileSync(
+      join(workDir, ".pi", "research", "runs", runId, "brief.md"),
+      "utf-8",
+    );
+    expect(briefContent).toContain("Evidence Coverage");
+    expect(briefContent).toContain("docs");
+    expect(briefContent).toContain("benchmarks");
+    expect(briefContent).toContain("tutorials");
+
+    // Run summary should mention rounds and source notes
+    const summaryContent = readFileSync(
+      join(workDir, ".pi", "research", "runs", runId, "run-summary.md"),
+      "utf-8",
+    );
+    expect(summaryContent).toContain("Source Notes");
+  });
+});
+
+// ── Candidate Filtering Integration (AC 4) ─────────────────────────────────
+
+describe("Research Run loop — filtered candidates (AC 4)", () => {
+  it("passes annotated candidates to the Brain prompt, not raw unfiltered dump", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "What is the best approach?",
+      {
+        maxSearches: 10,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    // Intercept the Brain to inspect the prompt it receives
+    // First call: search -> triggers filtering; Second call: select_sources -> prompt has filtered candidates
+    let callCount = 0;
+    let capturedPrompt = "";
+    const brain: ResearchBrain = {
+      generate: async (prompt: string) => {
+        callCount++;
+        if (callCount === 1) {
+          // First call: do a search
+          return JSON.stringify({
+            intent: "search",
+            reasoning: "We need to search first.",
+            query: "best approach",
+          });
+        }
+        // Second call: select from filtered candidates
+        capturedPrompt = prompt;
+        return JSON.stringify({
+          intent: "select_sources",
+          reasoning: "Found relevant sources.",
+          selectedUrls: ["https://example.com/guide"],
+          reasoningPerUrl: { "https://example.com/guide": "Looks relevant." },
+        });
+      },
+    };
+
+    // Options that include low-signal sources to test filtering
+    const filterOptions: RunLoopOptions = {
+      search: async () => [
+        { url: "https://example.com/guide", title: "A Guide", snippet: "A guide about the topic with substantial content that should pass filtering." },
+        { url: "https://forum.example.com/topic", title: "Forum Post", snippet: "Discussion thread." },
+        { url: "https://docs.example.org/manual", title: "Manual", snippet: "Official manual with comprehensive documentation about the topic." },
+      ],
+      fetch: async (url: string) => ({
+        url,
+        finalUrl: url,
+        title: "Fetched",
+        content: "Content",
+        contentType: "text/markdown",
+        truncated: false,
+        retrievedAt: new Date().toISOString(),
+      }),
+    };
+
+    await executeResearchRun(workDir, runId, brain, budget, filterOptions, 1);
+
+    // The prompt should contain "Filtered Candidates" section
+    expect(capturedPrompt).toContain("Filtered Candidates");
+
+    // It should contain Score annotation (AnnotatedCandidate field)
+    expect(capturedPrompt).toContain("[Score");
+
+    // It should contain the primary/accepted candidates
+    expect(capturedPrompt).toContain("example.com/guide");
+    expect(capturedPrompt).toContain("docs.example.org/manual");
+
+    // The low-signal forum source should NOT appear in the prompt
+    expect(capturedPrompt).not.toContain("forum.example.com");
+
+    // The raw unfiltered dump should not appear
+    expect(capturedPrompt).not.toContain("Discussion thread.");
+  });
+});
+
+// ── Negative Evidence + Brief Integration (AC 5 + AC 6) ────────────────────
+
+describe("Research Run loop — negative evidence and brief coverage (AC 5 + AC 6)", () => {
+  it("records failed searches and includes coverage in the brief", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "Hard to research topic?",
+      {
+        maxSearches: 10,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    // Mock brain that searches but finds nothing, then synthesizes
+    const brain = createMockBrain(["search", "synthesize_brief"]);
+
+    // Empty search results (to trigger negative evidence)
+    const emptyOptions: RunLoopOptions = {
+      search: async () => [],
+      fetch: async (url: string) => ({
+        url, finalUrl: url, title: "N/A", content: "",
+        contentType: "text/plain", truncated: false,
+        retrievedAt: new Date().toISOString(),
+      }),
+    };
+
+    await executeResearchRun(workDir, runId, brain, budget, emptyOptions, 5, ["docs", "benchmarks"]);
+
+    // Brief should contain the Evidence Coverage section
+    const briefContent = readFileSync(
+      join(workDir, ".pi", "research", "runs", runId, "brief.md"),
+      "utf-8",
+    );
+    expect(briefContent).toContain("Evidence Coverage");
+
+    // Ledger should contain the negative evidence-driven search meta
+    const ledgerRaw = readFileSync(
+      join(workDir, ".pi", "research", "runs", runId, "ledger.jsonl"),
+      "utf-8",
+    );
+    const ledgerEntries: LedgerEntry[] = ledgerRaw
+      .split("\n")
+      .filter((l) => l.trim().length > 0)
+      .map((l) => JSON.parse(l));
+
+    const searchEntry = ledgerEntries.find((e) => e.intent === "search");
+    expect(searchEntry).toBeDefined();
+    expect(searchEntry!.meta).toBeDefined();
+    // filteredCount should be 0 since raw results were empty
+    expect((searchEntry!.meta as any).filteredCount).toBe(0);
+
+    // The brief should include the evidence coverage section
+    expect(briefContent).toContain("not-searched");
   });
 });

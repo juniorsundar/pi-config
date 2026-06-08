@@ -1,7 +1,7 @@
 ---
 name: scout
 description: Fast codebase recon that returns compressed context for handoff
-model: minimax/MiniMax-M2.7
+model: minimax/MiniMax-M3
 tools: read, grep, find, ls, bash, write
 thinking: high
 systemPromptMode: replace
