@@ -98,6 +98,22 @@ export interface RunSummary {
   id: string;
   status: RunStatus;
   question: string;
+  /** Blocking or background mode (carried from approved proposal). */
+  mode?: "blocking" | "background";
+}
+
+/**
+ * Path pointers to key run artifacts for status surfacing.
+ */
+export interface ArtifactPointers {
+  /** Relative path to the progress digest, or null if not yet written. */
+  progressDigest?: string;
+  /** Relative path to the Run Summary, or null if not yet written. */
+  runSummary?: string;
+  /** Relative path to the Research Brief, or null if not yet written. */
+  brief?: string;
+  /** Number of source notes (0 if none). */
+  sourceNoteCount: number;
 }
 
 /**
@@ -108,4 +124,8 @@ export interface StatusResult {
   activeRun: RunSummary | null;
   proposals: ProposalSummary[];
   runs: RunSummary[];
+  /** Rendered progress digest text for the active run, if available. */
+  activeProgressDigest?: string;
+  /** Artifact pointers for the active run, if one exists. */
+  activeArtifactPointers?: ArtifactPointers;
 }

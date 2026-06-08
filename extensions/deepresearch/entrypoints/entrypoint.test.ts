@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { mkdtempSync, rmSync } from "fs";
+import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import * as statusModule from "../lifecycle/status";
@@ -224,6 +224,57 @@ describe("deepresearch tool status action", () => {
     expect(textContent.text).toContain("none");
     expect(textContent.text).toContain("Proposals");
     expect(textContent.text).toContain("No research proposals or runs exist");
+  });
+
+  it("includes progress digest content for an active run", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerToolWithMockBrain(pi);
+
+    // Create an active run with a progress digest
+    initStore(workDir);
+    const run = createRun(workDir, "Active research", {
+      mode: "blocking",
+      trigger: "Testing progress digest in tool",
+    });
+    updateStatus(workDir, run.identity.id, "running");
+
+    // Write a progress-digest.md artifact
+    const runDir = join(workDir, ".pi", "research", "runs", run.identity.id);
+    mkdirSync(runDir, { recursive: true });
+    writeFileSync(
+      join(runDir, "progress-digest.md"),
+      "## Progress Digest — test\n\n📊 Budget: 2/10 searches\n🎯 Evidence: partial\n",
+    );
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-status-digest",
+      { action: "status" },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    const textContent = result.content.find(
+      (c: { type: string }) => c.type === "text",
+    );
+    expect(textContent).toBeDefined();
+    // Digest content rendered in the status text
+    expect(textContent.text).toContain("Progress Digest");
+    expect(textContent.text).toContain("2/10 searches");
+    // Active run info still present
+    expect(textContent.text).toContain(run.identity.id);
+    expect(textContent.text).toContain("blocking");
+    // Artifact pointer paths rendered
+    expect(textContent.text).toContain("progress-digest.md");
+    // No raw diagnostic paths in output
+    expect(textContent.text).not.toContain("diagnostics");
+
+    // Details exclude raw diagnostics
+    expect(result.details).toBeDefined();
+    expect(result.details.activeRun).toBeDefined();
+    expect(result.details.activeProgressDigest).toBeDefined();
   });
 });
 
@@ -588,6 +639,50 @@ describe("/research status command", () => {
     const output = mockLog.join("\n");
     expect(output).toContain("No active research run");
     expect(output).toContain("No research proposals");
+  });
+
+  it("includes progress digest and artifact pointers for an active run", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    // Create an active run with a progress digest
+    initStore(workDir);
+    const run = createRun(workDir, "Active test", {
+      mode: "blocking",
+      trigger: "Testing command output",
+    });
+    updateStatus(workDir, run.identity.id, "running");
+
+    // Write a progress-digest.md artifact
+    const runDir = join(workDir, ".pi", "research", "runs", run.identity.id);
+    mkdirSync(runDir, { recursive: true });
+    writeFileSync(
+      join(runDir, "progress-digest.md"),
+      "## Progress Digest — test\n\n📊 Budget: 1/10 searches\n🎯 Evidence: weak\n",
+    );
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler("status", ctx);
+    const output = mockLog.join("\n");
+    expect(output).toContain("Active Run");
+    expect(output).toContain(run.identity.id);
+    expect(output).toContain("blocking");
+    // Progress digest content
+    expect(output).toContain("Progress Digest");
+    expect(output).toContain("1/10 searches");
+    expect(output).toContain("weak");
+    // Artifact paths
+    expect(output).toContain("Artifact paths");
+    expect(output).toContain("progress-digest.md");
   });
 });
 

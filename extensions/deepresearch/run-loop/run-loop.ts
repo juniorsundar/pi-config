@@ -27,6 +27,7 @@ import type { Budget } from "../budgets/budget";
 import { trackUsage, isExhausted, remainingBudget } from "../budgets/budget";
 import type { ResearchBrain } from "../brain/harness/types";
 import { VALID_INTENTS } from "../brain/harness/types";
+import type { RunStatus } from "../domain/types";
 import type {
   RunLoopOptions,
   ResearchRunMeta,
@@ -34,6 +35,7 @@ import type {
   SourceNoteData,
   ParsedIntent,
 } from "./types";
+import { renderProgressDigest, type ProgressDigestInput } from "../rendering/progress-digest";
 import { extractFromWebSource, chunkContent, mergeChunkExtractions, DEFAULT_CHUNK_THRESHOLD } from "../source-notes/extractor";
 import { writeRawContentToDiagnostics } from "../source-notes/diagnostics";
 import { EvidenceMix } from "../domain/evidence-mix";
@@ -61,6 +63,10 @@ function ledgerPath(cwd: string, runId: string): string {
 
 function summaryPath(cwd: string, runId: string): string {
   return join(runDir(cwd, runId), "run-summary.md");
+}
+
+function digestPath(cwd: string, runId: string): string {
+  return join(runDir(cwd, runId), "progress-digest.md");
 }
 
 function briefFilePath(cwd: string, runId: string): string {
@@ -166,6 +172,122 @@ function refreshSummary(
   lines.push("");
 
   writeFileSync(summaryPath(cwd, runId), lines.join("\n"));
+}
+
+// ── Progress Digest ──────────────────────────────────────────────────────────
+
+function deriveGaps(evidenceMix: EvidenceMix | null, negativeEvidence: NegativeEvidence): string[] {
+  const gaps: string[] = [];
+  if (evidenceMix) {
+    for (const cat of evidenceMix.categories) {
+      if (cat.status === "not-searched") {
+        gaps.push(`${cat.category}: Not yet explored`);
+      } else if (cat.status === "missing") {
+        gaps.push(`${cat.category}: No relevant sources found`);
+      } else if (cat.status === "weak") {
+        gaps.push(`${cat.category}: Only weak evidence`);
+      }
+    }
+  }
+  for (const entry of negativeEvidence.entries) {
+    if (entry.type === "failed_search" && !gaps.some((g) => g.includes("Search returned no results"))) {
+      gaps.push("Search returned no results");
+    }
+    if (entry.type === "fetch_failed" && !gaps.some((g) => g.includes("Failed to fetch"))) {
+      gaps.push("Failed to fetch a source");
+    }
+    if (entry.type === "contradiction") {
+      gaps.push(`Contradictory evidence: ${entry.detail}`);
+    }
+    if (entry.type === "missing_category") {
+      gaps.push(entry.category ? `${entry.category}: ${entry.detail}` : entry.detail);
+    }
+    if (entry.type === "dropped_source") {
+      gaps.push(entry.detail);
+    }
+  }
+  // Deduplicate by normalizing: collect unique entries by key
+  const seen = new Set<string>();
+  const deduped: string[] = [];
+  for (const gap of gaps) {
+    // Use the first 80 chars as key to collapse near-duplicates
+    const key = gap.slice(0, 80).toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      deduped.push(gap);
+    }
+  }
+  return deduped;
+}
+
+function nextStepFromIntent(intent: string): string {
+  switch (intent) {
+    case "search":           return "Gathering sources from search results";
+    case "select_sources":   return "Fetching and extracting selected sources";
+    case "update_findings":  return "Analyzing source findings";
+    case "synthesize_brief": return "Drafting Research Brief";
+    case "stop_early":       return "Finalizing research";
+    case "parse_error":      return "Retrying — model response unclear";
+    case "budget_approved":  return "Starting research";
+    case "budget_revision":  return "Continuing research with revised budget";
+    case "early_stop_rejected": return "Continuing investigation";
+    case "source_note_created": return "Analyzing source findings";
+    case "source_note_creation_skipped": return "Analyzing source findings";
+    case "fetch_failed":     return "Retrying fetch";
+    case "synthesis_failed": return "Retrying synthesis";
+    default:                  return "Proceeding with research";
+  }
+}
+
+function deriveCurrentSignal(evidenceMix: EvidenceMix | null): string | undefined {
+  if (!evidenceMix) return undefined;
+  const snap = evidenceMix.snapshot();
+  if (snap.overall === "strong") return "Good evidence across all categories";
+  if (snap.overall === "partial") return `Partial evidence: ${snap.found} categories covered, ${snap.notSearched + snap.missing} pending`;
+  return "Minimal evidence so far";
+}
+
+function refreshProgressDigest(
+  cwd: string,
+  runId: string,
+  question: string,
+  status: RunStatus,
+  budget: Budget,
+  roundCount: number,
+  sourceNoteCount: number,
+  evidenceMix: EvidenceMix | null,
+  negativeEvidence: NegativeEvidence,
+  briefPathResult: string,
+  elapsedSeconds: number,
+): void {
+  const ledger = readLedger(cwd, runId);
+  // Derive next step from the last non-round-0 intent in the ledger
+  const lastLedgerEntry = ledger.length > 1
+    ? [...ledger].reverse().find((e) => e.round > 0 && e.intent !== "stop_early")
+    : undefined;
+  const lastIntent = lastLedgerEntry?.intent ?? (ledger.length > 0 ? ledger[0].intent : "budget_approved");
+
+  const input: ProgressDigestInput = {
+    runId,
+    status,
+    question,
+    roundCount,
+    budget: {
+      usage: budget.usage,
+      limits: budget.limits,
+    },
+    evidenceMix: evidenceMix?.snapshot() ?? null,
+    negativeEvidenceCount: negativeEvidence.count,
+    gaps: deriveGaps(evidenceMix, negativeEvidence),
+    nextStep: nextStepFromIntent(lastIntent),
+    sourceNoteCount,
+    ledgerEntryCount: ledger.length,
+    hasBrief: briefPathResult.length > 0,
+    elapsedSeconds,
+    currentSignal: deriveCurrentSignal(evidenceMix),
+  };
+
+  writeFileSync(digestPath(cwd, runId), renderProgressDigest(input));
 }
 
 // ── Prompt construction ────────────────────────────────────────────────────
@@ -461,6 +583,9 @@ export async function executeResearchRun(
   /** Annotated candidates from the last search round, for Brain prompt. */
   let lastFilteredCandidates: AnnotatedCandidate[] = [];
 
+  /** Local status mirror for progress digest (updated alongside updateStatus calls). */
+  let currentRunStatus: RunStatus = "running";
+
   // ── Domain module initialization ──────────────────────────────────────
   const evidenceMix = evidenceCategories.length > 0
     ? new EvidenceMix(evidenceCategories)
@@ -516,7 +641,9 @@ export async function executeResearchRun(
         writeFileSync(briefPathResult, finalDraft);
       }
       updateStatus(cwd, runId, "budget_exhausted");
+      currentRunStatus = "budget_exhausted";
       refreshSummary(cwd, runId, run.question, budget, roundCount);
+      refreshProgressDigest(cwd, runId, run.question, "budget_exhausted", budget, roundCount, sourceNoteCount, evidenceMix, negativeEvidence, briefPathResult, (Date.now() - startTimeMs) / 1000);
       completed = true;
       break;
     }
@@ -867,14 +994,17 @@ export async function executeResearchRun(
           writeFileSync(briefPathResult, finalDraft);
         }
         updateStatus(cwd, runId, "budget_exhausted");
+        currentRunStatus = "budget_exhausted";
         refreshSummary(cwd, runId, run.question, budget, roundCount);
+        refreshProgressDigest(cwd, runId, run.question, "budget_exhausted", budget, roundCount, sourceNoteCount, evidenceMix, negativeEvidence, briefPathResult, (Date.now() - startTimeMs) / 1000);
         completed = true;
         break;
       }
     }
 
-    // 6. Refresh Run Summary for next round
+    // 6. Refresh Run Summary and Progress Digest for next round
     refreshSummary(cwd, runId, run.question, budget, roundCount);
+    refreshProgressDigest(cwd, runId, run.question, currentRunStatus, budget, roundCount, sourceNoteCount, evidenceMix, negativeEvidence, briefPathResult, (Date.now() - startTimeMs) / 1000);
     currentSummary = readFileSync(summaryPath(cwd, runId), "utf-8");
   }
 
@@ -885,9 +1015,11 @@ export async function executeResearchRun(
     // If loop exited without drafting a brief, mark as failed
     const targetStatus = briefPathResult ? "completed" : "failed";
     updateStatus(cwd, runId, targetStatus as any);
+    currentRunStatus = targetStatus as RunStatus;
   }
 
   refreshSummary(cwd, runId, run.question, budget, roundCount);
+  refreshProgressDigest(cwd, runId, run.question, currentRunStatus, budget, roundCount, sourceNoteCount, evidenceMix, negativeEvidence, briefPathResult, (Date.now() - startTimeMs) / 1000);
 
   const finalLedger = readLedger(cwd, runId);
 

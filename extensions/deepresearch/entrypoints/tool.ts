@@ -94,7 +94,31 @@ export function registerDeepresearchTool(
         text += `**Store**: \`${result.storePath}\`\n\n`;
 
         if (result.activeRun) {
-          text += `**Active Run**: ${result.activeRun.id} (${result.activeRun.status})\n\n`;
+          text += `**Active Run**: ${result.activeRun.id} (${result.activeRun.status}`;
+          if (result.activeRun.mode) {
+            text += `, ${result.activeRun.mode}`;
+          }
+          text += `)\n\n`;
+
+          // Include progress digest for active run
+          if (result.activeProgressDigest) {
+            text += result.activeProgressDigest;
+          } else {
+            text += `No progress digest yet — run is still starting up.\n\n`;
+          }
+
+          // Include artifact pointers for active run
+          if (result.activeArtifactPointers) {
+            const ptrs = result.activeArtifactPointers;
+            text += `**Artifact paths** (relative to store):\n`;
+            if (ptrs.progressDigest) text += `- Digest: \`${ptrs.progressDigest}\`\n`;
+            if (ptrs.runSummary)    text += `- Summary: \`${ptrs.runSummary}\`\n`;
+            if (ptrs.brief)         text += `- Brief: \`${ptrs.brief}\`\n`;
+            if (ptrs.sourceNoteCount > 0) {
+              text += `- Source notes: ${ptrs.sourceNoteCount}\n`;
+            }
+            text += `\n`;
+          }
         } else {
           text += `**Active Run**: none\n\n`;
         }
@@ -102,14 +126,60 @@ export function registerDeepresearchTool(
         text += `**Proposals**: ${result.proposals.length}\n\n`;
         text += `**Runs**: ${result.runs.length}\n\n`;
 
-        if (result.proposals.length === 0 && result.runs.length === 0) {
-          text += `No research proposals or runs exist in this workspace. `;
-          text += `Use \`/research propose\` to create one.`;
+        // List individual proposals and runs for detailed lifecycle view
+        if (result.proposals.length > 0) {
+          text += `**Proposals**:\n`;
+          for (const p of result.proposals) {
+            text += `  - ${p.id} (${p.status}) — ${p.question.slice(0, 60)}\n`;
+          }
+          text += `\n`;
         }
 
+        if (result.runs.length > 0) {
+          text += `**Runs**:\n`;
+          for (const r of result.runs) {
+            const modeTag = r.mode ? `, ${r.mode}` : "";
+            const isActive = result.activeRun && result.activeRun.id === r.id;
+            const activeTag = isActive ? " ⬅️ active" : "";
+            text += `  - ${r.id} (${r.status}${modeTag})${activeTag} — ${r.question.slice(0, 60)}\n`;
+          }
+          text += `\n`;
+        }
+
+        // Surface interruption state for terminal runs that need attention
+        if (!result.activeRun && result.runs.length > 0) {
+          const interruptedRuns = result.runs.filter(
+            (r) => r.status === "interrupted",
+          );
+          if (interruptedRuns.length > 0) {
+            text += `⚠️ **Interrupted runs**: ${interruptedRuns.length} run(s) were interrupted. `;
+            text += `Use \`/research resume ${interruptedRuns[0].id}\` to continue.\n\n`;
+          }
+          const cancelledRuns = result.runs.filter(
+            (r) => r.status === "cancelled",
+          );
+          if (cancelledRuns.length > 0) {
+            text += `🚫 **Cancelled runs**: ${cancelledRuns.length} run(s) were cancelled.\n\n`;
+          }
+        }
+
+        if (result.proposals.length === 0 && result.runs.length === 0) {
+          text += `No research proposals or runs exist in this workspace. `;
+          text += `Use \`/research propose\` to create one.\n\n`;
+        }
+
+        // details excludes raw diagnostics — only the rendered status info
         return {
           content: [{ type: "text", text }],
-          details: result,
+          details: {
+            action: "status",
+            storePath: result.storePath,
+            activeRun: result.activeRun,
+            proposals: result.proposals,
+            runs: result.runs,
+            activeProgressDigest: result.activeProgressDigest,
+            activeArtifactPointers: result.activeArtifactPointers,
+          },
         };
       }
 

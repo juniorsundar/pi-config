@@ -221,6 +221,17 @@ describe("Research Run loop — tracer bullet", () => {
     const summaryPath = join(runDir, "run-summary.md");
     expect(existsSync(summaryPath)).toBe(true);
 
+    // Progress Digest file exists and is distinct from Run Summary
+    const digestPath = join(runDir, "progress-digest.md");
+    expect(existsSync(digestPath)).toBe(true);
+    const digestContent = readFileSync(digestPath, "utf-8");
+    expect(digestContent).toContain("Progress Digest");
+    expect(digestContent).toContain("Budget");
+    expect(digestContent).toContain("Evidence");
+    expect(digestContent).toContain("Artifacts");
+    // Distinct from Run Summary format
+    expect(digestContent).not.toContain("| Category | Remaining |");
+
     // Brief file exists
     const briefPath = join(runDir, "brief.md");
     expect(existsSync(briefPath)).toBe(true);

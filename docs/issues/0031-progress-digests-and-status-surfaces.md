@@ -16,12 +16,12 @@ User stories covered: 38, 39, 42, 50.
 
 ### Acceptance criteria
 
-- [ ] Progress Digests are compact, human-readable, and distinct from model-facing Run Summaries
-- [ ] Progress Digests show budget usage, Evidence Mix coverage, current signal, unresolved gaps, next step, and artifact pointers
-- [ ] Status output reports proposal and Research Run lifecycle states, active or queued status, interruption state, and relevant artifact pointers
-- [ ] The `deepresearch` status action cannot mutate runs or reveal raw diagnostics as normal research output
-- [ ] Background Research Runs surface Progress Digests without blocking unrelated conversation
-- [ ] Tests cover digest rendering, status rendering, queued and active states, and separation from Run Summary content
+- [x] Progress Digests are compact, human-readable, and distinct from model-facing Run Summaries
+- [x] Progress Digests show budget usage, Evidence Mix coverage, current signal, unresolved gaps, next step, and artifact pointers
+- [x] Status output reports proposal and Research Run lifecycle states, active or queued status, interruption state, and relevant artifact pointers
+- [x] The `deepresearch` status action cannot mutate runs or reveal raw diagnostics as normal research output
+- [x] Background Research Runs surface Progress Digests without blocking unrelated conversation
+- [x] Tests cover digest rendering, status rendering, queued and active states, and separation from Run Summary content
 
 ### Blocked by
 

@@ -89,6 +89,7 @@ export function listRuns(cwd: string): RunSummary[] {
         id: meta.identity.id,
         status: meta.status,
         question: meta.question,
+        mode: meta.mode,
       });
     }
   }

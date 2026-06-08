@@ -38,15 +38,78 @@ export function registerResearchCommand(
         ctx.print("");
 
         if (result.activeRun) {
+          const modeTag = result.activeRun.mode
+            ? ` (${result.activeRun.mode})`
+            : "";
           ctx.print(
-            `Active Run: ${result.activeRun.id} (${result.activeRun.status})`,
+            `Active Run: ${result.activeRun.id} (${result.activeRun.status}${modeTag})`,
           );
+          ctx.print("");
+
+          // Print the progress digest text if available
+          if (result.activeProgressDigest) {
+            ctx.print("── Progress Digest ──");
+            ctx.print("");
+            // Split digest into lines and print each (trim trailing blank line)
+            const digestLines = result.activeProgressDigest.split("\n");
+            for (const line of digestLines) {
+              if (line.trim().length > 0) {
+                ctx.print(line);
+              }
+            }
+            ctx.print("");
+          }
+
+          // Print artifact pointers
+          if (result.activeArtifactPointers) {
+            const ptrs = result.activeArtifactPointers;
+            // Derive prefix from storePath (e.g., ".pi/research/" → "runs/...")
+            const storeRel = result.storePath.replace(/^.*?(\\.pi[\/\\\\]research)/, "$1");
+            ctx.print("── Artifact paths ──");
+            if (ptrs.progressDigest) ctx.print(`  Digest:  ${storeRel}/${ptrs.progressDigest}`);
+            if (ptrs.runSummary)    ctx.print(`  Summary: ${storeRel}/${ptrs.runSummary}`);
+            if (ptrs.brief)         ctx.print(`  Brief:   ${storeRel}/${ptrs.brief}`);
+            if (ptrs.sourceNoteCount > 0) ctx.print(`  Source notes: ${ptrs.sourceNoteCount}`);
+            ctx.print("");
+          }
         } else {
           ctx.print("No active research run.");
         }
 
         ctx.print(`Proposals: ${result.proposals.length}`);
         ctx.print(`Runs: ${result.runs.length}`);
+
+        // List individual proposals and runs for detailed lifecycle view
+        if (result.proposals.length > 0) {
+          ctx.print("");
+          ctx.print("Proposals:");
+          for (const p of result.proposals) {
+            ctx.print(`  • ${p.id} (${p.status}): ${p.question.slice(0, 60)}`);
+          }
+        }
+
+        if (result.runs.length > 0) {
+          ctx.print("");
+          ctx.print("Runs:");
+          for (const r of result.runs) {
+            const modeTag = r.mode ? `, ${r.mode}` : "";
+            const isActive = result.activeRun && result.activeRun.id === r.id;
+            const activeTag = isActive ? " ← active" : "";
+            ctx.print(`  • ${r.id} (${r.status}${modeTag})${activeTag}: ${r.question.slice(0, 60)}`);
+          }
+        }
+
+        // Surface interruption state for terminal runs that need attention
+        if (!result.activeRun && result.runs.length > 0) {
+          const interruptedRuns = result.runs.filter(
+            (r) => r.status === "interrupted",
+          );
+          if (interruptedRuns.length > 0) {
+            ctx.print("");
+            ctx.print(`⚠️ Interrupted runs: ${interruptedRuns.length} run(s) were interrupted.`);
+            ctx.print(`Use /research resume ${interruptedRuns[0].id} to continue.`);
+          }
+        }
 
         if (result.proposals.length === 0 && result.runs.length === 0) {
           ctx.print("");
