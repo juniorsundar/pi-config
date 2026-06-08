@@ -76,58 +76,58 @@ describe("Budget", () => {
     expect(budget.usage.modelCalls).toBe(1);
   });
 
-  it("isExhausted when searches exceed limit", () => {
+  it("isExhausted when searches reach limit", () => {
     let budget = createBudget({ ...defaultLimits, maxSearches: 3 });
-    budget = trackUsage(budget, { searches: 3 });
-    expect(isExhausted(budget)).toBe(false);
+    budget = trackUsage(budget, { searches: 2 });
+    expect(isExhausted(budget)).toBe(false); // under limit
 
     budget = trackUsage(budget, { searches: 1 });
-    expect(isExhausted(budget)).toBe(true);
+    expect(isExhausted(budget)).toBe(true); // at limit
   });
 
-  it("isExhausted when model calls exceed limit", () => {
+  it("isExhausted when model calls reach limit", () => {
     let budget = createBudget({ ...defaultLimits, maxModelCalls: 5 });
-    budget = trackUsage(budget, { modelCalls: 5 });
-    expect(isExhausted(budget)).toBe(false);
+    budget = trackUsage(budget, { modelCalls: 4 });
+    expect(isExhausted(budget)).toBe(false); // under limit
 
     budget = trackUsage(budget, { modelCalls: 1 });
-    expect(isExhausted(budget)).toBe(true);
+    expect(isExhausted(budget)).toBe(true); // at limit
   });
 
-  it("isExhausted when source visits exceed limit", () => {
+  it("isExhausted when source visits reach limit", () => {
     let budget = createBudget({ ...defaultLimits, maxSourceVisits: 2 });
-    budget = trackUsage(budget, { sourceVisits: 2 });
-    expect(isExhausted(budget)).toBe(false);
+    budget = trackUsage(budget, { sourceVisits: 1 });
+    expect(isExhausted(budget)).toBe(false); // under limit
 
     budget = trackUsage(budget, { sourceVisits: 1 });
-    expect(isExhausted(budget)).toBe(true);
+    expect(isExhausted(budget)).toBe(true); // at limit
   });
 
-  it("isExhausted when fetch attempts exceed limit", () => {
+  it("isExhausted when fetch attempts reach limit", () => {
     let budget = createBudget({ ...defaultLimits, maxFetchAttempts: 3 });
-    budget = trackUsage(budget, { fetchAttempts: 3 });
-    expect(isExhausted(budget)).toBe(false);
+    budget = trackUsage(budget, { fetchAttempts: 2 });
+    expect(isExhausted(budget)).toBe(false); // under limit
 
     budget = trackUsage(budget, { fetchAttempts: 1 });
-    expect(isExhausted(budget)).toBe(true);
+    expect(isExhausted(budget)).toBe(true); // at limit
   });
 
-  it("isExhausted when synthesis rounds exceed limit", () => {
-    let budget = createBudget({ ...defaultLimits, maxSynthesisRounds: 1 });
+  it("isExhausted when synthesis rounds reach limit", () => {
+    let budget = createBudget({ ...defaultLimits, maxSynthesisRounds: 2 });
     budget = trackUsage(budget, { synthesisRounds: 1 });
-    expect(isExhausted(budget)).toBe(false);
+    expect(isExhausted(budget)).toBe(false); // under limit
 
     budget = trackUsage(budget, { synthesisRounds: 1 });
-    expect(isExhausted(budget)).toBe(true);
+    expect(isExhausted(budget)).toBe(true); // at limit
   });
 
-  it("isExhausted when retry attempts exceed limit", () => {
+  it("isExhausted when retry attempts reach limit", () => {
     let budget = createBudget({ ...defaultLimits, maxRetryAttempts: 2 });
-    budget = trackUsage(budget, { retryAttempts: 2 });
-    expect(isExhausted(budget)).toBe(false);
+    budget = trackUsage(budget, { retryAttempts: 1 });
+    expect(isExhausted(budget)).toBe(false); // under limit
 
     budget = trackUsage(budget, { retryAttempts: 1 });
-    expect(isExhausted(budget)).toBe(true);
+    expect(isExhausted(budget)).toBe(true); // at limit
   });
 
   it("remainingBudget returns budget left for each category", () => {
@@ -163,10 +163,22 @@ describe("Budget", () => {
     expect(can).toBe(false);
   });
 
+  it("isExhausted when elapsed time exceeds maxElapsedSeconds", () => {
+    const budget = createBudget({ ...defaultLimits, maxElapsedSeconds: 10 });
+    expect(isExhausted(budget, 5)).toBe(false);
+    expect(isExhausted(budget, 10)).toBe(true); // equal IS exhausted (>= semantics)
+    expect(isExhausted(budget, 11)).toBe(true);
+  });
+
+  it("isExhausted elapsed time check is optional (backward compat)", () => {
+    const budget = createBudget({ ...defaultLimits, maxElapsedSeconds: 10 });
+    // When elapsedSeconds is not provided, elapsed time is not checked
+    // We need to provide a value that wouldn't affect the test
+    expect(isExhausted(budget)).toBe(false); // no elapsedSec passed, other categories fine
+  });
+
   it("tracks elapsed time through start time recording", () => {
     const budget = createBudget(defaultLimits);
-    // elapsedSeconds is recorded via startTime but can't be tested
-    // without mocking Date. The budget structure supports it.
     expect(budget.startedAt).toBeDefined();
     expect(budget.startedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });

@@ -16,13 +16,13 @@ User stories covered: 18, 19, 20, 21, 22, 45.
 
 ### Acceptance criteria
 
-- [ ] Budget usage separately tracks searches, fetch attempts, successful source visits, extraction calls, synthesis calls, model calls or rounds, retries, and elapsed time
-- [ ] Failed fetches consume fetch-attempt budget but not successful source-visit budget
-- [ ] The orchestrator enforces hard budget limits even if the Research Brain wants to continue
-- [ ] Budget exhaustion can produce a best-effort Research Brief with caveats, gaps, confidence rationale, and optional Continuation Recommendation
-- [ ] Continuation requires explicit additional budget approval and records the budget revision without overwriting original approval history
-- [ ] Every budget approval or revision is recorded as an append-only ledger event
-- [ ] Tests cover hard-limit enforcement, early-stop acceptance, budget-exhausted brief creation, and continuation recommendation behavior
+- [x] Budget usage separately tracks searches, fetch attempts, successful source visits, extraction calls, synthesis calls, model calls or rounds, retries, and elapsed time
+- [x] Failed fetches consume fetch-attempt budget but not successful source-visit budget
+- [x] The orchestrator enforces hard budget limits even if the Research Brain wants to continue
+- [x] Budget exhaustion can produce a best-effort Research Brief with caveats, gaps, confidence rationale, and optional Continuation Recommendation
+- [x] Continuation requires explicit additional budget approval and records the budget revision without overwriting original approval history
+- [x] Every budget approval or revision is recorded as an append-only ledger event
+- [x] Tests cover hard-limit enforcement, early-stop acceptance, budget-exhausted brief creation, and continuation recommendation behavior
 
 ### Blocked by
 

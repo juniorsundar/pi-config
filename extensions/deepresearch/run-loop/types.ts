@@ -25,6 +25,27 @@ export interface ResearchRunMeta {
   ledgerEntryCount: number;
   /** Number of orchestration rounds executed. */
   roundCount: number;
+  /** Final budget usage snapshot (for post-run analysis). */
+  finalUsage?: {
+    searches: number;
+    fetchAttempts: number;
+    sourceVisits: number;
+    synthesisRounds: number;
+    modelCalls: number;
+    retryAttempts: number;
+    elapsedSeconds: number;
+  };
+}
+
+/**
+ * A Continuation Recommendation generated when budget is exhausted.
+ * Names remaining gaps and proposes an additional budget allocation.
+ */
+export interface ContinuationRecommendation {
+  /** Remaining gaps that need investigation. */
+  remainingGaps: string[];
+  /** Proposed additional budget categories and limits. */
+  proposedBudget: string;
 }
 
 /**

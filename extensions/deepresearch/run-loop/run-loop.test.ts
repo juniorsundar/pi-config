@@ -6,7 +6,7 @@ import { initStore } from "../workspace/store";
 import { createRun, updateStatus, getRun } from "../lifecycle/run-store";
 import { createBudget, type BudgetLimits } from "../budgets/budget";
 import type { ResearchBrain } from "../brain/harness/types";
-import { executeResearchRun } from "./run-loop";
+import { executeResearchRun, continueResearchRun } from "./run-loop";
 import type { RunLoopOptions, LedgerEntry } from "./types";
 
 /** Fake search results for the mock seam. */
@@ -536,6 +536,108 @@ describe("Research Run loop — budget enforcement", () => {
     expect(result.roundCount).toBe(1);
   });
 
+  it("rejects further Brain intents after budget is exhausted (Brain wants to continue)", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "Brain wants more?",
+      {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 3,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    // Brain keeps asking for more searches — loop must still terminate
+    const brain = createMockBrain(["search", "search", "search", "search", "search"]);
+    const options = mockRunLoopOptions();
+
+    const result = await executeResearchRun(workDir, runId, brain, budget, options);
+
+    const updatedRun = getRun(workDir, runId);
+    expect(updatedRun!.status).toBe("budget_exhausted");
+
+    // Should have run ~3 rounds (maxModelCalls=3) then stopped, not 5
+    expect(result.roundCount).toBeLessThanOrEqual(4);
+  });
+
+  it("fails fetch increments fetchAttempts but not sourceVisits", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "Failed fetch?",
+      {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    let callIndex = 0;
+    const brain: ResearchBrain = {
+      generate: async () => {
+        const step = callIndex++;
+        if (step === 0)
+          return JSON.stringify({ intent: "search", query: "test" });
+        if (step === 1)
+          return JSON.stringify({
+            intent: "select_sources",
+            selectedUrls: ["https://example.com/fail"],
+          });
+        if (step === 2)
+          return JSON.stringify({
+            intent: "update_findings",
+            snippets: [],
+          });
+        return JSON.stringify({
+          intent: "synthesize_brief",
+          briefDraft: "# Brief\n\nDone.",
+        });
+      },
+    };
+
+    const failingOptions: RunLoopOptions = {
+      search: async () => FAKE_SEARCH_RESULTS,
+      fetch: async () => {
+        throw new Error("Network error");
+      },
+    };
+
+    const result = await executeResearchRun(workDir, runId, brain, budget, failingOptions, 1);
+
+    // The run should complete normally (fetch failure is non-fatal)
+    const updatedRun = getRun(workDir, runId);
+    expect(updatedRun!.status).toBe("completed");
+
+    // Budget counters: fetchAttempts incremented, sourceVisits NOT incremented
+    expect(result.finalUsage).toBeDefined();
+    expect(result.finalUsage!.fetchAttempts).toBeGreaterThanOrEqual(1);
+    expect(result.finalUsage!.sourceVisits).toBe(0);
+
+    // Ledger should have fetch_failed entry
+    const ledgerRaw = readFileSync(
+      join(workDir, ".pi", "research", "runs", runId, "ledger.jsonl"),
+      "utf-8",
+    );
+    const ledgerEntries: LedgerEntry[] = ledgerRaw
+      .split("\n")
+      .filter((l) => l.trim().length > 0)
+      .map((l) => JSON.parse(l));
+
+    const fetchFailed = ledgerEntries.find((e) => e.intent === "fetch_failed");
+    expect(fetchFailed).toBeDefined();
+    expect(fetchFailed!.content).toContain("Failed to fetch");
+    expect(fetchFailed!.content).toContain("Network error");
+  });
+
   it("completes normally when budget is sufficient", async () => {
     const workDir = makeWorkDir();
     const { runId, budget } = setupRunForLoop(
@@ -565,6 +667,46 @@ describe("Research Run loop — budget enforcement", () => {
     const updatedRun = getRun(workDir, runId);
     expect(updatedRun!.status).toBe("completed");
     expect(result.roundCount).toBeGreaterThanOrEqual(4);
+  });
+
+  it("records a budget_approved ledger entry on run start", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "Budget ledger test?",
+      {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    const brain = createMockBrain(["synthesize_brief"]);
+    const options = mockRunLoopOptions();
+
+    const result = await executeResearchRun(workDir, runId, brain, budget, options);
+
+    // Read the ledger
+    const ledgerRaw = readFileSync(
+      join(workDir, ".pi", "research", "runs", runId, "ledger.jsonl"),
+      "utf-8",
+    );
+    const ledgerEntries: LedgerEntry[] = ledgerRaw
+      .split("\n")
+      .filter((l) => l.trim().length > 0)
+      .map((l) => JSON.parse(l));
+
+    // First entry should be budget_approved
+    const budgetApproved = ledgerEntries[0];
+    expect(budgetApproved).toBeDefined();
+    expect(budgetApproved.intent).toBe("budget_approved");
+    expect(budgetApproved.meta).toBeDefined();
+    expect((budgetApproved.meta as any).limits).toBeDefined();
+    expect((budgetApproved.meta as any).limits.maxSearches).toBe(5);
   });
 
   it("marks remaining categories as budget-not-searched when budget exhausted", async () => {
@@ -999,5 +1141,285 @@ describe("AC3: brain-provided snippets without fetch are skipped", () => {
     );
     expect(skipEntry).toBeDefined();
     expect(skipEntry!.content).toContain("without fetched/read content");
+  });
+});
+
+// ── Best-Effort Brief Tests (Slice 2) ───────────────────────────────────────
+
+describe("Research Run loop — best-effort brief (Slice 2)", () => {
+  it("produces best-effort brief with Caveats, Gaps, and Confidence sections when budget exhausted via model calls", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "Brief with caveats?",
+      {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 0, // Exhaust immediately
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    const brain = createMockBrain(["search"]);
+    const options = mockRunLoopOptions();
+
+    await executeResearchRun(workDir, runId, brain, budget, options, 3, ["docs", "benchmarks"]);
+
+    const briefContent = readFileSync(
+      join(workDir, ".pi", "research", "runs", runId, "brief.md"),
+      "utf-8",
+    );
+
+    // Should have title indicating budget exhaustion
+    expect(briefContent).toContain("Budget Exhausted");
+
+    // Should have Caveats section
+    expect(briefContent).toContain("## Caveats");
+
+    // Should have Gaps section
+    expect(briefContent).toContain("## Gaps");
+
+    // Should have Confidence Rationale section (bold label inline)
+    expect(briefContent).toContain("**Confidence Rationale**");
+
+    // Should have Evidence Coverage section
+    expect(briefContent).toContain("Evidence Coverage");
+    expect(briefContent).toContain("docs");
+    expect(briefContent).toContain("benchmarks");
+  });
+
+  it("includes a Continuation Recommendation section with remaining gaps in budget-exhausted brief", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "Continuation rec?",
+      {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 0, // Exhaust immediately
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    const brain = createMockBrain(["search"]);
+    const options = mockRunLoopOptions();
+
+    await executeResearchRun(workDir, runId, brain, budget, options, 3, ["docs", "benchmarks"]);
+
+    const briefContent = readFileSync(
+      join(workDir, ".pi", "research", "runs", runId, "brief.md"),
+      "utf-8",
+    );
+
+    // Should have Continuation Recommendation section
+    expect(briefContent).toContain("## Continuation Recommendation");
+
+    // Should mention the evidence categories that weren't searched
+    expect(briefContent).toContain("docs");
+    expect(briefContent).toContain("benchmarks");
+
+    // Should mention additional budget
+    expect(briefContent).toContain("additional budget");
+  });
+});
+
+// ── Continuation Mechanism Tests (Slice 4+5) ───────────────────────────────
+
+describe("Research Run loop — continuation mechanism (Slice 4+5)", () => {
+  it("continueResearchRun rejects non-budget-exhausted runs", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const run = createRun(workDir, "Fresh run?", {
+      mode: "blocking",
+      trigger: "Test continuation rejection",
+      budgetLimits: {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    });
+    const runId = run.identity.id;
+
+    const brain = createMockBrain(["search"]);
+    const newBudget = createBudget({
+      maxSearches: 5,
+      maxFetchAttempts: 5,
+      maxSourceVisits: 5,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 3,
+      maxElapsedSeconds: 300,
+    });
+
+    await expect(
+      continueResearchRun(workDir, runId, brain, newBudget, mockRunLoopOptions()),
+    ).rejects.toThrow(/Cannot continue/);
+  });
+
+  it("continues a budget-exhausted run with new budget preserving original approval history", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "Continuation test?",
+      {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 0, // Exhaust immediately
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    const brain = createMockBrain(["search"]);
+    const options = mockRunLoopOptions();
+
+    // First run — exhaust budget
+    await executeResearchRun(workDir, runId, brain, budget, options);
+
+    const exhaustedRun = getRun(workDir, runId);
+    expect(exhaustedRun!.status).toBe("budget_exhausted");
+
+    // Read the ledger to capture original budget_approved
+    const beforeLedgerRaw = readFileSync(
+      join(workDir, ".pi", "research", "runs", runId, "ledger.jsonl"),
+      "utf-8",
+    );
+    const beforeLedgerLines = beforeLedgerRaw
+      .split("\n")
+      .filter((l) => l.trim().length > 0);
+    const beforeBudgetApproved = JSON.parse(beforeLedgerLines[0]);
+    expect(beforeBudgetApproved.intent).toBe("budget_approved");
+
+    // Now continue with new (adequate) budget
+    const newBudget = createBudget({
+      maxSearches: 5,
+      maxFetchAttempts: 5,
+      maxSourceVisits: 5,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 3,
+      maxElapsedSeconds: 300,
+    });
+
+    // New brain for continuation
+    const newBrain = createMockBrain([
+      "search",
+      "select_sources",
+      "update_findings",
+      "synthesize_brief",
+    ]);
+
+    const result = await continueResearchRun(
+      workDir, runId, newBrain, newBudget, options,
+    );
+
+    // Run should complete now
+    const continuedRun = getRun(workDir, runId);
+    expect(continuedRun!.status).toBe("completed");
+
+    // Ledger should have budget_approved (original) THEN budget_revision (continuation)
+    const afterLedgerRaw = readFileSync(
+      join(workDir, ".pi", "research", "runs", runId, "ledger.jsonl"),
+      "utf-8",
+    );
+    const afterLedgerLines = afterLedgerRaw
+      .split("\n")
+      .filter((l) => l.trim().length > 0);
+
+    // First entry is still budget_approved (original preserved)
+    const firstEntry = JSON.parse(afterLedgerLines[0]);
+    expect(firstEntry.intent).toBe("budget_approved");
+    expect(firstEntry.meta.limits.maxModelCalls).toBe(0);
+
+    // Find budget_revision entry
+    const budgetRevision = afterLedgerLines
+      .map((l) => JSON.parse(l))
+      .find((e: any) => e.intent === "budget_revision");
+    expect(budgetRevision).toBeDefined();
+    expect(budgetRevision.timestamp).toBeDefined();
+
+    // original budget_approved is still there with original limits
+    const approvedCount = afterLedgerLines.filter(
+      (l) => JSON.parse(l).intent === "budget_approved",
+    ).length;
+    expect(approvedCount).toBe(1);
+
+    // Brief should exist
+    const briefPath = join(workDir, ".pi", "research", "runs", runId, "brief.md");
+    expect(existsSync(briefPath)).toBe(true);
+
+    // Source notes should exist from continuation
+    expect(result.sourceNoteCount).toBeGreaterThanOrEqual(1);
+  });
+
+  it("budget_revision does not overwrite or mutate prior budget_approved", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "Append-only test?",
+      {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 0, // Exhaust immediately
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    const brain = createMockBrain(["search"]);
+    await executeResearchRun(workDir, runId, brain, budget, mockRunLoopOptions());
+
+    // Capture original ledger bytes
+    const ledgerPath = join(workDir, ".pi", "research", "runs", runId, "ledger.jsonl");
+    const originalBytes = readFileSync(ledgerPath);
+
+    const newBudget = createBudget({
+      maxSearches: 5,
+      maxFetchAttempts: 5,
+      maxSourceVisits: 5,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 3,
+      maxElapsedSeconds: 300,
+    });
+    const newBrain = createMockBrain(["synthesize_brief"]);
+    await continueResearchRun(workDir, runId, newBrain, newBudget, mockRunLoopOptions());
+
+    // Read the ledger again
+    const afterBytes = readFileSync(ledgerPath);
+
+    // The original bytes must still be at the start of the file
+    const originalStr = originalBytes.toString("utf-8");
+    const afterStr = afterBytes.toString("utf-8");
+
+    // Original content is preserved as a prefix
+    expect(afterStr.startsWith(originalStr)).toBe(true);
+
+    // But the file is longer (revision was appended)
+    expect(afterBytes.length).toBeGreaterThan(originalBytes.length);
+
+    // Only one budget_approved entry
+    const lines = afterStr.split("\n").filter((l) => l.trim().length > 0);
+    const approvedEntries = lines.filter((l) => JSON.parse(l).intent === "budget_approved");
+    expect(approvedEntries.length).toBe(1);
+
+    // budget_revision entry exists
+    const revisionEntries = lines.filter((l) => JSON.parse(l).intent === "budget_revision");
+    expect(revisionEntries.length).toBe(1);
   });
 });

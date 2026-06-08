@@ -93,17 +93,27 @@ export function trackUsage(
 // ── Limit enforcement ───────────────────────────────────────────────────────
 
 /**
- * Check if any budget category has exceeded its hard limit.
+ * Check if any budget category has reached or exceeded its hard limit.
+ * Usage counters use >= semantics (true hard cap: at limit = exhausted).
+ * Elapsed time (if provided) also uses >=.
  */
-export function isExhausted(budget: Budget): boolean {
-  return (
-    budget.usage.searches > budget.limits.maxSearches ||
-    budget.usage.fetchAttempts > budget.limits.maxFetchAttempts ||
-    budget.usage.sourceVisits > budget.limits.maxSourceVisits ||
-    budget.usage.synthesisRounds > budget.limits.maxSynthesisRounds ||
-    budget.usage.modelCalls > budget.limits.maxModelCalls ||
-    budget.usage.retryAttempts > budget.limits.maxRetryAttempts
-  );
+export function isExhausted(budget: Budget, elapsedSeconds?: number): boolean {
+  const usageExhausted =
+    budget.usage.searches >= budget.limits.maxSearches ||
+    budget.usage.fetchAttempts >= budget.limits.maxFetchAttempts ||
+    budget.usage.sourceVisits >= budget.limits.maxSourceVisits ||
+    budget.usage.synthesisRounds >= budget.limits.maxSynthesisRounds ||
+    budget.usage.modelCalls >= budget.limits.maxModelCalls ||
+    budget.usage.retryAttempts >= budget.limits.maxRetryAttempts;
+
+  if (usageExhausted) return true;
+
+  // Check elapsed time if provided
+  if (elapsedSeconds !== undefined && elapsedSeconds >= budget.limits.maxElapsedSeconds) {
+    return true;
+  }
+
+  return false;
 }
 
 /**

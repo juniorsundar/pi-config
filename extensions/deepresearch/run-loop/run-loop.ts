@@ -242,6 +242,167 @@ function parseIntent(raw: string): ParsedIntent | null {
   }
 }
 
+// ── Best-effort brief helpers ────────────────────────────────────────────
+
+/**
+ * Generate a Continuation Recommendation from evidence mix and negative evidence.
+ */
+function generateContinuationRecommendation(
+  question: string,
+  evidenceMix: EvidenceMix | null,
+  negativeEvidence: NegativeEvidence,
+): ContinuationRecommendation {
+  const gaps: string[] = [];
+
+  // Gather remaining gaps from evidence mix categories that weren't found
+  if (evidenceMix) {
+    for (const cat of evidenceMix.categories) {
+      if (cat.status === "not-searched") {
+        gaps.push(`${cat.category}: Not explored before budget exhaustion.`);
+      } else if (cat.status === "missing") {
+        gaps.push(`${cat.category}: Searched but no relevant sources found.`);
+      } else if (cat.status === "weak") {
+        gaps.push(`${cat.category}: Only weak evidence gathered.`);
+      }
+    }
+  }
+
+  // Gather gaps from negative evidence (failed searches)
+  for (const entry of negativeEvidence.entries) {
+    if (entry.type === "failed_search") {
+      gaps.push(`Search gap: ${entry.detail}`);
+    }
+    if (entry.type === "fetch_failed") {
+      gaps.push(`Fetch gap: ${entry.detail}`);
+    }
+    if (entry.type === "missing_category" && entry.category) {
+      const alreadyAdded = gaps.some((g) => g.includes(entry.category!));
+      if (!alreadyAdded) {
+        gaps.push(`${entry.category}: ${entry.detail}`);
+      }
+    }
+    if (entry.type === "dropped_source") {
+      gaps.push(`Source dropped: ${entry.detail}`);
+    }
+  }
+
+  const proposedBudget =
+    gaps.length > 0
+      ? `Additional searches, fetch attempts, and model calls to address the ${gaps.length} remaining gap(s).`
+      : `Additional budget allocation to continue investigation.`;
+
+  return {
+    remainingGaps: gaps,
+    proposedBudget,
+  };
+}
+
+/**
+ * Generate a best-effort Research Brief when budget is exhausted or time is exceeded.
+ * Includes Caveats, Gaps, Confidence Rationale, Continuation Recommendation, Evidence Coverage.
+ */
+function generateBudgetExhaustedBrief(
+  question: string,
+  isTimeExhausted: boolean,
+  elapsedSec: number,
+  budget: Budget,
+  evidenceMix: EvidenceMix | null,
+  negativeEvidence: NegativeEvidence,
+): string {
+  const title = isTimeExhausted ? "Time Exhausted" : "Budget Exhausted";
+  const reasonLine = isTimeExhausted
+    ? `Elapsed time (${elapsedSec.toFixed(0)}s) exceeded the budget limit (${budget.limits.maxElapsedSeconds}s).`
+    : `Research Budget was exhausted before the Research Brief could be completed.`;
+
+  // Build confidence rationale based on what was gathered vs what was missing
+  const evidenceMixSnap = evidenceMix?.snapshot();
+  const totalCategories = evidenceMixSnap ? evidenceMixSnap.categories.length : 0;
+  const foundCategories = evidenceMixSnap ? evidenceMixSnap.found : 0;
+  const weakCategories = evidenceMixSnap ? evidenceMixSnap.weak : 0;
+  const missingOrNotSearched = evidenceMixSnap
+    ? evidenceMixSnap.missing + evidenceMixSnap.notSearched
+    : 0;
+
+  let confidence: string;
+  let confidenceRationale: string;
+  if (totalCategories === 0) {
+    confidence = "Unknown";
+    confidenceRationale = `No evidence categories defined. ${reasonLine}`;
+  } else if (foundCategories >= totalCategories * 0.75 && missingOrNotSearched === 0) {
+    confidence = "Medium";
+    confidenceRationale = `Found evidence for ${foundCategories}/${totalCategories} categories, but the brief was interrupted by ${title.toLowerCase()}. Some evidence may be incomplete.`;
+  } else if (foundCategories > 0 || weakCategories > 0) {
+    confidence = "Low";
+    confidenceRationale = `Only partial evidence gathered (${foundCategories} found, ${weakCategories} weak of ${totalCategories} categories). The brief was interrupted by ${title.toLowerCase()}.`;
+  } else {
+    confidence = "Very Low";
+    confidenceRationale = `No evidence categories were successfully populated before ${title.toLowerCase()}.`;
+  }
+
+  // Build caveats
+  const caveats: string[] = [];
+  if (isTimeExhausted) {
+    caveats.push(`Research was interrupted by elapsed time limit (${budget.limits.maxElapsedSeconds}s).`);
+  } else {
+    caveats.push("Research Budget was exhausted before all intended work could complete.");
+  }
+  if (totalCategories > 0 && missingOrNotSearched > 0) {
+    caveats.push(`${missingOrNotSearched} of ${totalCategories} evidence categories are missing or unexplored.`);
+  }
+  caveats.push(`Failed fetches: ${negativeEvidence.entries.filter(e => e.type === "fetch_failed").length} source(s) could not be accessed.`);
+
+  // Generate Continuation Recommendation (also provides gaps)
+  const continuation = generateContinuationRecommendation(question, evidenceMix, negativeEvidence);
+  const gaps = [...continuation.remainingGaps];
+
+  const lines: string[] = [
+    `# Research Brief (${title})`,
+    "",
+    `**Question**: ${question}`,
+    "",
+    reasonLine,
+    "",
+    `**Confidence**: ${confidence}`,
+    "",
+    `**Confidence Rationale**: ${confidenceRationale}`,
+    "",
+    "## Caveats",
+    "",
+  ];
+
+  for (const caveat of caveats) {
+    lines.push(`- ${caveat}`);
+  }
+
+  if (gaps.length > 0) {
+    lines.push("", "## Gaps", "");
+    for (const gap of gaps) {
+      lines.push(`- ${gap}`);
+    }
+  }
+
+  if (continuation.remainingGaps.length > 0) {
+    lines.push("", "## Continuation Recommendation", "");
+    lines.push("The following gaps remain unresolved and may justify a continuation with additional budget:");
+    lines.push("");
+    for (const gap of continuation.remainingGaps) {
+      lines.push(`- ${gap}`);
+    }
+    lines.push("", `**Proposed additional budget**: ${continuation.proposedBudget}`);
+    lines.push("");
+  }
+
+  // Append Evidence Coverage section
+  const coverageSection = evidenceMix
+    ? coverageToPromptSection(evidenceMix, negativeEvidence)
+    : undefined;
+  if (coverageSection) {
+    lines.push("---", "", coverageSection);
+  }
+
+  return lines.join("\n");
+}
+
 // ── Main loop ─────────────────────────────────────────────────────────────
 
 /**
@@ -263,6 +424,7 @@ function parseIntent(raw: string): ParsedIntent | null {
  * @param options - Injection seams for orchestrator side effects
  * @param minimumSourceNotes - Minimum Source Notes required before early stop is accepted (default 1)
  * @param evidenceCategories - Intended evidence categories (from proposal's evidenceMix). Empty = no EvidenceMix tracking.
+ * @param skipInit - If true, skip initial artifact creation and budget_approved ledger event (used for continuations).
  * @returns Metadata about the completed run
  */
 export async function executeResearchRun(
@@ -273,14 +435,17 @@ export async function executeResearchRun(
   options: RunLoopOptions,
   minimumSourceNotes: number = 1,
   evidenceCategories: string[] = [],
+  skipInit: boolean = false,
 ): Promise<ResearchRunMeta> {
   const run = getRun(cwd, runId);
   if (!run) throw new Error(`Run not found: ${runId}`);
 
-  // ── Initialize artifacts ──────────────────────────────────────────────
-  const notesDir = sourceNotesDir(cwd, runId);
-  mkdirSync(notesDir, { recursive: true });
-  writeFileSync(ledgerPath(cwd, runId), ""); // empty file to start
+  // ── Initialize artifacts (skip for continuations) ───────────────────
+  if (!skipInit) {
+    const notesDir = sourceNotesDir(cwd, runId);
+    mkdirSync(notesDir, { recursive: true });
+    writeFileSync(ledgerPath(cwd, runId), ""); // empty file to start
+  }
 
   let roundCount = 0;
   let sourceNoteCount = 0;
@@ -301,36 +466,50 @@ export async function executeResearchRun(
 
   const startTimeMs = Date.now();
 
+  // Record budget approval as the first ledger entry (append-only audit trail)
+  // For continuations, record budget_revision instead (preserving the original budget_approved)
+  if (skipInit) {
+    appendLedger(cwd, runId, {
+      round: 0,
+      intent: "budget_revision",
+      timestamp: new Date().toISOString(),
+      content: "Budget revised for continuation — additional allocation approved.",
+      meta: {
+        newLimits: { ...budget.limits },
+      },
+    });
+  } else {
+    appendLedger(cwd, runId, {
+      round: 0,
+      intent: "budget_approved",
+      timestamp: new Date().toISOString(),
+      content: "Budget approved with hard limits.",
+      meta: {
+        limits: { ...budget.limits },
+      },
+    });
+  }
+
   while (!completed && roundCount < MAX_ROUNDS) {
     roundCount++;
 
-    // Elapsed-time check at the top of each round
+    // Check budget exhaustion at the top of each round (before spending a model call)
     const elapsedSec = (Date.now() - startTimeMs) / 1000;
-    if (elapsedSec >= budget.limits.maxElapsedSeconds) {
-      appendLedger(cwd, runId, {
-        round: roundCount,
-        intent: "time_exhausted",
-        timestamp: new Date().toISOString(),
-        content: `Elapsed time ${elapsedSec.toFixed(0)}s exceeded limit of ${budget.limits.maxElapsedSeconds}s`,
-      });
-
-      // Annotate not-searched categories before building the coverage section
+    const elapsedTimeExceeded = elapsedSec >= budget.limits.maxElapsedSeconds;
+    if (isExhausted(budget, elapsedSec)) {
       evidenceMix?.markNotSearchedDueToBudget();
 
       if (!briefPathResult) {
         briefPathResult = briefFilePath(cwd, runId);
-        const draft = [
-          "# Research Brief (Time Exhausted)",
-          "",
-          `Elapsed time (${elapsedSec.toFixed(0)}s) exceeded the budget limit (${budget.limits.maxElapsedSeconds}s).`,
-          "Research was interrupted before the brief could be completed.",
-        ].join("\n");
-        const coverageSection = evidenceMix
-          ? coverageToPromptSection(evidenceMix, negativeEvidence)
-          : undefined;
-        const finalDraft = coverageSection
-          ? draft + "\n\n---\n\n" + coverageSection
-          : draft;
+        const isTimeExhausted = elapsedTimeExceeded && !isExhausted(budget);
+        const finalDraft = generateBudgetExhaustedBrief(
+          run.question,
+          isTimeExhausted,
+          elapsedSec,
+          budget,
+          evidenceMix,
+          negativeEvidence,
+        );
         writeFileSync(briefPathResult, finalDraft);
       }
       updateStatus(cwd, runId, "budget_exhausted");
@@ -634,29 +813,31 @@ export async function executeResearchRun(
       }
     }
 
-    // 5. Check budget exhaustion after every round
-    if (isExhausted(budget)) {
-      evidenceMix?.markNotSearchedDueToBudget();
-      if (!briefPathResult) {
-        briefPathResult = briefFilePath(cwd, runId);
-        const draft = [
-          "# Research Brief (Budget Exhausted)",
-          "",
-          "Budget was exhausted before the Research Brief could be completed.",
-          "Consider continuing with an additional budget allocation.",
-        ].join("\n");
-        const coverageSection = evidenceMix
-          ? coverageToPromptSection(evidenceMix, negativeEvidence)
-          : undefined;
-        const finalDraft = coverageSection
-          ? draft + "\n\n---\n\n" + coverageSection
-          : draft;
-        writeFileSync(briefPathResult, finalDraft);
+    // 5. Check budget exhaustion after every round (recompute elapsed time in case brain.generate() was slow)
+    // Only fire if the run hasn't already completed (e.g., via synthesize_brief)
+    if (!completed) {
+      const postElapsedSec = (Date.now() - startTimeMs) / 1000;
+      if (isExhausted(budget, postElapsedSec)) {
+        evidenceMix?.markNotSearchedDueToBudget();
+        if (!briefPathResult) {
+          briefPathResult = briefFilePath(cwd, runId);
+          const postTimeExceeded = postElapsedSec >= budget.limits.maxElapsedSeconds;
+          const isTimeExhausted = postTimeExceeded && !isExhausted(budget);
+          const finalDraft = generateBudgetExhaustedBrief(
+            run.question,
+            isTimeExhausted,
+            postElapsedSec,
+            budget,
+            evidenceMix,
+            negativeEvidence,
+          );
+          writeFileSync(briefPathResult, finalDraft);
+        }
+        updateStatus(cwd, runId, "budget_exhausted");
+        refreshSummary(cwd, runId, run.question, budget, roundCount);
+        completed = true;
+        break;
       }
-      updateStatus(cwd, runId, "budget_exhausted");
-      refreshSummary(cwd, runId, run.question, budget, roundCount);
-      completed = true;
-      break;
     }
 
     // 6. Refresh Run Summary for next round
@@ -682,5 +863,58 @@ export async function executeResearchRun(
     sourceNoteCount,
     ledgerEntryCount: finalLedger.length,
     roundCount,
+    finalUsage: {
+      ...budget.usage,
+      elapsedSeconds: Math.round((Date.now() - startTimeMs) / 1000 * 10) / 10,
+    },
   };
+}
+
+/**
+ * Continue a budget-exhausted Research Run with an additional budget allocation.
+ *
+ * Preserves prior artifacts (ledger, source notes, brief) and records a
+ * budget_revision as an append-only ledger event. The original budget_approved
+ * event remains intact.
+ *
+ * @param cwd     - Workspace root directory
+ * @param runId   - Research Run identity (existing budget_exhausted run)
+ * @param brain   - Research Brain instance
+ * @param budget  - New Research Budget (combined remaining + additional limits)
+ * @param options - Injection seams for orchestrator side effects
+ * @param evidenceCategories - Intended evidence categories
+ * @returns Metadata about the completed run
+ */
+export async function continueResearchRun(
+  cwd: string,
+  runId: string,
+  brain: ResearchBrain,
+  budget: Budget,
+  options: RunLoopOptions,
+  evidenceCategories: string[] = [],
+): Promise<ResearchRunMeta> {
+  const run = getRun(cwd, runId);
+  if (!run) throw new Error(`Run not found: ${runId}`);
+
+  if (run.status !== "budget_exhausted") {
+    throw new Error(
+      `Cannot continue run ${runId}: status is "${run.status}", expected "budget_exhausted".`,
+    );
+  }
+
+  // Transition back to running for the continuation
+  updateStatus(cwd, runId, "running");
+
+  // Execute the research loop with skipInit=true (preserves existing artifacts,
+  // records budget_revision instead of budget_approved)
+  return executeResearchRun(
+    cwd,
+    runId,
+    brain,
+    budget,
+    options,
+    1,
+    evidenceCategories,
+    true, // skipInit
+  );
 }
