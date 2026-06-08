@@ -7,3 +7,4 @@
 /npm
 /sessions
 **/node_modules
+/trust.json
