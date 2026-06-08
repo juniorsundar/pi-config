@@ -6,3 +6,4 @@
 /node_modules
 /npm
 /sessions
+**/node_modules
