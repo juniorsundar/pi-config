@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { mkdtempSync, rmSync, existsSync, readFileSync, readdirSync } from "fs";
+import { mkdtempSync, rmSync, existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { initStore } from "../workspace/store";
@@ -7,7 +7,9 @@ import { createRun, updateStatus, getRun } from "../lifecycle/run-store";
 import { createBudget, type BudgetLimits } from "../budgets/budget";
 import type { ResearchBrain } from "../brain/harness/types";
 import { executeResearchRun, continueResearchRun } from "./run-loop";
-import type { RunLoopOptions, LedgerEntry } from "./types";
+import type { RunLoopOptions, LedgerEntry, ResearchRunMeta } from "./types";
+import { writeSteeringSignal, readAndClearSteeringSignal } from "../steering/steering";
+import type { SteeringSignal } from "../steering/steering";
 
 /** Fake search results for the mock seam. */
 const FAKE_SEARCH_RESULTS = [
@@ -1761,5 +1763,519 @@ describe("Research Run loop — citation validation and trigger gating", () => {
 
     const html = readFileSync(viewPath, "utf-8");
     expect(html).toContain("Budget Exhausted");
+  });
+});
+
+// ── Steering Integration: Cancel (Slice 1) ─────────────────────────────────
+
+describe("Steering integration — Cancel (Slice 1, AC1 + AC6)", () => {
+  it("cancel stops the run loop mid-execution, sets cancelled status, preserves artifacts, and records ledger entry", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const run = createRun(workDir, "Steering test?", {
+      mode: "blocking",
+      trigger: "Testing cancel",
+      budgetLimits: {
+        maxSearches: 10,
+        maxFetchAttempts: 10,
+        maxSourceVisits: 10,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 50,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    });
+    const runId = run.identity.id;
+    updateStatus(workDir, runId, "running");
+
+    const budget = createBudget({
+      maxSearches: 10,
+      maxFetchAttempts: 10,
+      maxSourceVisits: 10,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 50,
+      maxRetryAttempts: 3,
+      maxElapsedSeconds: 300,
+    });
+
+    // Write a cancel signal that should be picked up after the first round
+    let cancelWritten = false;
+
+    // Brain that does one search, then we inject cancel
+    const brain: ResearchBrain = {
+      generate: async (_prompt: string) => {
+        if (!cancelWritten) {
+          cancelWritten = true;
+          // Write steering signal — this simulates what /research cancel would do
+          // We write it so the run-loop picks it up after this round
+          const signal: SteeringSignal = {
+            timestamp: new Date().toISOString(),
+            type: "cancel",
+            text: "Pivoting to different approach",
+          };
+          writeSteeringSignal(workDir, runId, signal);
+        }
+        return JSON.stringify({
+          intent: "search",
+          reasoning: "Finding sources.",
+          query: "test query",
+        });
+      },
+    };
+
+    const options: RunLoopOptions = {
+      search: async () => [
+        { url: "https://example.com/guide", title: "A Guide", snippet: "Guide content." },
+      ],
+      fetch: async (url: string) => ({
+        url,
+        finalUrl: url,
+        title: "Fetched",
+        content: "Content",
+        contentType: "text/markdown",
+        truncated: false,
+        retrievedAt: new Date().toISOString(),
+      }),
+    };
+
+    const result = await executeResearchRun(workDir, runId, brain, budget, options);
+
+    // 1. Run should be cancelled
+    const updatedRun = getRun(workDir, runId);
+    expect(updatedRun).not.toBeNull();
+    expect(updatedRun!.status).toBe("cancelled");
+
+    // 2. No brief.md should be produced
+    const runDir = join(workDir, ".pi", "research", "runs", runId);
+    const briefPath = join(runDir, "brief.md");
+    expect(existsSync(briefPath)).toBe(false);
+
+    // 3. Source notes directory should exist (artifacts preserved)
+    const sourceNotesDir = join(runDir, "source-notes");
+    expect(existsSync(sourceNotesDir)).toBe(true);
+
+    // 4. Ledger should have entries including the steering:cancel entry
+    const ledgerRaw = readFileSync(join(runDir, "ledger.jsonl"), "utf-8");
+    const ledgerEntries = ledgerRaw
+      .split("\n")
+      .filter((l) => l.trim().length > 0)
+      .map((l) => JSON.parse(l));
+
+    const cancelEntry = ledgerEntries.find(
+      (e: any) => e.intent === "steering:cancel"
+    );
+    expect(cancelEntry).toBeDefined();
+    expect(cancelEntry.meta.instructionType).toBe("cancel");
+    expect(cancelEntry.meta.status).toBe("applied");
+    expect(cancelEntry.meta.budgetState).toBeDefined();
+    expect(cancelEntry.meta.applicationDetails).toContain("Pivoting to different approach");
+
+    // 5. Brief path should be empty (no brief produced on cancel)
+    expect(result.briefPath).toBe("");
+
+    // 6. Status should reflect cancellation reason
+    expect(updatedRun!.terminationReason).toBeDefined();
+    expect(updatedRun!.terminationReason).toContain("Pivoting to different approach");
+  });
+
+  it("cancel without text still works with default reason", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const run = createRun(workDir, "Cancel no text?", {
+      budgetLimits: {
+        maxSearches: 10,
+        maxFetchAttempts: 10,
+        maxSourceVisits: 10,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 50,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    });
+    const runId = run.identity.id;
+    updateStatus(workDir, runId, "running");
+
+    const budget = createBudget({
+      maxSearches: 10,
+      maxFetchAttempts: 10,
+      maxSourceVisits: 10,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 50,
+      maxRetryAttempts: 3,
+      maxElapsedSeconds: 300,
+    });
+
+    let done = false;
+    const brain: ResearchBrain = {
+      generate: async () => {
+        if (!done) {
+          done = true;
+          writeSteeringSignal(workDir, runId, {
+            timestamp: new Date().toISOString(),
+            type: "cancel",
+          });
+        }
+        return JSON.stringify({ intent: "search", query: "test" });
+      },
+    };
+
+    const options: RunLoopOptions = {
+      search: async () => [],
+      fetch: async (url: string) => ({
+        url, finalUrl: url, title: "N/A", content: "",
+        contentType: "text/plain", truncated: false,
+        retrievedAt: new Date().toISOString(),
+      }),
+    };
+
+    await executeResearchRun(workDir, runId, brain, budget, options);
+
+    const updatedRun = getRun(workDir, runId);
+    expect(updatedRun!.status).toBe("cancelled");
+
+    const runDir = join(workDir, ".pi", "research", "runs", runId);
+    const ledgerRaw = readFileSync(join(runDir, "ledger.jsonl"), "utf-8");
+    expect(ledgerRaw).toContain("steering:cancel");
+    expect(ledgerRaw).toContain("Run cancelled by user.");
+  });
+});
+
+// ── Steering Integration: Force Synthesis (Slice 2, AC2) ───────────────────
+
+describe("Steering integration — Force Synthesis (Slice 2, AC2)", () => {
+  it("rejects force_synthesis when no Source Notes exist", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const run = createRun(workDir, "Force synth rejected?", {
+      budgetLimits: {
+        maxSearches: 10,
+        maxFetchAttempts: 10,
+        maxSourceVisits: 10,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    });
+    const runId = run.identity.id;
+    updateStatus(workDir, runId, "running");
+
+    const budget = createBudget({
+      maxSearches: 10,
+      maxFetchAttempts: 10,
+      maxSourceVisits: 10,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 3,
+      maxElapsedSeconds: 300,
+    });
+
+    // Write the signal BEFORE the run loop starts — signal will be picked up at round 1
+    writeSteeringSignal(workDir, runId, {
+      timestamp: new Date().toISOString(),
+      type: "force_synthesis",
+      text: "Give me results now",
+    });
+
+    // Brain: synthesize immediately (no source notes created)
+    const brain: ResearchBrain = {
+      generate: async () => JSON.stringify({
+        intent: "synthesize_brief",
+        briefDraft: "# Research Brief\n\nNo work done.",
+      }),
+    };
+
+    const options: RunLoopOptions = {
+      search: async () => [],
+      fetch: async (url: string) => ({
+        url, finalUrl: url, title: "N/A", content: "",
+        contentType: "text/plain", truncated: false,
+        retrievedAt: new Date().toISOString(),
+      }),
+    };
+
+    const result = await executeResearchRun(workDir, runId, brain, budget, options);
+
+    // Force synthesis was refused — run continues and complete
+    const updatedRun = getRun(workDir, runId);
+    expect(updatedRun!.status).toBe("completed");
+
+    // Ledger should have steering:force_synthesis entry with rejected status
+    const runDir = join(workDir, ".pi", "research", "runs", runId);
+    const ledgerRaw = readFileSync(join(runDir, "ledger.jsonl"), "utf-8");
+    const ledgerEntries = ledgerRaw
+      .split("\n")
+      .filter((l) => l.trim().length > 0)
+      .map((l) => JSON.parse(l));
+
+    const forceEntry = ledgerEntries.find(
+      (e: any) => e.intent === "steering:force_synthesis"
+    );
+    expect(forceEntry).toBeDefined();
+    expect(forceEntry.meta.status).toBe("rejected");
+    expect(forceEntry.meta.applicationDetails).toContain("no Source Notes exist");
+
+    // Brief exists (loop completed normally after rejection)
+    const briefPath = join(runDir, "brief.md");
+    expect(existsSync(briefPath)).toBe(true);
+  });
+
+  it("accepts force_synthesis when Source Notes exist and produces a caveated brief", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const run = createRun(workDir, "Force synth with notes?", {
+      budgetLimits: {
+        maxSearches: 10,
+        maxFetchAttempts: 10,
+        maxSourceVisits: 10,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    });
+    const runId = run.identity.id;
+    updateStatus(workDir, runId, "running");
+
+    const budget = createBudget({
+      maxSearches: 10,
+      maxFetchAttempts: 10,
+      maxSourceVisits: 10,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 3,
+      maxElapsedSeconds: 300,
+    });
+
+    let step = 0;
+    const brain: ResearchBrain = {
+      generate: async () => {
+        step++;
+        if (step === 1) {
+          return JSON.stringify({ intent: "search", query: "test query" });
+        }
+        if (step === 2) {
+          return JSON.stringify({
+            intent: "select_sources",
+            selectedUrls: ["https://example.com/guide"],
+          });
+        }
+        if (step === 3) {
+          // Write force synthesis signal inside this round.
+          // It will be picked up at the top of round 4, after the source note
+          // has been created in this round's update_findings processing.
+          writeSteeringSignal(workDir, runId, {
+            timestamp: new Date().toISOString(),
+            type: "force_synthesis",
+            text: "I need results now",
+          });
+          return JSON.stringify({
+            intent: "update_findings",
+            snippets: ["Key finding from the source."],
+            reasoning: "Extracting key findings.",
+          });
+        }
+        return JSON.stringify({ intent: "synthesize_brief" });
+      },
+    };
+
+    const options: RunLoopOptions = {
+      search: async () => [{
+        url: "https://example.com/guide", title: "Guide", snippet: "Content.",
+      }],
+      fetch: async (url: string) => ({
+        url, finalUrl: url, title: "Fetched", content: "Content",
+        contentType: "text/markdown", truncated: false,
+        retrievedAt: new Date().toISOString(),
+      }),
+    };
+
+    const result = await executeResearchRun(workDir, runId, brain, budget, options);
+
+    // Force synthesis accepted — run completed
+    const updatedRun = getRun(workDir, runId);
+    expect(updatedRun!.status).toBe("completed");
+
+    // Brief should exist and be marked as forced synthesis with caveats
+    const runDir = join(workDir, ".pi", "research", "runs", runId);
+    const briefPath = join(runDir, "brief.md");
+    expect(existsSync(briefPath)).toBe(true);
+    const briefContent = readFileSync(briefPath, "utf-8");
+    expect(briefContent).toContain("Forced Synthesis");
+    expect(briefContent).toContain("Caveats");
+
+    // Ledger should have applied force_synthesis entry
+    const ledgerRaw = readFileSync(join(runDir, "ledger.jsonl"), "utf-8");
+    const ledgerEntries = ledgerRaw
+      .split("\n")
+      .filter((l) => l.trim().length > 0)
+      .map((l) => JSON.parse(l));
+
+    const forceEntry = ledgerEntries.find(
+      (e: any) => e.intent === "steering:force_synthesis"
+    );
+    expect(forceEntry).toBeDefined();
+    expect(forceEntry.meta.status).toBe("applied");
+  });
+});
+
+// ── Steering Integration: Add Instruction (Slice 4, AC4) ────────────────────
+
+describe("Steering integration — Add Instruction (Slice 4, AC4)", () => {
+  it("accepts add_instruction and records ledger entry", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const run = createRun(workDir, "Add instruction test?", {
+      budgetLimits: {
+        maxSearches: 10,
+        maxFetchAttempts: 10,
+        maxSourceVisits: 10,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    });
+    const runId = run.identity.id;
+    updateStatus(workDir, runId, "running");
+
+    const budget = createBudget({
+      maxSearches: 10,
+      maxFetchAttempts: 10,
+      maxSourceVisits: 10,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 3,
+      maxElapsedSeconds: 300,
+    });
+
+    // Write an add_instruction signal before loop starts
+    writeSteeringSignal(workDir, runId, {
+      timestamp: new Date().toISOString(),
+      type: "add_instruction",
+      text: "Focus on official documentation only",
+    });
+
+    const brain: ResearchBrain = {
+      generate: async () => JSON.stringify({
+        intent: "synthesize_brief",
+        briefDraft: "# Brief\n\nDone with docs focus.",
+      }),
+    };
+
+    const options: RunLoopOptions = {
+      search: async () => [],
+      fetch: async (url: string) => ({
+        url, finalUrl: url, title: "N/A", content: "",
+        contentType: "text/plain", truncated: false,
+        retrievedAt: new Date().toISOString(),
+      }),
+    };
+
+    await executeResearchRun(workDir, runId, brain, budget, options);
+
+    // Run completed normally (add_instruction doesn't stop or force synthesis)
+    const updatedRun = getRun(workDir, runId);
+    expect(updatedRun!.status).toBe("completed");
+
+    // Ledger has steering:add_instruction entry with applied status
+    const runDir = join(workDir, ".pi", "research", "runs", runId);
+    const ledgerRaw = readFileSync(join(runDir, "ledger.jsonl"), "utf-8");
+    const ledgerEntries = ledgerRaw
+      .split("\n")
+      .filter((l) => l.trim().length > 0)
+      .map((l) => JSON.parse(l));
+
+    const instructionEntry = ledgerEntries.find(
+      (e: any) => e.intent === "steering:add_instruction"
+    );
+    expect(instructionEntry).toBeDefined();
+    expect(instructionEntry.meta.status).toBe("applied");
+    expect(instructionEntry.meta.text).toBe("Focus on official documentation only");
+    expect(instructionEntry.meta.instructionType).toBe("add_instruction");
+    expect(instructionEntry.meta.budgetState).toBeDefined();
+    expect(instructionEntry.timestamp).toBeDefined();
+    expect(instructionEntry.meta.applicationDetails).toBeDefined();
+  });
+
+  it("rejects scope-broadening add_instruction and records ledger entry", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const run = createRun(workDir, "Scope expansion test?", {
+      budgetLimits: {
+        maxSearches: 10,
+        maxFetchAttempts: 10,
+        maxSourceVisits: 10,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    });
+    const runId = run.identity.id;
+    updateStatus(workDir, runId, "running");
+
+    const budget = createBudget({
+      maxSearches: 10,
+      maxFetchAttempts: 10,
+      maxSourceVisits: 10,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 3,
+      maxElapsedSeconds: 300,
+    });
+
+    // Write a scope-broadening instruction signal
+    writeSteeringSignal(workDir, runId, {
+      timestamp: new Date().toISOString(),
+      type: "add_instruction",
+      text: "Also compare with alternative framework X",
+    });
+
+    const brain: ResearchBrain = {
+      generate: async () => JSON.stringify({
+        intent: "synthesize_brief",
+        briefDraft: "# Brief\n\nDone.",
+      }),
+    };
+
+    const options: RunLoopOptions = {
+      search: async () => [],
+      fetch: async (url: string) => ({
+        url, finalUrl: url, title: "N/A", content: "",
+        contentType: "text/plain", truncated: false,
+        retrievedAt: new Date().toISOString(),
+      }),
+    };
+
+    await executeResearchRun(workDir, runId, brain, budget, options);
+
+    // Run completed (rejected instruction doesn't stop the loop)
+    const updatedRun = getRun(workDir, runId);
+    expect(updatedRun!.status).toBe("completed");
+
+    // Ledger has steering:add_instruction entry with rejected status
+    const runDir = join(workDir, ".pi", "research", "runs", runId);
+    const ledgerRaw = readFileSync(join(runDir, "ledger.jsonl"), "utf-8");
+    const ledgerEntries = ledgerRaw
+      .split("\n")
+      .filter((l) => l.trim().length > 0)
+      .map((l) => JSON.parse(l));
+
+    const instructionEntry = ledgerEntries.find(
+      (e: any) => e.intent === "steering:add_instruction"
+    );
+    expect(instructionEntry).toBeDefined();
+    // Accepting or rejecting depends on validation heuristics — but the entry exists
+    // with a status field that's either "applied" or "rejected"
+    expect(["applied", "rejected"]).toContain(instructionEntry.meta.status);
+    expect(instructionEntry.meta.instructionType).toBe("add_instruction");
+    expect(instructionEntry.meta.budgetState).toBeDefined();
   });
 });

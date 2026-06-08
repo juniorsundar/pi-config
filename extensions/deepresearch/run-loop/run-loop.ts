@@ -47,6 +47,12 @@ import {
   justifiesEarlyStop,
 } from "../domain/negative-evidence";
 import { validateAndRepairBrief } from "../rendering/brief-pipeline";
+import {
+  readAndClearSteeringSignal,
+  processSteeringSignal,
+  steeringEntryToLedger,
+  type SteeringSignal,
+} from "../steering/steering";
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -622,7 +628,82 @@ export async function executeResearchRun(
   while (!completed && roundCount < MAX_ROUNDS) {
     roundCount++;
 
-    // Check budget exhaustion at the top of each round (before spending a model call)
+    // ── Check for steering signals before budget exhaustion ───────────
+    // Check before budget exhaustion so user intent (cancel/force_synthesis)
+    // is respected even when budget coincides with exhaustion.
+    const steeringSignal = readAndClearSteeringSignal(cwd, runId);
+    if (steeringSignal) {
+      const steeringResult = processSteeringSignal(
+        steeringSignal,
+        run,
+        sourceNoteCount,
+        budget,
+        evidenceCategories,
+      );
+
+      // Append the steering entry to the ledger
+      appendLedger(
+        cwd,
+        runId,
+        steeringEntryToLedger(steeringResult.entry) as LedgerEntry,
+      );
+
+      if (steeringResult.action === "stop") {
+        // Cancel: stop without brief, preserve artifacts
+        updateStatus(cwd, runId, "cancelled", steeringResult.stopReason);
+        currentRunStatus = "cancelled";
+        // No brief.md — briefPathResult stays empty
+        refreshSummary(cwd, runId, run.question, budget, roundCount);
+        refreshProgressDigest(cwd, runId, run.question, "cancelled", budget, roundCount, sourceNoteCount, evidenceMix, negativeEvidence, "", (Date.now() - startTimeMs) / 1000);
+        completed = true;
+        break;
+      }
+
+      if (steeringResult.action === "synthesize") {
+        // Force synthesis: produce a caveated brief and stop
+        briefPathResult = briefFilePath(cwd, runId);
+        const coverageSection = evidenceMix
+          ? coverageToPromptSection(evidenceMix, negativeEvidence)
+          : undefined;
+        const draftLines = [
+          "# Research Brief (Forced Synthesis)",
+          "",
+          `**Note**: This brief was produced by user-forced synthesis. ` +
+            `The user requested synthesis after the current step.`,
+          steeringResult.synthesisReason
+            ? `\n**Reason**: ${steeringResult.synthesisReason}\n`
+            : "",
+          "",
+          "## Caveats",
+          "",
+          "- This brief was produced before all intended research was complete.",
+          "- Evidence is limited to the sources gathered before forced synthesis.",
+          sourceNoteCount === 0
+            ? "- No Source Notes were extracted — this brief is based solely on model summarization."
+            : `- ${sourceNoteCount} source note(s) were available at the time of forced synthesis.`,
+          "",
+        ];
+        const forcedBrief = draftLines.filter((l) => l !== null).join("\n");
+        const finalDraft = coverageSection
+          ? forcedBrief + "\n\n---\n\n" + coverageSection
+          : forcedBrief;
+        writeFileSync(briefPathResult, finalDraft);
+
+        updateStatus(cwd, runId, "completed");
+        currentRunStatus = "completed";
+        refreshSummary(cwd, runId, run.question, budget, roundCount);
+        refreshProgressDigest(cwd, runId, run.question, "completed", budget, roundCount, sourceNoteCount, evidenceMix, negativeEvidence, briefPathResult, (Date.now() - startTimeMs) / 1000);
+        completed = true;
+        break;
+      }
+
+      // For add_instruction (action === "continue"): log it and continue the loop.
+      // In v1, add_instruction is recorded in the ledger but does not change
+      // run-loop behavior mid-round. The instruction is deferred to future
+      // rounds via the ledger history available to the Brain in the prompt.
+    }
+
+    // Check budget exhaustion after steering check (respects cancel even when budget exhausted)
     const elapsedSec = (Date.now() - startTimeMs) / 1000;
     const elapsedTimeExceeded = elapsedSec >= budget.limits.maxElapsedSeconds;
     if (isExhausted(budget, elapsedSec)) {

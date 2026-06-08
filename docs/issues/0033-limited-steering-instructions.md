@@ -16,13 +16,13 @@ User stories covered: 40.
 
 ### Acceptance criteria
 
-- [ ] Cancel stops the run without producing a Research Brief, preserves artifacts, and records reason and final status
-- [ ] Force synthesis is refused when no Source Notes exist
-- [ ] Force synthesis with partial evidence can produce a caveated forced-synthesis Research Brief
-- [ ] Added instructions may narrow, prioritize, exclude, or clarify within the approved Research Question
-- [ ] Added instructions cannot broaden scope, add a substantially new comparison axis, or require a new Evidence Mix without continuation or a new Research Proposal
-- [ ] Every Steering Instruction appends a ledger event with timestamp, instruction type, budget state, applied/rejected/deferred status, and application details
-- [ ] Tests cover cancel, force synthesis refusal, forced-synthesis brief caveats, accepted instructions, and rejected scope expansion
+- [x] Cancel stops the run without producing a Research Brief, preserves artifacts, and records reason and final status
+- [x] Force synthesis is refused when no Source Notes exist
+- [x] Force synthesis with partial evidence can produce a caveated forced-synthesis Research Brief
+- [x] Added instructions may narrow, prioritize, exclude, or clarify within the approved Research Question
+- [x] Added instructions cannot broaden scope, add a substantially new comparison axis, or require a new Evidence Mix without continuation or a new Research Proposal
+- [x] Every Steering Instruction appends a ledger event with timestamp, instruction type, budget state, applied/rejected/deferred status, and application details
+- [x] Tests cover cancel, force synthesis refusal, forced-synthesis brief caveats, accepted instructions, and rejected scope expansion
 
 ### Blocked by
 

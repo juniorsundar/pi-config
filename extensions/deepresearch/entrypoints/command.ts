@@ -6,6 +6,8 @@ import { getProposal } from "../proposals/proposal-manager";
 import { doctor, resolveModel } from "../brain/setup-policy/setup-policy";
 import { writeDoctorDiagnostic } from "../brain/setup-policy/diagnostics";
 import { renderRun } from "../rendering/human-view-facade";
+import { writeSteeringSignal } from "../steering/steering";
+import { getRun } from "../lifecycle/run-store";
 import type { BrainFactory } from "./tool";
 import { OllamaBrain } from "../brain/harness/ollama-brain";
 import { loadDeepresearchConfig } from "../brain/harness/config";
@@ -28,7 +30,7 @@ export function registerResearchCommand(
   pi.registerCommand("research", {
     description:
       "Manage Research Runs: status, propose, approve, deny, doctor, " +
-      "cancel, force_synthesis, add_instruction, promote, resume, render.",
+      "cancel, force_synthesis, add_instruction, render, resume.",
     handler: async (args: string, ctx) => {
       const cwd = ctx.cwd;
 
@@ -368,9 +370,147 @@ export function registerResearchCommand(
         } catch (err: any) {
           ctx.print(`Error: ${err.message ?? String(err)}`);
         }
+      } else if (args.startsWith("cancel")) {
+        // Parse: /research cancel <run-id> [--reason "..."]
+        let rest = args.slice("cancel".length).trim();
+        let reason: string | undefined;
+        const reasonMatch = rest.match(/--reason "([^"]*)"/);
+        if (reasonMatch) {
+          reason = reasonMatch[1];
+          rest = rest.replace(reasonMatch[0], "").trim();
+        }
+        const runId = rest;
+
+        if (runId.length === 0) {
+          ctx.print("Usage: /research cancel <run-id> [--reason \"why\"]");
+          ctx.print("");
+          ctx.print(
+            "Cancels an active Research Run. Preserves source notes and ledger. " +
+            "Does not produce a Research Brief.",
+          );
+          return;
+        }
+
+        const run = getRun(cwd, runId);
+        if (!run) {
+          ctx.print(`Run not found: ${runId}`);
+          return;
+        }
+
+        if (run.status !== "running") {
+          ctx.print(`Run ${runId} is not active (status: ${run.status}). Cannot cancel.`);
+          return;
+        }
+
+        // Write steering signal for the run loop to pick up
+        writeSteeringSignal(cwd, runId, {
+          timestamp: new Date().toISOString(),
+          type: "cancel",
+          text: reason,
+        });
+
+        ctx.print(`Cancel signal sent to run ${runId}.`);
+        ctx.print(
+          "The run loop will stop after completing its current step. " +
+          "Use /research status to check progress.",
+        );
+      } else if (args.startsWith("force_synthesis")) {
+        // Parse: /research force_synthesis <run-id> [--reason "..."]
+        let rest = args.slice("force_synthesis".length).trim();
+        let reason: string | undefined;
+        const reasonMatch = rest.match(/--reason "([^"]*)"/);
+        if (reasonMatch) {
+          reason = reasonMatch[1];
+          rest = rest.replace(reasonMatch[0], "").trim();
+        }
+        const runId = rest;
+
+        if (runId.length === 0) {
+          ctx.print(
+            "Usage: /research force_synthesis <run-id> [--reason \"why\"]",
+          );
+          ctx.print("");
+          ctx.print(
+            "Forces synthesis of a Research Brief after the current step. " +
+            "Refused if no Source Notes exist yet.",
+          );
+          return;
+        }
+
+        const run = getRun(cwd, runId);
+        if (!run) {
+          ctx.print(`Run not found: ${runId}`);
+          return;
+        }
+
+        if (run.status !== "running") {
+          ctx.print(
+            `Run ${runId} is not active (status: ${run.status}). Cannot force synthesis.`,
+          );
+          return;
+        }
+
+        // Write steering signal
+        writeSteeringSignal(cwd, runId, {
+          timestamp: new Date().toISOString(),
+          type: "force_synthesis",
+          text: reason,
+        });
+
+        ctx.print(`Force-synthesis signal sent to run ${runId}.`);
+        ctx.print(
+          "The run loop will check for source notes and synthesize if possible. " +
+          "Use /research status to check progress.",
+        );
+      } else if (args.startsWith("add_instruction")) {
+        // Parse: /research add_instruction <run-id> "instruction text"
+        const rest = args.slice("add_instruction".length).trim();
+        const instructionMatch = rest.match(/^(\S+)\s+"([^"]*)"/);
+
+        if (!instructionMatch) {
+          ctx.print(
+            "Usage: /research add_instruction <run-id> \"instruction text\"",
+          );
+          ctx.print("");
+          ctx.print(
+            "Adds a steering instruction to an active Research Run. " +
+            "Instructions may narrow, prioritize, exclude, or clarify within " +
+            "the approved Research Question. Scope-broadening instructions are rejected.",
+          );
+          return;
+        }
+
+        const runId = instructionMatch[1];
+        const instructionText = instructionMatch[2];
+
+        const run = getRun(cwd, runId);
+        if (!run) {
+          ctx.print(`Run not found: ${runId}`);
+          return;
+        }
+
+        if (run.status !== "running") {
+          ctx.print(
+            `Run ${runId} is not active (status: ${run.status}). Cannot add instruction.`,
+          );
+          return;
+        }
+
+        // Write steering signal
+        writeSteeringSignal(cwd, runId, {
+          timestamp: new Date().toISOString(),
+          type: "add_instruction",
+          text: instructionText,
+        });
+
+        ctx.print(`Instruction sent to run ${runId}: "${instructionText}"`);
+        ctx.print(
+          "The run loop will validate and apply the instruction. " +
+          "Use /research status to check progress.",
+        );
       } else {
         ctx.print(`Unknown research subcommand: ${args.slice(0, 50)}`);
-        ctx.print("Available: status, propose, approve, doctor, render");
+        ctx.print("Available: status, propose, approve, deny, doctor, render, cancel, force_synthesis, add_instruction");
       }
     },
   });

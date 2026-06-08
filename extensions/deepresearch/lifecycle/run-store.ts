@@ -100,11 +100,13 @@ export function listRuns(cwd: string): RunSummary[] {
 /**
  * Update a run's lifecycle status. Persists to status.json immediately.
  * Throws if the run is not found.
+ * Optionally sets a termination reason for terminal statuses.
  */
 export function updateStatus(
   cwd: string,
   runId: string,
   status: RunStatus,
+  terminationReason?: string,
 ): RunMeta {
   const meta = getRun(cwd, runId);
   if (!meta) {
@@ -113,6 +115,11 @@ export function updateStatus(
 
   meta.status = status;
   meta.updatedAt = new Date().toISOString();
+  if (terminationReason !== undefined) {
+    meta.terminationReason = terminationReason;
+  } else if (status === "cancelled" && !meta.terminationReason) {
+    meta.terminationReason = "Run was cancelled.";
+  }
 
   writeFileSync(statusPath(cwd, runId), JSON.stringify(meta, null, 2));
   return meta;
