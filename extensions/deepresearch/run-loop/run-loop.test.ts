@@ -797,3 +797,207 @@ describe("Research Run loop — negative evidence and brief coverage (AC 5 + AC 
     expect(briefContent).toContain("not-searched");
   });
 });
+
+describe("AC5: oversized source detection and diagnostics", () => {
+  it("writes raw oversized content to diagnostics", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "Large doc test",
+      {
+        maxSearches: 10,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    // Mock brain: search → select_sources → update_findings → synthesize_brief
+    const brain = createMockBrain([
+      "search",
+      "select_sources",
+      "update_findings",
+      "synthesize_brief",
+    ]);
+
+    const oversizedContent = "x".repeat(60000);
+    const options: RunLoopOptions = {
+      search: async () => FAKE_SEARCH_RESULTS,
+      fetch: async (url: string) => ({
+        url,
+        finalUrl: url,
+        title: "Large Doc",
+        content: oversizedContent,
+        contentType: "text/markdown",
+        truncated: false,
+        retrievedAt: new Date().toISOString(),
+      }),
+    };
+
+    await executeResearchRun(workDir, runId, brain, budget, options);
+
+    const runDir = join(workDir, ".pi", "research", "runs", runId);
+    const diagRawDir = join(runDir, "diagnostics", "raw");
+    expect(existsSync(diagRawDir)).toBe(true);
+
+    // Should have a diagnostics file for the oversized source
+    const diagFiles = readdirSync(diagRawDir);
+    expect(diagFiles.length).toBeGreaterThanOrEqual(1);
+
+    // The source note should have partialExtraction marker
+    const notesDir = join(runDir, "source-notes");
+    expect(existsSync(notesDir)).toBe(true);
+    const notes = readdirSync(notesDir).filter((f) => f.endsWith(".md"));
+    expect(notes.length).toBeGreaterThanOrEqual(1);
+    const firstNote = readFileSync(join(notesDir, notes[0]), "utf-8");
+    expect(firstNote).toContain("Some chunks failed extraction");
+  });
+});
+
+describe("AC6: no-relevant-evidence skips Source Note creation", () => {
+  it("skips Source Note when Brain provides empty snippets", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "No evidence test",
+      {
+        maxSearches: 10,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    // A brain that returns empty snippets in update_findings
+    const targetIndex = { current: 0 };
+    const brain: ResearchBrain = {
+      generate: async (_prompt: string) => {
+        const step = targetIndex.current++;
+        if (step === 0)
+          return JSON.stringify({ intent: "search", query: "no evidence" });
+        if (step === 1)
+          return JSON.stringify({
+            intent: "select_sources",
+            selectedUrls: ["https://example.com/empty"],
+          });
+        if (step === 2)
+          return JSON.stringify({
+            intent: "update_findings",
+            snippets: [], // empty — no relevant evidence
+          });
+        return JSON.stringify({
+          intent: "synthesize_brief",
+          briefDraft: "# Research Brief\n\nNo evidence found.",
+        });
+      },
+    };
+
+    const options: RunLoopOptions = {
+      search: async () => FAKE_SEARCH_RESULTS,
+      fetch: async (url: string) => ({
+        url,
+        finalUrl: url,
+        title: "Empty Doc",
+        content: "Some content but Brain found nothing relevant.",
+        contentType: "text/markdown",
+        truncated: false,
+        retrievedAt: new Date().toISOString(),
+      }),
+    };
+
+    await executeResearchRun(workDir, runId, brain, budget, options);
+
+    const runDir = join(workDir, ".pi", "research", "runs", runId);
+    const ledgerRaw = readFileSync(
+      join(runDir, "ledger.jsonl"),
+      "utf-8",
+    );
+    const ledgerEntries: LedgerEntry[] = ledgerRaw
+      .split("\n")
+      .filter((l) => l.trim().length > 0)
+      .map((l) => JSON.parse(l));
+
+    // Should have a source_note_creation_skipped entry
+    const skipEntry = ledgerEntries.find(
+      (e) => e.intent === "source_note_creation_skipped",
+    );
+    expect(skipEntry).toBeDefined();
+    expect(skipEntry!.meta).toBeDefined();
+    expect((skipEntry!.meta as any).url).toBe("https://example.com/empty");
+  });
+});
+
+describe("AC3: brain-provided snippets without fetch are skipped", () => {
+  it("records source_note_creation_skipped for brain-provided-only findings", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "Brain-only findings",
+      {
+        maxSearches: 10,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    const targetIndex = { current: 0 };
+    const brain: ResearchBrain = {
+      generate: async (_prompt: string) => {
+        const step = targetIndex.current++;
+        if (step === 0)
+          return JSON.stringify({ intent: "search", query: "brain test" });
+        if (step === 1)
+          return JSON.stringify({
+            intent: "update_findings",
+            snippets: ["Brain-only finding without fetch."],
+            selectedUrls: [],
+          });
+        return JSON.stringify({
+          intent: "synthesize_brief",
+          briefDraft: "# Research Brief\n\nBrain-only.",
+        });
+      },
+    };
+
+    const options: RunLoopOptions = {
+      search: async () => FAKE_SEARCH_RESULTS,
+      fetch: async (url: string) => ({
+        url,
+        finalUrl: url,
+        title: "N/A",
+        content: "",
+        contentType: "text/plain",
+        truncated: false,
+        retrievedAt: new Date().toISOString(),
+      }),
+    };
+
+    await executeResearchRun(workDir, runId, brain, budget, options);
+
+    const runDir = join(workDir, ".pi", "research", "runs", runId);
+    const ledgerRaw = readFileSync(
+      join(runDir, "ledger.jsonl"),
+      "utf-8",
+    );
+    const ledgerEntries: LedgerEntry[] = ledgerRaw
+      .split("\n")
+      .filter((l) => l.trim().length > 0)
+      .map((l) => JSON.parse(l));
+
+    const skipEntry = ledgerEntries.find(
+      (e) => e.intent === "source_note_creation_skipped",
+    );
+    expect(skipEntry).toBeDefined();
+    expect(skipEntry!.content).toContain("without fetched/read content");
+  });
+});

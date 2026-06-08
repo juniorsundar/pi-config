@@ -1,6 +1,6 @@
 {
-  "defaultModel": "gpt-5.5",
-  "defaultProvider": "openai-codex",
+  "defaultModel": "deepseek-v4-flash:cloud",
+  "defaultProvider": "ollama",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,

@@ -34,6 +34,8 @@ import type {
   SourceNoteData,
   ParsedIntent,
 } from "./types";
+import { extractFromWebSource, chunkContent, mergeChunkExtractions, DEFAULT_CHUNK_THRESHOLD } from "../source-notes/extractor";
+import { writeRawContentToDiagnostics } from "../source-notes/diagnostics";
 import { EvidenceMix } from "../domain/evidence-mix";
 import { CandidateFilter, type AnnotatedCandidate } from "../domain/candidate-filter";
 import {
@@ -91,20 +93,22 @@ function writeSourceNote(cwd: string, runId: string, note: SourceNoteData): void
   const pad = String(note.citationNumber).padStart(3, "0");
   const filePath = join(dir, `note-${pad}.md`);
 
-  const lines: string[] = [
+  const lines = [
     `# Source Note ${note.citationNumber}`,
     "",
     `**Source**: ${note.source}`,
-    note.finalUrl ? `**Final URL**: ${note.finalUrl}` : "",
+    note.finalUrl ? `**Final URL**: ${note.finalUrl}` : null,
     `**Title**: ${note.title}`,
     `**Type**: ${note.sourceType}`,
     `**Retrieved**: ${note.retrievedAt}`,
     `**Content Type**: ${note.contentType}`,
-    note.truncated ? `**Note**: Content was truncated.` : "",
+    note.truncated ? `**Note**: Content was truncated.` : null,
+    note.contentHash ? `**Content Hash**: ${note.contentHash}` : null,
+    note.partialExtraction ? `**Note**: Some chunks failed extraction.` : null,
     "",
     `## Snippets`,
     "",
-  ];
+  ].filter((l): l is string => l !== null);
 
   for (let i = 0; i < note.snippets.length; i++) {
     lines.push(`- [${note.citationNumber}:${i + 1}] ${note.snippets[i]}`);
@@ -478,54 +482,67 @@ export async function executeResearchRun(
           budget = trackUsage(budget, { sourceVisits: 1 });
           sourceNoteCount++;
 
-          const note: SourceNoteData = {
-            source: url,
-            finalUrl: fetched.finalUrl,
-            title: fetched.title,
-            sourceType: "web",
-            retrievedAt: fetched.retrievedAt,
-            citationNumber: sourceNoteCount,
-            snippets: intent.snippets ?? ["[Content retrieved]"],
-            contentType: fetched.contentType,
-            truncated: fetched.truncated,
-          };
+          // AC5: Detect oversized content, write raw to diagnostics
+          const isOversized = fetched.content.length >= DEFAULT_CHUNK_THRESHOLD;
+          if (isOversized) {
+            writeRawContentToDiagnostics(runDir(cwd, runId), url, fetched.content);
+          }
 
-          writeSourceNote(cwd, runId, note);
+          // Create Source Note — for oversized sources, mark partial extraction
+          // since the Brain hasn't processed all chunks independently (v1).
+          const useSnippets = intent.snippets ?? ["[Content retrieved]"];
+          // AC6: If the Brain's extraction yielded no relevant snippets, skip
+          if (useSnippets.length === 0) {
+            appendLedger(cwd, runId, {
+              round: roundCount,
+              intent: "source_note_creation_skipped",
+              timestamp: new Date().toISOString(),
+              content: `Skipped Source Note for ${url}: no relevant evidence extracted.`,
+              meta: { url, snippetCount: 0 },
+            });
+            continue;
+          }
 
-          appendLedger(cwd, runId, {
-            round: roundCount,
-            intent: "source_note_created",
-            timestamp: new Date().toISOString(),
-            content: `Created Source Note ${note.citationNumber} for ${url}`,
-            meta: {
-              sourceNoteNumber: note.citationNumber,
-              snippetCount: note.snippets.length,
-              truncated: fetched.truncated,
-            },
-          });
+          const note = extractFromWebSource(fetched, sourceNoteCount, useSnippets);
+          if (note && isOversized) {
+            note.partialExtraction = true;
+          }
+
+          if (note) {
+            writeSourceNote(cwd, runId, note);
+
+            appendLedger(cwd, runId, {
+              round: roundCount,
+              intent: "source_note_created",
+              timestamp: new Date().toISOString(),
+              content: `Created Source Note ${note.citationNumber} for ${url}`,
+              meta: {
+                sourceNoteNumber: note.citationNumber,
+                snippetCount: note.snippets.length,
+                truncated: fetched.truncated,
+              },
+            });
+          } else {
+            appendLedger(cwd, runId, {
+              round: roundCount,
+              intent: "source_note_creation_skipped",
+              timestamp: new Date().toISOString(),
+              content: `Skipped Source Note for ${url}: no relevant evidence extracted.`,
+              meta: { url },
+            });
+          }
         }
 
         // Also handle Brain-provided findings that aren't tied to a specific URL
         if (urlsToFetch.length === 0 && intent.snippets && intent.snippets.length > 0) {
-          sourceNoteCount++;
-          const note: SourceNoteData = {
-            source: "brain-provided",
-            title: "Brain-extracted findings",
-            sourceType: "web",
-            retrievedAt: new Date().toISOString(),
-            citationNumber: sourceNoteCount,
-            snippets: intent.snippets,
-            contentType: "text/markdown",
-            truncated: false,
-          };
-          writeSourceNote(cwd, runId, note);
-
+          // AC3 guard: Brain-provided snippets without fetched/read content
+          // cannot become a Source Note. Record a ledger entry instead.
           appendLedger(cwd, runId, {
             round: roundCount,
-            intent: "source_note_created",
+            intent: "source_note_creation_skipped",
             timestamp: new Date().toISOString(),
-            content: `Created Source Note ${note.citationNumber} from Brain findings`,
-            meta: { snippetCount: note.snippets.length },
+            content: "Skipped Source Note: Brain-provided snippets without fetched/read content cannot support factual claims.",
+            meta: { snippetCount: intent.snippets.length },
           });
         }
 

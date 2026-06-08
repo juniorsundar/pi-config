@@ -1,4 +1,5 @@
 import type { SearchResult, FetchedSource } from "../source-access/source-access";
+import type { SourceNoteData } from "../source-notes/types";
 
 /**
  * Injection seam for Research Orchestrator side-effecting operations.
@@ -44,27 +45,10 @@ export interface LedgerEntry {
 
 /**
  * A structured Source Note extracted from a source.
+ *
+ * Re-exported from source-notes/types.ts where this type is owned.
  */
-export interface SourceNoteData {
-  /** URL or local file path. */
-  source: string;
-  /** Final URL for fetched web sources. */
-  finalUrl?: string;
-  /** Title when available. */
-  title: string;
-  /** Source type. */
-  sourceType: "web" | "local";
-  /** ISO 8601 retrieval time. */
-  retrievedAt: string;
-  /** Citation number (sequential, starts at 1). */
-  citationNumber: number;
-  /** Evidence snippets extracted by the Brain. */
-  snippets: string[];
-  /** Fetched content type. */
-  contentType: string;
-  /** Whether the source was truncated. */
-  truncated: boolean;
-}
+export type { SourceNoteData };
 
 /**
  * The Brain's parsed structured intent.

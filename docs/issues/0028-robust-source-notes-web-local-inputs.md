@@ -16,13 +16,13 @@ User stories covered: 25, 26, 27, 54, 55, 58.
 
 ### Acceptance criteria
 
-- [ ] Web Source Notes include URL, final URL, title when available, retrieval time, source type, fetched content type, truncation flag, citation number, and evidence snippets
-- [ ] Local-file Source Notes include path, retrieval time, source type, citation number, relevant snippets, and content hash
-- [ ] Search result snippets and candidate metadata cannot support factual claims unless converted into Source Notes from fetched or read content
-- [ ] Raw full source content is excluded from normal artifacts and retained only in Run Diagnostics when needed
-- [ ] Oversized sources are chunked and merged into one Source Note with partial extraction markers when applicable
-- [ ] If no reliable chunks produce relevant evidence, no Source Note is created and the failure is recorded
-- [ ] Tests cover normal, truncated, chunked, partial-failure, and no-reliable-evidence cases
+- [x] Web Source Notes include URL, final URL, title when available, retrieval time, source type, fetched content type, truncation flag, citation number, and evidence snippets
+- [x] Local-file Source Notes include path, retrieval time, source type, citation number, relevant snippets, and content hash
+- [x] Search result snippets and candidate metadata cannot support factual claims unless converted into Source Notes from fetched or read content
+- [x] Raw full source content is excluded from normal artifacts and retained only in Run Diagnostics when needed
+- [x] Oversized sources are chunked and merged into one Source Note with partial extraction markers when applicable
+- [x] If no reliable chunks produce relevant evidence, no Source Note is created and the failure is recorded
+- [x] Tests cover normal, truncated, chunked, partial-failure, and no-reliable-evidence cases
 
 ### Blocked by
 
