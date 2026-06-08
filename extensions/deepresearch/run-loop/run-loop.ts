@@ -43,6 +43,7 @@ import {
   coverageToPromptSection,
   justifiesEarlyStop,
 } from "../domain/negative-evidence";
+import { validateAndRepairBrief } from "../rendering/brief-pipeline";
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -449,6 +450,8 @@ export async function executeResearchRun(
 
   let roundCount = 0;
   let sourceNoteCount = 0;
+  /** In-memory collection of Source Note data for citation validation. */
+  let sourceNoteDataList: SourceNoteData[] = [];
   let briefPathResult = "";
   let currentSummary = "";
   let completed = false;
@@ -689,6 +692,7 @@ export async function executeResearchRun(
 
           if (note) {
             writeSourceNote(cwd, runId, note);
+            sourceNoteDataList.push(note);
 
             appendLedger(cwd, runId, {
               round: roundCount,
@@ -734,30 +738,59 @@ export async function executeResearchRun(
         const draft = intent.briefDraft ?? "# Research Brief\n\nNo draft provided.";
         briefPathResult = briefFilePath(cwd, runId);
 
-        // Append coverage + negative evidence section to the brief
-        const coverageSection = evidenceMix
-          ? coverageToPromptSection(evidenceMix, negativeEvidence)
-          : undefined;
-        const finalDraft = coverageSection
-          ? draft + "\n\n---\n\n" + coverageSection
-          : draft;
-        writeFileSync(briefPathResult, finalDraft);
-
-        appendLedger(cwd, runId, {
-          round: roundCount,
-          intent: "synthesize_brief",
-          timestamp: new Date().toISOString(),
-          content: "Research Brief drafted",
-          meta: {
-            confidence: intent.confidence,
-            gaps: intent.gaps,
-            reasoning: intent.reasoning,
-            coveragePresent: !!coverageSection,
+        // Validate citations and attempt repair within budget
+        const validatedBrief = await validateAndRepairBrief(
+          draft,
+          sourceNoteDataList,
+          brain,
+          () => remainingBudget(budget).retryAttempts > 0 && remainingBudget(budget).modelCalls > 0,
+          (usage) => { budget = trackUsage(budget, usage); },
+          (reason, prevAvailable) => {
+            appendLedger(cwd, runId, {
+              round: roundCount,
+              intent: "synthesis_failed",
+              timestamp: new Date().toISOString(),
+              content: reason,
+              meta: { previousBriefAvailable: prevAvailable },
+            });
           },
-        });
+          false, // previousBriefAvailable
+          run.question,
+          (run.triggerSource ?? "human") as "human" | "agent" | "task",
+        );
 
-        budget = trackUsage(budget, { synthesisRounds: 1 });
-        completed = true;
+        if (validatedBrief) {
+          // Append coverage + negative evidence section to the brief
+          const coverageSection = evidenceMix
+            ? coverageToPromptSection(evidenceMix, negativeEvidence)
+            : undefined;
+          const finalDraft = coverageSection
+            ? validatedBrief + "\n\n---\n\n" + coverageSection
+            : validatedBrief;
+          writeFileSync(briefPathResult, finalDraft);
+
+          appendLedger(cwd, runId, {
+            round: roundCount,
+            intent: "synthesize_brief",
+            timestamp: new Date().toISOString(),
+            content: "Research Brief drafted with validated citations",
+            meta: {
+              confidence: intent.confidence,
+              gaps: intent.gaps,
+              reasoning: intent.reasoning,
+              coveragePresent: !!coverageSection,
+            },
+          });
+
+          budget = trackUsage(budget, { synthesisRounds: 1 });
+          completed = true;
+        } else {
+          // Invalid citations — don't write brief.md. Pipeline's
+          // onFailedSynthesis callback already logged synthesis_failed.
+          budget = trackUsage(budget, { synthesisRounds: 1 });
+          briefPathResult = "";
+          completed = true;
+        }
         break;
       }
 

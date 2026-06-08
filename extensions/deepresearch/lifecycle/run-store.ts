@@ -29,6 +29,7 @@ export function createRun(
   opts?: {
     mode?: "blocking" | "background";
     trigger?: string;
+    triggerSource?: "human" | "agent" | "task";
     budgetLimits?: import("../domain/types").RunMeta["budgetLimits"];
   },
 ): RunMeta {
@@ -46,6 +47,7 @@ export function createRun(
     updatedAt: now,
     mode: opts?.mode,
     trigger: opts?.trigger,
+    triggerSource: opts?.triggerSource,
     budgetLimits: opts?.budgetLimits,
   };
 

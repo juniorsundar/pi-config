@@ -898,7 +898,19 @@ describe("Research Run loop — negative evidence and brief coverage (AC 5 + AC 
     );
 
     // Mock brain that searches but finds nothing, then synthesizes
-    const brain = createMockBrain(["search", "synthesize_brief"]);
+    // without citations (no sources were gathered)
+    let stepIndex = 0;
+    const brain: ResearchBrain = {
+      generate: async () => {
+        const step = stepIndex++;
+        if (step === 0)
+          return JSON.stringify({ intent: "search", query: "hard topic" });
+        return JSON.stringify({
+          intent: "synthesize_brief",
+          briefDraft: "# Research Brief\n\n## Bottom Line\n\nNothing found.\n\n## Confidence\n\nLow — no sources.\n\n## Evidence\nNo sources were gathered.\n\n## Gaps\nNo information available.",
+        });
+      },
+    };
 
     // Empty search results (to trigger negative evidence)
     const emptyOptions: RunLoopOptions = {
@@ -1421,5 +1433,186 @@ describe("Research Run loop — continuation mechanism (Slice 4+5)", () => {
     // budget_revision entry exists
     const revisionEntries = lines.filter((l) => JSON.parse(l).intent === "budget_revision");
     expect(revisionEntries.length).toBe(1);
+  });
+});
+
+describe("Research Run loop — citation validation and trigger gating", () => {
+  it("does not write brief.md and records synthesis_failed when synthesized brief cites a missing source note", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const run = createRun(workDir, "Invalid citation draft?", {
+      budgetLimits: {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 1,
+        maxElapsedSeconds: 300,
+      },
+    });
+    const runId = run.identity.id;
+    updateStatus(workDir, runId, "running");
+
+    const budget = createBudget({
+      maxSearches: 5,
+      maxFetchAttempts: 5,
+      maxSourceVisits: 5,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 1,
+      maxElapsedSeconds: 300,
+    });
+
+    let step = 0;
+    const brain: ResearchBrain = {
+      generate: async () => {
+        step++;
+        if (step === 1) {
+          return JSON.stringify({ intent: "search", query: "auth best practices" });
+        }
+        if (step === 2) {
+          return JSON.stringify({
+            intent: "select_sources",
+            selectedUrls: ["https://example.com/guide"],
+          });
+        }
+        if (step === 3) {
+          return JSON.stringify({
+            intent: "update_findings",
+            snippets: ["Approach A is documented as preferred."],
+          });
+        }
+        return JSON.stringify({
+          intent: "synthesize_brief",
+          briefDraft: [
+            "# Research Brief",
+            "",
+            "## Bottom Line",
+            "Approach A is recommended [99].",
+            "",
+            "## Confidence",
+            "**Level**: high",
+            "",
+            "**Rationale**: The source is explicit.",
+            "",
+            "## Evidence: Documentation",
+            "Approach A is documented as preferred [99].",
+            "",
+            "## Interpretation",
+            "The source points toward Approach A [99].",
+            "",
+          ].join("\n"),
+        });
+      },
+    };
+
+    await executeResearchRun(workDir, runId, brain, budget, mockRunLoopOptions());
+
+    const briefPath = join(workDir, ".pi", "research", "runs", runId, "brief.md");
+    expect(existsSync(briefPath)).toBe(false);
+
+    const runMeta = getRun(workDir, runId);
+    expect(runMeta!.status).toBe("failed");
+
+    const ledgerRaw = readFileSync(
+      join(workDir, ".pi", "research", "runs", runId, "ledger.jsonl"),
+      "utf-8",
+    );
+    const ledgerEntries: LedgerEntry[] = ledgerRaw
+      .split("\n")
+      .filter((l) => l.trim().length > 0)
+      .map((l) => JSON.parse(l));
+
+    const synthesisFailed = ledgerEntries.find((entry) => entry.intent === "synthesis_failed");
+    expect(synthesisFailed).toBeDefined();
+    expect(synthesisFailed!.content).toContain("Invalid citations");
+  });
+
+  it("preserves task implications for agent-triggered runs", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const run = createRun(workDir, "Agent-triggered research?", {
+      triggerSource: "agent",
+      budgetLimits: {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 1,
+        maxElapsedSeconds: 300,
+      },
+    });
+    const runId = run.identity.id;
+    updateStatus(workDir, runId, "running");
+
+    const budget = createBudget({
+      maxSearches: 5,
+      maxFetchAttempts: 5,
+      maxSourceVisits: 5,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 1,
+      maxElapsedSeconds: 300,
+    });
+
+    let step = 0;
+    const brain: ResearchBrain = {
+      generate: async () => {
+        step++;
+        if (step === 1) {
+          return JSON.stringify({ intent: "search", query: "auth best practices" });
+        }
+        if (step === 2) {
+          return JSON.stringify({
+            intent: "select_sources",
+            selectedUrls: ["https://example.com/guide"],
+          });
+        }
+        if (step === 3) {
+          return JSON.stringify({
+            intent: "update_findings",
+            snippets: ["Approach A is documented as preferred."],
+          });
+        }
+        return JSON.stringify({
+          intent: "synthesize_brief",
+          briefDraft: [
+            "# Research Brief",
+            "",
+            "## Bottom Line",
+            "Approach A is recommended [1].",
+            "",
+            "## Confidence",
+            "**Level**: high",
+            "",
+            "**Rationale**: The source is explicit.",
+            "",
+            "## Evidence: Documentation",
+            "Approach A is documented as preferred [1].",
+            "",
+            "## Interpretation",
+            "The source points toward Approach A [1].",
+            "",
+            "## Implications for Current Task",
+            "Use Approach A in Pi now [1].",
+            "",
+          ].join("\n"),
+        });
+      },
+    };
+
+    await executeResearchRun(workDir, runId, brain, budget, mockRunLoopOptions());
+
+    const briefContent = readFileSync(
+      join(workDir, ".pi", "research", "runs", runId, "brief.md"),
+      "utf-8",
+    );
+
+    expect(briefContent).toContain("## Implications for Current Task");
+    expect(briefContent).toContain("Use Approach A in Pi now [1].");
   });
 });

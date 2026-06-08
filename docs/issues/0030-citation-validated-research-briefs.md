@@ -16,13 +16,13 @@ User stories covered: 30, 31, 32, 33, 34, 49.
 
 ### Acceptance criteria
 
-- [ ] Research Briefs include bottom line, confidence, evidence, interpretation, tradeoffs, caveats, source list, gaps, and optional continuation recommendation
-- [ ] Briefs include implications for Pi or the current task only when agent-triggered or task-triggered
-- [ ] Factual claims must be supported by Source Notes, not search snippets or candidate metadata alone
-- [ ] Numbered citations in the brief validate against existing Source Notes
-- [ ] Invalid citations trigger bounded repair or retry within approved synthesis or model-call budget
-- [ ] Invalid-citation drafts are never emitted as the current Research Brief
-- [ ] Tests cover required sections, evidence-versus-interpretation separation, confidence rationale, citation validation, and invalid-citation failure behavior
+- [x] Research Briefs include bottom line, confidence, evidence, interpretation, tradeoffs, caveats, source list, gaps, and optional continuation recommendation
+- [x] Briefs include implications for Pi or the current task only when agent-triggered or task-triggered
+- [x] Factual claims must be supported by Source Notes, not search snippets or candidate metadata alone
+- [x] Numbered citations in the brief validate against existing Source Notes
+- [x] Invalid citations trigger bounded repair or retry within approved synthesis or model-call budget
+- [x] Invalid-citation drafts are never emitted as the current Research Brief
+- [x] Tests cover required sections, evidence-versus-interpretation separation, confidence rationale, citation validation, and invalid-citation failure behavior
 
 ### Blocked by
 

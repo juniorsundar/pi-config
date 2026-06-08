@@ -25,7 +25,7 @@ export interface ProposalInput {
   /** Optional Research Brain model override. */
   modelOverride?: string;
   /** Who triggered the proposal. */
-  triggerSource?: "human" | "agent";
+  triggerSource?: "human" | "agent" | "task";
 }
 
 export interface ProposalMeta {
@@ -50,7 +50,7 @@ export interface ProposalMeta {
   /** Optional Research Brain model override. */
   modelOverride?: string;
   /** Who triggered the proposal. */
-  triggerSource: "human" | "agent";
+  triggerSource: "human" | "agent" | "task";
   /** When the proposal was created (ISO 8601). */
   createdAt: string;
   /** When the proposal was last updated (ISO 8601). */

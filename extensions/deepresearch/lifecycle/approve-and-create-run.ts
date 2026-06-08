@@ -52,6 +52,7 @@ export function approveAndCreateRun(
   const run = createRun(cwd, approved.question, {
     mode: approved.mode,
     trigger: approved.trigger,
+    triggerSource: approved.triggerSource ?? "human",
     budgetLimits: approved.budget,
   });
 
