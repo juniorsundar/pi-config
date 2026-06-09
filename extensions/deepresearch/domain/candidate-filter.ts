@@ -91,6 +91,38 @@ const LOW_SIGNAL_DOMAIN_PATTERNS: RegExp[] = [
 /** Only treat as blog if it's a subdomain or path, not a substring of the domain name. */
 const BLOG_PATTERN: RegExp = /(?:^|\.)blog\.|\/blog\/?/i;
 
+/**
+ * Comparison query markers — when the research question is asking "how do X
+ * and Y differ" or "X vs Y", third-party comparison articles on low-signal
+ * platforms are essential evidence. They should be kept (downranked) rather
+ * than dropped entirely.
+ */
+const COMPARISON_MARKERS: RegExp[] = [
+  /\bvs\b/i,
+  /\bversus\b/i,
+  /\bdiffer/i,
+  /\bcompar/i,
+  /\bcompare/i,
+  /\bcontrast/i,
+  /\bbetween\s.*\band\b/i,
+  /\bgap\b/i,
+  /\bclose the gap\b/i,
+  /\bhow does.*differ/i,
+  /\bhow do.*differ/i,
+  /\bwhat.*need.*to adopt/i,
+  /\bwhich.*better/i,
+  /\bwhat.*missing/i,
+];
+
+/**
+ * Detect whether a query is asking for a comparison between two or more
+ * entities. When true, third-party sources on low-signal platforms are kept
+ * (downranked, not dropped) because they are essential comparison evidence.
+ */
+function isComparisonQuery(query: string): boolean {
+  return COMPARISON_MARKERS.some((m) => m.test(query));
+}
+
 // ── CandidateFilter ─────────────────────────────────────────────────────────
 
 /**
@@ -145,7 +177,20 @@ export class CandidateFilter {
       );
 
       // 4. Downrank (drop only if explicitly low-signal AND not primary)
+      //    Exception: comparison queries keep third-party sources because
+      //    they're the only ones that actually compare the two subjects.
       if (isLowSignal && !isPrimary) {
+        if (isComparisonQuery(this.query)) {
+          // Keep but annotate as a comparison source on a low-signal platform
+          candidates.push({
+            ...result,
+            canonicalUrl,
+            isPrimary: false,
+            signalScore,
+            signalReason: `${signalReason}; Comparison source — kept for comparative question`,
+          });
+          continue;
+        }
         drops.push({
           url: result.url,
           title: result.title,

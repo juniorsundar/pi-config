@@ -7,7 +7,7 @@ export async function probeStructuredIntents(
   brain: ResearchBrain,
   diagnostics: string[],
 ): Promise<ProbeResult> {
-  const prompt = "probe: structured-intents — return JSON with an intent field";
+  const prompt = `probe: structured-intents — return JSON with an "intent" field set to one of: ${VALID_INTENTS.join(", ")}. Example: {"intent":"search"}`;
 
   let raw: string;
   try {

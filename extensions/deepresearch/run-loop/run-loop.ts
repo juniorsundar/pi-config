@@ -384,6 +384,7 @@ function buildPrompt(
   budget: Budget,
   coverageSection?: string,
   candidates?: AnnotatedCandidate[],
+  sourceNotes?: SourceNoteData[],
 ): string {
   const remaining = remainingBudget(budget);
 
@@ -415,6 +416,27 @@ function buildPrompt(
     }
   }
 
+  // Include already-fetched Source Note content so the Brain can make
+  // evidence-grounded decisions (update_findings, synthesize_brief).
+  if (sourceNotes && sourceNotes.length > 0) {
+    const MAX_SOURCE_NOTE_CHARS = 8000; // keep prompt size manageable
+    lines.push(``, `## Fetched Source Notes (${sourceNotes.length} available)`, ``);
+    for (const sn of sourceNotes) {
+      const snippetText = sn.snippets.join("\n");
+      const truncated = snippetText.length > MAX_SOURCE_NOTE_CHARS
+        ? snippetText.slice(0, MAX_SOURCE_NOTE_CHARS) + `\n[... ${snippetText.length - MAX_SOURCE_NOTE_CHARS} more chars truncated ...]`
+        : snippetText;
+      lines.push(
+        `### Source Note ${sn.citationNumber}: ${sn.title}`,
+        `URL: ${sn.source}`,
+        `Content-Type: ${sn.contentType}` + (sn.truncated ? " (truncated at source)" : ""),
+        ``,
+        truncated,
+        ``,
+      );
+    }
+  }
+
   lines.push(
     ``,
     `Budget remaining:`,
@@ -430,7 +452,39 @@ function buildPrompt(
     `For "search", include a "query" field.`,
     `For "select_sources", include a "selectedUrls" array and "reasoningPerUrl".`,
     `For "update_findings", include "snippets" array and "reasoning".`,
-    `For "synthesize_brief", include "briefDraft", "confidence", and "gaps".`,
+    `For "synthesize_brief", include "briefDraft" (full markdown brief), "confidence" (high/medium/low), and "gaps" (array of strings).`,
+    ``,
+    `The "briefDraft" must be a markdown Research Brief following this structure:`,
+    `"`,
+    `## Bottom Line`,
+    `[1-2 sentence answer to the research question, citing source notes by number e.g. [1][3]]`,
+    ``,
+    `## Confidence`,
+    `**Level**: high/medium/low`,
+    `**Rationale**: [why this confidence level — e.g. multiple independent sources agree, or only one source available]`,
+    ``,
+    `## Evidence: [descriptive heading per finding]`,
+    `[paragraph(s) describing what each source says, always citing by number [1], [2], etc. Use multiple Evidence sections for different subtopics]`,
+    ``,
+    `## Interpretation`,
+    `[analysis that connects the evidence together and draws conclusions, citing sources]`,
+    ``,
+    `## Tradeoffs`,
+    `- [tradeoff or limitation of the research]`,
+    ``,
+    `## Caveats`,
+    `- [caveat about the evidence or methodology]`,
+    ``,
+    `## Gaps`,
+    `- [remaining gap the research did not resolve]`,
+    ``,
+    `## Sources`,
+    `[citation] Title — URL`,
+    `  > relevant snippet from this source`,
+    `"`,
+    ``,
+    `You MUST cite source notes by their number (e.g. [1], [2]) in Bottom Line, Evidence, and Interpretation.`,
+    `You MUST include a Sources section listing every source note you used.`,
     `For "stop_early", include "reasoning".`,
     ``,
     `Your response must be valid JSON only, no surrounding text.`,
@@ -457,7 +511,7 @@ function stripThinkingBlocks(text: string): string {
  * Strips HTML tags, normalizes whitespace, and returns the first few
  * non-empty text segments as evidence snippets.
  */
-function extractSnippetsFromContent(content: string, maxSnippets: number = 3): string[] {
+function extractSnippetsFromContent(content: string, maxSnippets: number = 10): string[] {
   // Strip style/script blocks and HTML tags
   const cleaned = content
     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
@@ -485,7 +539,7 @@ function extractSnippetsFromContent(content: string, maxSnippets: number = 3): s
     return chunked;
   }
 
-  return segments.slice(0, maxSnippets).map(s => s.slice(0, 600));
+  return segments.slice(0, maxSnippets).map(s => s.slice(0, 2000));
 }
 
 /**
@@ -958,6 +1012,7 @@ export async function executeResearchRun(
       budget,
       coverageSection,
       lastFilteredCandidates,
+      sourceNoteDataList.length > 0 ? sourceNoteDataList : undefined,
     );
     const rawResponse = await brain.generate(prompt);
     const intent = parseIntent(rawResponse);
