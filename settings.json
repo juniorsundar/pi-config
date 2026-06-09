@@ -1,6 +1,6 @@
 {
-  "defaultModel": "deepseek-v4-flash:cloud",
-  "defaultProvider": "ollama",
+  "defaultModel": "deepseek-v4-flash",
+  "defaultProvider": "opencode-go",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,

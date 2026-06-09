@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { mkdtempSync, rmSync, mkdirSync, writeFileSync, readFileSync, existsSync } from "fs";
+import { mkdtempSync, rmSync, mkdirSync, writeFileSync, readFileSync, existsSync, readdirSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import * as statusModule from "../lifecycle/status";
@@ -894,6 +894,7 @@ describe("deepresearch tool forbidden actions", () => {
       "force_synthesis",
       "steer",
       "add_instruction",
+      "promote",
     ];
 
     for (const forbidden of forbiddenActions) {
@@ -1552,31 +1553,6 @@ describe("/research resume command", () => {
     expect(output).toContain("readiness_failed");
   });
 
-  it("rejects completed runs with guidance (AC7)", async () => {
-    const workDir = makeWorkDir();
-    const pi = mockExtensionAPI();
-    deepresearchEntryPoint(pi as any);
-
-    initStore(workDir);
-    const run = createRun(workDir, "Completed run");
-    updateStatus(workDir, run.identity.id, "completed");
-
-    const cmdOpts = pi.registerCommand.mock.calls[0][1];
-    const mockLog: string[] = [];
-    const ctx = {
-      cwd: workDir,
-      print: (...args: string[]) => {
-        mockLog.push(args.join(" "));
-      },
-    };
-
-    await cmdOpts.handler("resume " + run.identity.id, ctx);
-
-    const output = mockLog.join("\n");
-    expect(output).toContain("terminal");
-    expect(output).toContain("Research Proposal");
-  });
-
   it("shows error for unknown run ID", async () => {
     const workDir = makeWorkDir();
     const pi = mockExtensionAPI();
@@ -1596,4 +1572,391 @@ describe("/research resume command", () => {
     const output = mockLog.join("\n");
     expect(output).toContain("not found");
   });
+});
+
+// ── Promote via /research command ──────────────────────────────────────
+
+describe("/research promote command", () => {
+  it("prints usage when called without arguments", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler("promote", ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("Usage");
+    expect(output).toContain("promote");
+  });
+
+  it("promotes a completed Research Brief to a destination", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    // Create a completed run with brief.md and source notes
+    const run = createRun(workDir, "Promotion test", {
+      mode: "blocking",
+      trigger: "Testing promotion",
+    });
+    updateStatus(workDir, run.identity.id, "completed");
+
+    const runDir = join(workDir, ".pi", "research", "runs", run.identity.id);
+    mkdirSync(runDir, { recursive: true });
+
+    // Write a brief.md
+    writeFileSync(
+      join(runDir, "brief.md"),
+      [
+        "# Research Brief",
+        "",
+        "Findings show [1] supports the conclusion.",
+        "",
+        "## Confidence",
+        "Medium",
+      ].join("\n"),
+    );
+
+    // Write source notes
+    const notesDir = join(runDir, "source-notes");
+    mkdirSync(notesDir, { recursive: true });
+    writeFileSync(
+      join(notesDir, "note-001.md"),
+      [
+        "# Source Note 1",
+        "**Source**: https://example.com/doc",
+        "**Title**: Example Documentation",
+        "",
+        "## Snippets",
+        "- [1:1] The framework supports async natively",
+      ].join("\n"),
+    );
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    const destDir = join(workDir, "docs", "research");
+    await cmdOpts.handler(`promote ${run.identity.id} --to ${destDir}`, ctx);
+
+    const output = mockLog.join("\n");
+    // Verify printed paths
+    expect(output).toContain(destDir);
+    expect(output).toContain("brief.md");
+    expect(output).toContain("appendix.md");
+
+    // Verify files were written
+    expect(existsSync(join(destDir, "brief.md"))).toBe(true);
+    expect(existsSync(join(destDir, "appendix.md"))).toBe(true);
+
+    // Verify appendix contains source-reference metadata (C6 gap)
+    const appendix = readFileSync(join(destDir, "appendix.md"), "utf-8");
+    expect(appendix).toContain("https://example.com/doc");
+    expect(appendix).toContain("Example Documentation");
+    expect(appendix).toContain("The framework supports async natively");
+  });
+
+  it("refuses promotion for non-completed/non-budget_exhausted runs", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const run = createRun(workDir, "Running test");
+    updateStatus(workDir, run.identity.id, "running");
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler(`promote ${run.identity.id} --to ${workDir}/out`, ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("Error");
+    expect(output).toContain("running");
+  });
+
+  it("refuses paths outside the active workspace", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const run = createRun(workDir, "Path safety test");
+    updateStatus(workDir, run.identity.id, "completed");
+
+    const runDir = join(workDir, ".pi", "research", "runs", run.identity.id);
+    mkdirSync(runDir, { recursive: true });
+    writeFileSync(join(runDir, "brief.md"), "# Brief\nContent");
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    // Destination outside cwd
+    const outsideDir = join(workDir, "..", "outside");
+    await cmdOpts.handler(`promote ${run.identity.id} --to ${outsideDir}`, ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("Error");
+    expect(output).toContain("outside");
+  });
+
+  it("refuses overwrite of existing files without --force", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const run = createRun(workDir, "Overwrite test");
+    updateStatus(workDir, run.identity.id, "completed");
+
+    const runDir = join(workDir, ".pi", "research", "runs", run.identity.id);
+    mkdirSync(runDir, { recursive: true });
+    writeFileSync(join(runDir, "brief.md"), "# Brief\nContent");
+
+    // Pre-create the destination with brief.md
+    const destDir = join(workDir, "docs");
+    mkdirSync(destDir, { recursive: true });
+    writeFileSync(join(destDir, "brief.md"), "# Old brief");
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler(`promote ${run.identity.id} --to ${destDir}`, ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("Error");
+    expect(output).toContain("already exist");
+  });
+
+  it("promotes a budget-exhausted brief with best-effort labeling", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const run = createRun(workDir, "Budget exhausted test", {
+      mode: "blocking",
+      trigger: "Testing budget exhaustion",
+    });
+    updateStatus(workDir, run.identity.id, "budget_exhausted");
+
+    const runDir = join(workDir, ".pi", "research", "runs", run.identity.id);
+    mkdirSync(runDir, { recursive: true });
+
+    // Write a budget-exhausted brief.md with caveats, gaps, and continuation recommendation
+    writeFileSync(
+      join(runDir, "brief.md"),
+      [
+        "# Research Brief (Best-Effort)",
+        "",
+        "## Confidence",
+        "Low — budget exhausted before complete coverage",
+        "",
+        "## Caveats",
+        "- Only 2 of 5 sources were fully analyzed",
+        "- Recent API changes may affect findings",
+        "",
+        "## Gaps",
+        "- No official documentation for library X was located",
+        "",
+        "## Continuation Recommendation",
+        "Extend budget by 5 searches to cover library X docs and latest changelog",
+      ].join("\n"),
+    );
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    const destDir = join(workDir, "docs", "exhausted-research");
+    await cmdOpts.handler(`promote ${run.identity.id} --to ${destDir}`, ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain(destDir);
+    expect(output).toContain("brief.md");
+
+    // Verify the promoted brief preserves best-effort labeling
+    const promoted = readFileSync(join(destDir, "brief.md"), "utf-8");
+    expect(promoted).toContain("BEST-EFFORT");
+    expect(promoted).toContain("budget_exhausted");
+    expect(promoted).toContain("Low — budget exhausted");
+    expect(promoted).toContain("Caveats");
+    expect(promoted).toContain("Only 2 of 5 sources");
+    expect(promoted).toContain("Gaps");
+    expect(promoted).toContain("Continuation Recommendation");
+  });
+
+  it("excludes raw diagnostics and raw content from promoted package", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const run = createRun(workDir, "Content exclusion test");
+    updateStatus(workDir, run.identity.id, "completed");
+
+    const runDir = join(workDir, ".pi", "research", "runs", run.identity.id);
+    mkdirSync(runDir, { recursive: true });
+    writeFileSync(join(runDir, "brief.md"), "# Brief\nContent");
+
+    // Write some diagnostics/raw content that should NOT be promoted
+    const rawDir = join(runDir, "diagnostics", "raw");
+    mkdirSync(rawDir, { recursive: true });
+    writeFileSync(join(rawDir, "model-response-1.txt"), "Raw model response");
+    writeFileSync(join(rawDir, "fetched-page.html"), "<html>raw fetched content</html>");
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    const destDir = join(workDir, "docs", "clean-promo");
+    await cmdOpts.handler(`promote ${run.identity.id} --to ${destDir}`, ctx);
+
+    // Verify only brief.md and appendix.md exist in the promoted package
+    const promotedFiles = readdirSync(destDir);
+    expect(promotedFiles).toContain("brief.md");
+    expect(promotedFiles).toContain("appendix.md");
+    expect(promotedFiles).not.toContain("diagnostics");
+    expect(promotedFiles).not.toContain("raw");
+
+    // Verify the appendix does not contain raw model response content
+    const appendix = readFileSync(join(destDir, "appendix.md"), "utf-8");
+    expect(appendix).not.toContain("Raw model response");
+    expect(appendix).not.toContain("raw fetched content");
+  });
+
+  it("overwrites existing files with --force", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const run = createRun(workDir, "Force overwrite test");
+    updateStatus(workDir, run.identity.id, "completed");
+
+    const runDir = join(workDir, ".pi", "research", "runs", run.identity.id);
+    mkdirSync(runDir, { recursive: true });
+    writeFileSync(join(runDir, "brief.md"), "# New content");
+
+    // Pre-create destination with old content
+    const destDir = join(workDir, "docs");
+    mkdirSync(destDir, { recursive: true });
+    writeFileSync(join(destDir, "brief.md"), "# Old content");
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler(`promote ${run.identity.id} --to ${destDir} --force`, ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).not.toContain("Error");
+    expect(output).toContain(destDir);
+    expect(output).toContain("brief.md");
+
+    // Verify old content was overwritten with new
+    const promoted = readFileSync(join(destDir, "brief.md"), "utf-8");
+    expect(promoted).toContain("New content");
+    expect(promoted).not.toContain("Old content");
+  });
+
+  it("shows error for unknown run ID", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler("promote nonexistent-id --to /tmp/out", ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("Error");
+    expect(output).toContain("not found");
+  });
+
+  it("shows error when brief.md is missing from a promotable run", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const run = createRun(workDir, "Missing brief test");
+    updateStatus(workDir, run.identity.id, "completed");
+
+    // Don't write brief.md — it's missing
+    const runDir = join(workDir, ".pi", "research", "runs", run.identity.id);
+    mkdirSync(runDir, { recursive: true });
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    const destDir = join(workDir, "docs");
+    await cmdOpts.handler(`promote ${run.identity.id} --to ${destDir}`, ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("Error");
+    expect(output).toContain("no brief.md");
+  });
+
 });

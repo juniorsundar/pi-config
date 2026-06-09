@@ -14,6 +14,7 @@ import { join } from "path";
 import type { BrainFactory } from "./tool";
 import { OllamaBrain } from "../brain/harness/ollama-brain";
 import { loadDeepresearchConfig } from "../brain/harness/config";
+import { promoteResearchBrief } from "../promotion/promote";
 
 const defaultBrainFactory: BrainFactory = async () => {
   const config = await loadDeepresearchConfig();
@@ -33,7 +34,7 @@ export function registerResearchCommand(
   pi.registerCommand("research", {
     description:
       "Manage Research Runs: status, propose, approve, deny, doctor, " +
-      "cancel, force_synthesis, add_instruction, render, resume.",
+      "cancel, force_synthesis, add_instruction, render, resume, promote.",
     handler: async (args: string, ctx) => {
       const cwd = ctx.cwd;
 
@@ -576,8 +577,81 @@ export function registerResearchCommand(
         ctx.print(
           "To proceed, approve a revised Research Budget and re-run with the resume capability.",
         );
+      } else if (args.startsWith("promote")) {
+        // Parse: /research promote <run-id> --to <destination> [--force]
+        const rest = args.slice("promote".length).trim();
+
+        if (rest.length === 0) {
+          ctx.print(
+            "Usage: /research promote <run-id> --to <destination> [--force]",
+          );
+          ctx.print("");
+          ctx.print(
+            "Promotes a completed or budget-exhausted Research Brief to the given destination. " +
+            "Creates parent directories as needed.",
+          );
+          ctx.print("");
+          ctx.print(
+            "The promoted package includes brief.md and appendix.md (source-reference metadata " +
+            "and evidence snippets). Raw diagnostics and raw model responses are excluded.",
+          );
+          ctx.print("");
+          ctx.print(
+            "Use --force to overwrite existing files at the destination.",
+          );
+          return;
+        }
+
+        // Extract run-id, --to path, and optional --force (quote-aware for --to)
+        const runMatch = rest.match(/^(\S+)/);
+        let runId = runMatch?.[1] ?? "";
+        let destPath = "";
+        let force = false;
+
+        // Parse --to with optional quoted value: --to "path with spaces" or --to /path
+        const toMatch = rest.match(/--to\s+"([^"]*)"/) ?? rest.match(/--to\s+(\S+)/);
+        if (toMatch) {
+          destPath = toMatch[1];
+        }
+
+        // Parse --force flag
+        if (/--force/.test(rest)) {
+          force = true;
+        }
+
+        if (runId.length === 0 || destPath.length === 0) {
+          ctx.print(
+            "Usage: /research promote <run-id> --to <destination> [--force]",
+          );
+          return;
+        }
+
+        try {
+          const result = promoteResearchBrief(cwd, runId, {
+            to: destPath,
+            force,
+          });
+
+          ctx.print(`Promoted research brief from run ${runId}:`);
+          ctx.print("");
+          for (const file of result.files) {
+            ctx.print(`  ${file.absolutePath}`);
+          }
+          ctx.print("");
+          ctx.print(
+            `Promotion written to: ${result.destDir}`,
+          );
+          ctx.print(
+            "This package includes brief.md and appendix.md (source-reference metadata and evidence snippets).",
+          );
+        } catch (err: any) {
+          ctx.print(`Error: ${err.message ?? String(err)}`);
+        }
       } else {
-        ctx.print("Available: status, propose, approve, deny, doctor, render, cancel, force_synthesis, add_instruction");
+        ctx.print(
+          "Available: status, propose, approve, deny, doctor, render, cancel, " +
+          "force_synthesis, add_instruction, resume, promote",
+        );
       }
     },
   });

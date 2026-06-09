@@ -16,14 +16,14 @@ User stories covered: 16, 17.
 
 ### Acceptance criteria
 
-- [ ] Promotion is available only through a human command and not through the `deepresearch` agent tool
-- [ ] Promotion is allowed for completed and budget-exhausted Research Briefs
-- [ ] Promoted budget-exhausted briefs preserve best-effort status, caveats, gaps, confidence rationale, and continuation recommendation when present
-- [ ] Promotion writes only inside the active workspace by default and refuses unsafe destinations
-- [ ] Promotion creates parent directories as needed, avoids overwriting existing files unless explicitly forced, and prints all written paths
-- [ ] The promoted package includes the Research Brief plus source-reference metadata and snippets needed to audit claims
-- [ ] Raw diagnostics, raw model responses, and full raw fetched content are not promoted by default
-- [ ] Tests cover safe path handling, overwrite refusal, budget-exhausted labeling, and agent-tool refusal
+- [x] Promotion is available only through a human command and not through the `deepresearch` agent tool
+- [x] Promotion is allowed for completed and budget-exhausted Research Briefs
+- [x] Promoted budget-exhausted briefs preserve best-effort status, caveats, gaps, confidence rationale, and continuation recommendation when present
+- [x] Promotion writes only inside the active workspace by default and refuses unsafe destinations
+- [x] Promotion creates parent directories as needed, avoids overwriting existing files unless explicitly forced, and prints all written paths
+- [x] The promoted package includes the Research Brief plus source-reference metadata and snippets needed to audit claims
+- [x] Raw diagnostics, raw model responses, and full raw fetched content are not promoted by default
+- [x] Tests cover safe path handling, overwrite refusal, budget-exhausted labeling, and agent-tool refusal
 
 ### Blocked by
 

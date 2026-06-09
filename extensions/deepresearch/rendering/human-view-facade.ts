@@ -12,9 +12,10 @@
  */
 
 import { join } from "path";
-import { existsSync, readFileSync, readdirSync, mkdirSync, writeFileSync } from "fs";
+import { existsSync, readFileSync, mkdirSync, writeFileSync } from "fs";
 import { getStorePath } from "../workspace/store";
 import { renderHumanView, type HumanViewInput } from "./human-view-renderer";
+import { readSourceNotes } from "./source-notes";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -133,7 +134,7 @@ export async function renderRun(
   }
 
   // ── Load source notes (optional) ──────────────────────────────────────
-  const sourceNotes = loadSourceNotes(runDir);
+  const sourceNotes = readSourceNotes(runDir);
 
   // ── Assemble renderer input ───────────────────────────────────────────
   const input: HumanViewInput = {
@@ -192,97 +193,6 @@ export async function renderRun(
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-
-interface LoadedSourceNote {
-  url: string;
-  title: string;
-  citationNumber: number;
-  snippets: string[];
-}
-
-/**
- * Load source notes from the run's source-notes directory.
- * Each file is a markdown file with structured metadata and snippets.
- */
-function loadSourceNotes(runDir: string): LoadedSourceNote[] {
-  const notesDir = join(runDir, "source-notes");
-  if (!existsSync(notesDir)) return [];
-
-  try {
-    const files = readdirSync(notesDir, { withFileTypes: true })
-      .filter((e) => e.isFile() && e.name.endsWith(".md"))
-      .sort();
-
-    const notes: LoadedSourceNote[] = [];
-
-    for (const file of files) {
-      try {
-        const content = readFileSync(join(notesDir, file.name), "utf-8");
-        const note = parseSourceNote(content);
-        if (note) notes.push(note);
-      } catch {
-        // Skip unparseable source notes
-      }
-    }
-
-    return notes;
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Parse a source note markdown file into structured data.
- * Expected format:
- *
- * # Source Note N
- * **Source**: <url>
- * **Title**: <title>
- * ...
- * ## Snippets
- * - [N:1] snippet text
- */
-function parseSourceNote(content: string): LoadedSourceNote | null {
-  const lines = content.split("\n");
-
-  // Extract citation number from h1
-  const h1Match = content.match(/^# Source Note (\d+)/m);
-  if (!h1Match) return null;
-  const citationNumber = parseInt(h1Match[1], 10);
-
-  // Extract source
-  const sourceMatch = content.match(/^\*\*Source\*\*:\s*(.+)$/m);
-  const url = sourceMatch?.[1]?.trim() ?? "";
-
-  // Extract title
-  const titleMatch = content.match(/^\*\*Title\*\*:\s*(.+)$/m);
-  const title = titleMatch?.[1]?.trim() ?? `Source ${citationNumber}`;
-
-  // Extract snippets
-  const snippets: string[] = [];
-  let inSnippets = false;
-  for (const line of lines) {
-    if (line.startsWith("## Snippets")) {
-      inSnippets = true;
-      continue;
-    }
-    // Reset if we hit another heading (guard against malformed notes)
-    if (inSnippets && /^#+\s/.test(line.trim())) {
-      if (!line.startsWith("## Snippets")) {
-        inSnippets = false;
-        continue;
-      }
-    }
-    if (inSnippets && line.startsWith("- [")) {
-      const snippetMatch = line.match(/^-\s*\[\d+:\d+\]\s*(.+)$/);
-      if (snippetMatch) {
-        snippets.push(snippetMatch[1].trim());
-      }
-    }
-  }
-
-  return { url, title, citationNumber, snippets };
-}
 
 /**
  * Extract a section's content from markdown (between ## Heading and the next heading).
