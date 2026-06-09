@@ -203,7 +203,8 @@ function writeSourceNote(cwd: string, runId: string, note: SourceNoteData): void
   ].filter((l): l is string => l !== null);
 
   for (let i = 0; i < note.snippets.length; i++) {
-    lines.push(`- [${note.citationNumber}:${i + 1}] ${note.snippets[i]}`);
+    const snip = note.snippets[i];
+    lines.push(`- [${note.citationNumber}:${i + 1}] ${typeof snip === "string" ? snip : JSON.stringify(snip)}`);
   }
 
   lines.push("");
@@ -440,14 +441,116 @@ function buildPrompt(
 
 // ── Intent parsing ────────────────────────────────────────────────────────
 
+/**
+ * Strip <think> and <thinking> blocks from model output.
+ * Qwen-based models (including Tongyi DeepResearch) emit thinking tags
+ * even when instructed to return only JSON.
+ */
+function stripThinkingBlocks(text: string): string {
+  return text
+    .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/gi, "")
+    .trim();
+}
+
+/**
+ * Extract meaningful text snippets from fetched HTML content.
+ * Strips HTML tags, normalizes whitespace, and returns the first few
+ * non-empty text segments as evidence snippets.
+ */
+function extractSnippetsFromContent(content: string, maxSnippets: number = 3): string[] {
+  // Strip style/script blocks and HTML tags
+  const cleaned = content
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&[a-z]+;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (cleaned.length === 0) return [];
+
+  // Split into natural segments by double-newline
+  const segments = cleaned
+    .split(/\n\s*\n/)
+    .map(s => s.trim())
+    .filter(s => s.length > 30);
+
+  if (segments.length === 0) {
+    // Fallback: take chunks when no paragraph breaks exist
+    const chunked: string[] = [];
+    for (let i = 0; i < Math.min(maxSnippets, Math.ceil(cleaned.length / 300)); i++) {
+      const chunk = cleaned.slice(i * 300, (i + 1) * 300).trim();
+      if (chunk.length > 40) chunked.push(chunk);
+    }
+    return chunked;
+  }
+
+  return segments.slice(0, maxSnippets).map(s => s.slice(0, 600));
+}
+
+/**
+ * Parse a structured intent from the Brain's raw response.
+ *
+ * The Brain may wrap its JSON in thinking blocks or markdown fences.
+ * This function strips those and tries multiple extraction strategies,
+ * mirroring the recovery logic in brain/harness/probes.ts.
+ */
 function parseIntent(raw: string): ParsedIntent | null {
+  // 1. Try direct JSON parse on the raw text
   try {
     const parsed = JSON.parse(raw);
-    if (typeof parsed.intent !== "string") return null;
-    return parsed as ParsedIntent;
+    if (typeof parsed.intent === "string") return parsed as ParsedIntent;
   } catch {
-    return null;
+    // fall through
   }
+
+  // 2. Strip thinking blocks and try again
+  const cleaned = stripThinkingBlocks(raw);
+  try {
+    const parsed = JSON.parse(cleaned);
+    if (typeof parsed.intent === "string") return parsed as ParsedIntent;
+  } catch {
+    // fall through
+  }
+
+  // 3. Try extracting JSON from fenced code blocks (```json ... ```)
+  const fencedBlocks = [...cleaned.matchAll(/```(?:json)?\s*([\s\S]*?)```/gi)];
+  for (let i = fencedBlocks.length - 1; i >= 0; i--) {
+    const candidate = fencedBlocks[i][1]?.trim();
+    if (!candidate) continue;
+    try {
+      const parsed = JSON.parse(candidate);
+      if (typeof parsed.intent === "string") return parsed as ParsedIntent;
+    } catch {
+      // keep looking
+    }
+  }
+
+  // 4. Try extracting content after the last fence close
+  const afterFence = cleaned.match(/```[\s\S]*?```\s*([\s\S]*)$/);
+  if (afterFence?.[1] && afterFence[1].trim().length > 0) {
+    try {
+      const parsed = JSON.parse(afterFence[1].trim());
+      if (typeof parsed.intent === "string") return parsed as ParsedIntent;
+    } catch {
+      // fall through
+    }
+  }
+
+  // 5. Last resort: try to find the first JSON object in the text.
+  //    Handles cases where the model outputs unclosed <think> tags that
+  //    contain or precede a valid JSON intent (e.g. Qwen-based models).
+  const objectMatch = cleaned.match(/(\{[\s\S]*\})/);
+  if (objectMatch?.[1]) {
+    try {
+      const parsed = JSON.parse(objectMatch[1]);
+      if (typeof parsed.intent === "string") return parsed as ParsedIntent;
+    } catch {
+      // fall through
+    }
+  }
+
+  return null;
 }
 
 // ── Best-effort brief helpers ────────────────────────────────────────────
@@ -868,6 +971,12 @@ export async function executeResearchRun(
         content: "Failed to parse valid intent from Brain response",
         meta: { raw: rawResponse.slice(0, 200) },
       });
+      // Log the full raw response to diagnostics for debugging
+      writeRawContentToDiagnostics(
+        runDir(cwd, runId),
+        `brain-response-round-${roundCount}`,
+        rawResponse,
+      );
       continue;
     }
 
@@ -875,7 +984,7 @@ export async function executeResearchRun(
     switch (intent.intent) {
       // ── search ───────────────────────────────────────────────────────
       case "search": {
-        const query = intent.query ?? run.question;
+        const query = typeof intent.query === "string" ? intent.query : run.question;
         const rawResults = await options.search(query);
         budget = trackUsage(budget, { searches: 1 });
 
@@ -944,7 +1053,7 @@ export async function executeResearchRun(
 
       // ── select_sources ───────────────────────────────────────────────
       case "select_sources": {
-        const urls = intent.selectedUrls ?? [];
+        const urls = Array.isArray(intent.selectedUrls) ? intent.selectedUrls : [];
         pendingUrls = urls;
 
         appendLedger(cwd, runId, {
@@ -957,6 +1066,76 @@ export async function executeResearchRun(
             reasoning: intent.reasoning,
           },
         });
+
+        // ── Auto-fetch selected sources ─────────────────────────────────
+        // The Brain selected sources; fetch them immediately so the next
+        // round can use update_findings for snippet extraction or skip to
+        // synthesize_brief without the Brain stalling on the protocol.
+        let fetchedCount = 0;
+        for (const url of urls) {
+          budget = trackUsage(budget, { fetchAttempts: 1 });
+
+          let fetched;
+          try {
+            fetched = await options.fetch(url);
+          } catch (err: any) {
+            negativeEvidence.recordFetchFailed(url, err.message ?? String(err));
+            appendLedger(cwd, runId, {
+              round: roundCount,
+              intent: "fetch_failed",
+              timestamp: new Date().toISOString(),
+              content: `Failed to fetch ${url}: ${err.message ?? String(err)}`,
+            });
+            continue;
+          }
+
+          budget = trackUsage(budget, { sourceVisits: 1 });
+          sourceNoteCount++;
+          fetchedCount++;
+
+          const isOversized = fetched.content.length >= DEFAULT_CHUNK_THRESHOLD;
+          if (isOversized) {
+            writeRawContentToDiagnostics(runDir(cwd, runId), url, fetched.content);
+          }
+
+          const snippets = extractSnippetsFromContent(fetched.content);
+          const note = extractFromWebSource(fetched, sourceNoteCount, snippets.length > 0 ? snippets : ["[Content retrieved]"]);
+          if (note && isOversized) {
+            note.partialExtraction = true;
+          }
+
+          if (note) {
+            writeSourceNote(cwd, runId, note);
+            sourceNoteDataList.push(note);
+
+            appendLedger(cwd, runId, {
+              round: roundCount,
+              intent: "source_note_created",
+              timestamp: new Date().toISOString(),
+              content: `Created Source Note ${note.citationNumber} for ${url}`,
+              meta: {
+                sourceNoteNumber: note.citationNumber,
+                snippetCount: note.snippets.length,
+                truncated: fetched.truncated,
+              },
+            });
+          }
+        }
+
+        if (fetchedCount > 0) {
+          appendLedger(cwd, runId, {
+            round: roundCount,
+            intent: "sources_fetched",
+            timestamp: new Date().toISOString(),
+            content: `Auto-fetched ${fetchedCount}/${urls.length} selected source(s)`,
+            meta: { attempted: urls.length, fetched: fetchedCount },
+          });
+        }
+
+        pendingUrls = [];
+        // Clear filtered candidates so the Brain doesn't re-search the
+        // same results now that sources are already fetched.
+        lastFilteredCandidates = [];
         break;
       }
 
@@ -993,7 +1172,10 @@ export async function executeResearchRun(
 
           // Create Source Note — for oversized sources, mark partial extraction
           // since the Brain hasn't processed all chunks independently (v1).
-          const useSnippets = intent.snippets ?? ["[Content retrieved]"];
+          const extractedFallback = extractSnippetsFromContent(fetched.content);
+          const useSnippets = Array.isArray(intent.snippets)
+            ? intent.snippets.map((s: unknown) => typeof s === "string" ? s : JSON.stringify(s))
+            : (extractedFallback.length > 0 ? extractedFallback : ["[Content retrieved]"]);
           // AC6: If the Brain's extraction yielded no relevant snippets, skip
           if (useSnippets.length === 0) {
             appendLedger(cwd, runId, {
@@ -1056,7 +1238,7 @@ export async function executeResearchRun(
 
       // ── synthesize_brief ─────────────────────────────────────────────
       case "synthesize_brief": {
-        const draft = intent.briefDraft ?? "# Research Brief\n\nNo draft provided.";
+        const draft = typeof intent.briefDraft === "string" ? intent.briefDraft : "# Research Brief\n\nNo draft provided.";
         briefPathResult = briefFilePath(cwd, runId);
 
         // Validate citations and attempt repair within budget

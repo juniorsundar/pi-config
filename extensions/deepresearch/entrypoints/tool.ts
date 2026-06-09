@@ -7,22 +7,7 @@ import { getRun } from "../lifecycle/run-store";
 import { getStorePath } from "../workspace/store";
 import { readFileSync, existsSync, readdirSync } from "fs";
 import { join } from "path";
-import type { ResearchBrain } from "../brain/harness/types";
-import { OllamaBrain } from "../brain/harness/ollama-brain";
-import { loadDeepresearchConfig } from "../brain/harness/config";
-
-/** Factory type for creating a ResearchBrain. Injectable for testing. */
-export type BrainFactory = () => Promise<ResearchBrain>;
-
-const defaultBrainFactory: BrainFactory = async () => {
-  const config = await loadDeepresearchConfig();
-  return new OllamaBrain({
-    model: config.model,
-    host: config.ollamaHost,
-    systemPrompt: config.systemPrompt,
-    options: config.options,
-  });
-};
+import { type BrainFactory, defaultBrainFactory } from "../brain/harness/shared";
 
 /**
  * Preserve parameter inference for tool definitions.
@@ -249,6 +234,7 @@ export function registerDeepresearchTool(
           question,
           trigger,
           triggerSource: "agent",
+          mode: "blocking",
         });
 
         if (proposeResult.type === "setup_blocked") {

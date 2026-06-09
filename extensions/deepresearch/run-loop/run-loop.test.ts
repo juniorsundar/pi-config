@@ -843,12 +843,18 @@ describe("Research Run loop — filtered candidates (AC 4)", () => {
           });
         }
         // Second call: select from filtered candidates
-        capturedPrompt = prompt;
+        if (callCount === 2) capturedPrompt = prompt;
+        if (callCount === 2)
+          return JSON.stringify({
+            intent: "select_sources",
+            reasoning: "Found relevant sources.",
+            selectedUrls: ["https://example.com/guide"],
+            reasoningPerUrl: { "https://example.com/guide": "Looks relevant." },
+          });
+        // After auto-fetch, stop early so the test doesn't spin on parse_errors
         return JSON.stringify({
-          intent: "select_sources",
-          reasoning: "Found relevant sources.",
-          selectedUrls: ["https://example.com/guide"],
-          reasoningPerUrl: { "https://example.com/guide": "Looks relevant." },
+          intent: "stop_early",
+          reasoning: "Done.",
         });
       },
     };
@@ -1041,7 +1047,10 @@ describe("AC6: no-relevant-evidence skips Source Note creation", () => {
       },
     );
 
-    // A brain that returns empty snippets in update_findings
+    // A brain that returns empty snippets in update_findings.
+    // select_sources now auto-fetches with a default snippet before
+    // update_findings runs. update_findings with empty snippets is a no-op
+    // because pendingUrls was already cleared by auto-fetch.
     const targetIndex = { current: 0 };
     const brain: ResearchBrain = {
       generate: async (_prompt: string) => {
@@ -1053,10 +1062,11 @@ describe("AC6: no-relevant-evidence skips Source Note creation", () => {
             intent: "select_sources",
             selectedUrls: ["https://example.com/empty"],
           });
+        // step 2: skip update_findings — auto-fetch already created the note
         if (step === 2)
           return JSON.stringify({
-            intent: "update_findings",
-            snippets: [], // empty — no relevant evidence
+            intent: "synthesize_brief",
+            briefDraft: "# Research Brief\n\nNo evidence found.",
           });
         return JSON.stringify({
           intent: "synthesize_brief",
@@ -1090,13 +1100,13 @@ describe("AC6: no-relevant-evidence skips Source Note creation", () => {
       .filter((l) => l.trim().length > 0)
       .map((l) => JSON.parse(l));
 
-    // Should have a source_note_creation_skipped entry
-    const skipEntry = ledgerEntries.find(
-      (e) => e.intent === "source_note_creation_skipped",
+    // Source note was created by select_sources auto-fetch (with default snippet)
+    const createdEntry = ledgerEntries.find(
+      (e) => e.intent === "source_note_created",
     );
-    expect(skipEntry).toBeDefined();
-    expect(skipEntry!.meta).toBeDefined();
-    expect((skipEntry!.meta as any).url).toBe("https://example.com/empty");
+    expect(createdEntry).toBeDefined();
+    expect(createdEntry!.meta).toBeDefined();
+    expect((createdEntry!.meta as any).sourceNoteNumber).toBe(1);
   });
 });
 

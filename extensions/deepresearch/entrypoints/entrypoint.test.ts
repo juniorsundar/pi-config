@@ -28,11 +28,13 @@ function mockExtensionAPI(): {
   registerTool: ReturnType<typeof vi.fn>;
   registerCommand: ReturnType<typeof vi.fn>;
   on: ReturnType<typeof vi.fn>;
+  sendMessage: ReturnType<typeof vi.fn>;
 } {
   return {
     registerTool: vi.fn(),
     registerCommand: vi.fn(),
     on: vi.fn(),
+    sendMessage: vi.fn(),
   };
 }
 
@@ -1135,6 +1137,22 @@ describe("deepresearch tool recommend_resume action", () => {
 // ── Status via /research command ──────────────────────────────────────────
 
 describe("/research status command", () => {
+  it("emits command output via pi.sendMessage when ctx.print is unavailable", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    await cmdOpts.handler("status", { cwd: workDir });
+
+    expect(pi.sendMessage).toHaveBeenCalledTimes(1);
+    const message = pi.sendMessage.mock.calls[0][0];
+    expect(message.customType).toBe("deepresearch-command-output");
+    expect(message.display).toBe(true);
+    expect(message.content).toContain("No active research run");
+    expect(message.content).toContain("No research proposals");
+  });
+
   it("prints empty workspace status", async () => {
     const workDir = makeWorkDir();
     const pi = mockExtensionAPI();
@@ -1384,7 +1402,16 @@ describe("/research approve command", () => {
   it("approves a proposal and activates the run (no active run)", async () => {
     const workDir = makeWorkDir();
     const pi = mockExtensionAPI();
-    registerResearchCommand(pi, passingBrainFactory());
+    registerResearchCommand(
+      pi,
+      passingBrainFactory(),
+      vi.fn().mockResolvedValue({
+        briefPath: "",
+        sourceNoteCount: 0,
+        roundCount: 0,
+        ledgerEntryCount: 0,
+      }),
+    );
 
     // Create a draft proposal first
     initStore(workDir);
@@ -1475,6 +1502,183 @@ describe("/research approve command", () => {
 
     const output = mockLog.join("\n");
     expect(output).toContain("Proposal not found");
+  });
+
+  it("starts executeRun as background promise for blocking-mode activated run", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    const mockRunLoop = vi.fn().mockResolvedValue({
+      briefPath: ".pi/research/runs/run-1/brief.md",
+      sourceNoteCount: 3,
+      roundCount: 5,
+      ledgerEntryCount: 12,
+    });
+    registerResearchCommand(pi, passingBrainFactory(), mockRunLoop as any);
+
+    initStore(workDir);
+    const proposal = createProposal(workDir, {
+      question: "Test question?",
+      trigger: "A valid trigger for testing",
+      mode: "blocking",
+    });
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler(`approve ${proposal.identity.id}`, ctx);
+
+    // Handler returned — runLoop should have been called
+    expect(mockRunLoop).toHaveBeenCalledOnce();
+
+    // Check args passed to runLoop
+    const [cwd, runId, brain, budget] = mockRunLoop.mock.calls[0];
+    expect(cwd).toBe(workDir);
+    expect(runId).toBeTruthy();
+    expect(budget).toHaveProperty("limits");
+    expect(budget).toHaveProperty("usage");
+    expect(budget.limits.maxSearches).toBe(10);
+    expect(budget.limits.maxElapsedSeconds).toBe(600);
+  });
+
+  it("handler returns before runLoop completes (non-blocking)", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+
+    // Create a deferred promise so we can control when runLoop resolves
+    let resolveRun: (value: any) => void = () => {};
+    const runPromise = new Promise((resolve) => {
+      resolveRun = resolve;
+    });
+    const mockRunLoop = vi.fn().mockReturnValue(runPromise);
+    registerResearchCommand(pi, passingBrainFactory(), mockRunLoop as any);
+
+    initStore(workDir);
+    const proposal = createProposal(workDir, {
+      question: "Non-blocking test?",
+      trigger: "A valid trigger",
+      mode: "blocking",
+    });
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const ctx = { cwd: workDir, print: () => {} };
+
+    // Handler should return even though runLoop hasn't resolved
+    await cmdOpts.handler(`approve ${proposal.identity.id}`, ctx);
+
+    expect(mockRunLoop).toHaveBeenCalledOnce();
+    expect(pi.sendMessage).not.toHaveBeenCalled();
+
+    // Now resolve the run loop
+    resolveRun({
+      briefPath: ".pi/research/runs/run-1/brief.md",
+      sourceNoteCount: 3,
+      roundCount: 5,
+      ledgerEntryCount: 12,
+    });
+
+    // Wait for the .then() notification to fire
+    await vi.waitFor(
+      () => {
+        expect(pi.sendMessage).toHaveBeenCalledWith(
+          expect.objectContaining({
+            content: expect.stringContaining("completed"),
+          }),
+        );
+      },
+      { timeout: 1000, interval: 10 },
+    );
+  });
+
+  it("sends error notification and marks run interrupted on runLoop rejection", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    const mockRunLoop = vi.fn().mockRejectedValue(new Error("Model API timeout"));
+    registerResearchCommand(pi, passingBrainFactory(), mockRunLoop as any);
+
+    initStore(workDir);
+    const proposal = createProposal(workDir, {
+      question: "Error test?",
+      trigger: "A valid trigger",
+      mode: "blocking",
+    });
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const ctx = { cwd: workDir, print: () => {} };
+
+    await cmdOpts.handler(`approve ${proposal.identity.id}`, ctx);
+
+    expect(mockRunLoop).toHaveBeenCalledOnce();
+    const capturedRunId = mockRunLoop.mock.calls[0][1];
+
+    // Wait for the .catch() notification to fire
+    await vi.waitFor(
+      () => {
+        expect(pi.sendMessage).toHaveBeenCalledWith(
+          expect.objectContaining({
+            content: expect.stringContaining("interrupted"),
+          }),
+        );
+      },
+      { timeout: 1000, interval: 10 },
+    );
+
+    // Run should be marked interrupted
+    const run = getRun(workDir, capturedRunId);
+    expect(run).toBeTruthy();
+    expect(run!.status).toBe("interrupted");
+  });
+
+  it("does NOT start runLoop for queued (non-activated) run", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    const mockRunLoop = vi.fn();
+    registerResearchCommand(pi, passingBrainFactory(), mockRunLoop as any);
+
+    initStore(workDir);
+
+    // Create an active run first so the new run will be queued
+    const activeRun = createRun(workDir, "Active run");
+    updateStatus(workDir, activeRun.identity.id, "running");
+
+    const proposal = createProposal(workDir, {
+      question: "Queued proposal?",
+      trigger: "A valid trigger",
+      mode: "blocking",
+    });
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const ctx = { cwd: workDir, print: () => {} };
+
+    await cmdOpts.handler(`approve ${proposal.identity.id}`, ctx);
+
+    expect(mockRunLoop).not.toHaveBeenCalled();
+  });
+
+  it("does NOT start runLoop for background-mode activated run", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    const mockRunLoop = vi.fn();
+    registerResearchCommand(pi, passingBrainFactory(), mockRunLoop as any);
+
+    initStore(workDir);
+    const proposal = createProposal(workDir, {
+      question: "Background test?",
+      trigger: "A valid trigger",
+      mode: "background",
+    });
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const ctx = { cwd: workDir, print: () => {} };
+
+    await cmdOpts.handler(`approve ${proposal.identity.id}`, ctx);
+
+    expect(mockRunLoop).not.toHaveBeenCalled();
   });
 });
 

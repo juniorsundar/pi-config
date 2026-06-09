@@ -167,3 +167,30 @@ The system should optimize for bounded, source-grounded decision support rather 
 - Alibaba DeepResearch remains valuable as process inspiration: ReAct-style iteration, batch search, goal-directed source extraction, token/budget circuit breakers, JSONL run artifacts, and final answer demarcation. V1 adapts those ideas into Pi-native lifecycle and artifact contracts rather than copying the protocol.
 - Live testing of Tongyi through Ollama showed that a basic prompt template can produce malformed or runaway responses. The product must include readiness diagnostics and response normalization from the start.
 - The first implementation should favor deep, testable modules around lifecycle, artifacts, readiness, and rendering. Search provider quality and richer parsing can improve later without changing the Research Run domain model.
+
+## Implementation Status (2026-06-09)
+
+### Completed (Issues 0018–0035)
+
+- ✅ Extension bootstrap, proposal manager, run store, workspace store
+- ✅ Proposal creation with editable fields, trigger validation, draft/approve/deny lifecycle
+- ✅ Approve-and-create-run flow with readiness gating and one-active-run constraint
+- ✅ Research Run loop (`executeResearchRun`) with mocked search/fetch seams — built and tested in isolation
+- ✅ Evidence Mix, Candidate Filtering, Negative Evidence
+- ✅ Source Notes: extraction, chunking, merge, web/local inputs
+- ✅ Budget tracking, exhaustion, continuation recommendations
+- ✅ Citation-validated Research Briefs
+- ✅ Progress Digests and `/research status` command surface
+- ✅ Human Research View rendering
+- ✅ Steering: cancel, force\_synthesis, add\_instruction
+- ✅ Interruption on shutdown, Manual Resume, orphan scan on session\_start
+- ✅ Research Brief promotion
+- ✅ Doctor diagnostics with readiness probes
+
+### Known Gaps → Issue 0036
+
+- ❌ `/research approve` does not invoke `executeResearchRun` after activation — the run sits forever in `running` status with no artifacts produced.
+- ❌ `RunLoopOptions` search/fetch seams have no real implementation — `source-access.ts` stubs return empty arrays and placeholder content. The web-search extension's search and fetch scripts exist but were never wired into the run loop.
+- ❌ The shared `BrainFactory` is duplicated verbatim in `command.ts` and `tool.ts`.
+
+These gaps mean the system passes all tests (each component is correct in isolation) but does not actually execute research when a user approves a blocking-mode run. Issue 0036 closes all three gaps.
