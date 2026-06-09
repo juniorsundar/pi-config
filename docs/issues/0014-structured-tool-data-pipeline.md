@@ -2,7 +2,7 @@
 
 ### Parent
 
-PRD: `docs/prd/subagent-visualization-redesign.md`
+PRD: `docs/prd/0001-subagent-visualization-redesign.md`
 
 ### What to build
 
