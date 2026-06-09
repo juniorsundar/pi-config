@@ -253,4 +253,69 @@ describe("RunStore", () => {
     expect(meta.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(meta.createdAt).toBe(meta.updatedAt);
   });
+
+  // ── Shutdown marking (Issue 0034) ─────────────────────────────────
+
+  it("updateStatus accepts interrupted status", () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const meta = createRun(workDir, "Interrupt test");
+    const updated = updateStatus(workDir, meta.identity.id, "interrupted");
+
+    expect(updated.status).toBe("interrupted");
+  });
+
+  it("updateStatus with interrupted sets termination reason when provided", () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const meta = createRun(workDir, "Interrupt reason test");
+    const updated = updateStatus(
+      workDir,
+      meta.identity.id,
+      "interrupted",
+      "Pi shutdown",
+    );
+
+    expect(updated.status).toBe("interrupted");
+    expect(updated.terminationReason).toBe("Pi shutdown");
+  });
+
+  it("interrupted status is persisted to disk", () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const meta = createRun(workDir, "Interrupt persist test");
+    updateStatus(workDir, meta.identity.id, "interrupted", "Crash");
+
+    const reloaded = getRun(workDir, meta.identity.id);
+    expect(reloaded).not.toBeNull();
+    expect(reloaded!.status).toBe("interrupted");
+    expect(reloaded!.terminationReason).toBe("Crash");
+  });
+
+  it("interrupted run is not active", () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const meta = createRun(workDir, "Interrupt not active test");
+    updateStatus(workDir, meta.identity.id, "interrupted");
+
+    const active = getActiveRun(workDir);
+    expect(active).toBeNull();
+  });
+
+  it("getActiveRun returns null when only interrupted runs exist", () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const run1 = createRun(workDir, "Run 1");
+    const run2 = createRun(workDir, "Run 2");
+    updateStatus(workDir, run1.identity.id, "interrupted");
+    updateStatus(workDir, run2.identity.id, "interrupted");
+
+    const active = getActiveRun(workDir);
+    expect(active).toBeNull();
+  });
 });

@@ -16,14 +16,14 @@ User stories covered: 43, 44, 45.
 
 ### Acceptance criteria
 
-- [ ] Active running or synthesizing Research Runs are marked interrupted on Pi shutdown
-- [ ] V1 does not create detached background Research Run processes
-- [ ] Manual Resume supports interrupted, readiness-failed, and budget-exhausted runs
-- [ ] Resume from readiness-failed state shows diagnostics and reruns readiness after approval before source work
-- [ ] Resume from interrupted state shows completed Source Notes, ledger state, and budget used and remaining
-- [ ] Resume from budget-exhausted state requires explicit additional budget approval and preserves prior brief versions
-- [ ] Completed Research Runs are terminal in v1 and require a new Research Proposal for new facts or angles
-- [ ] Tests cover shutdown marking, no detached orphan behavior, resume approval, and continuation without repeating completed Source Notes
+- [x] Active running or synthesizing Research Runs are marked interrupted on Pi shutdown
+- [x] V1 does not create detached background Research Run processes
+- [x] Manual Resume supports interrupted, readiness-failed, and budget-exhausted runs
+- [x] Resume from readiness-failed state shows diagnostics and reruns readiness after approval before source work
+- [x] Resume from interrupted state shows completed Source Notes, ledger state, and budget used and remaining
+- [x] Resume from budget-exhausted state requires explicit additional budget approval and preserves prior brief versions
+- [x] Completed Research Runs are terminal in v1 and require a new Research Proposal for new facts or angles
+- [x] Tests cover shutdown marking, no detached orphan behavior, resume approval, and continuation without repeating completed Source Notes
 
 ### Blocked by
 

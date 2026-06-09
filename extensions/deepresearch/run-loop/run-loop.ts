@@ -84,6 +84,84 @@ function sourceNotesDir(cwd: string, runId: string): string {
   return join(runDir(cwd, runId), "source-notes");
 }
 
+/**
+ * Parse a SourceNoteData from a source note markdown file.
+ * The format is written by writeSourceNote().
+ */
+function parseSourceNoteFromFile(filePath: string): SourceNoteData | null {
+  try {
+    const content = readFileSync(filePath, "utf-8");
+    const lines = content.split("\n");
+
+    // Extract title from # Source Note <num>
+    const titleMatch = lines[0]?.match(/^# Source Note (\d+)/);
+    if (!titleMatch) return null;
+    const citationNumber = parseInt(titleMatch[1], 10);
+
+    // Extract metadata fields
+    const source = extractField(lines, "**Source**");
+    const finalUrl = extractField(lines, "**Final URL**");
+    const title = extractField(lines, "**Title**") ?? "";
+    const retrievedAt = extractField(lines, "**Retrieved**") ?? "";
+    const contentType = extractField(lines, "**Content Type**") ?? "";
+    const contentHash = extractField(lines, "**Content Hash**");
+
+    // Extract snippets
+    const snippets: string[] = [];
+    const snippetSection = lines.findIndex(l => l.trim() === "## Snippets");
+    if (snippetSection >= 0) {
+      for (let i = snippetSection + 1; i < lines.length; i++) {
+        const snippetMatch = lines[i].match(/^- \[\d+:\d+\] (.+)/);
+        if (snippetMatch) {
+          snippets.push(snippetMatch[1]);
+        }
+      }
+    }
+
+    const allNotesText: string[] = [];
+    for (const line of lines) {
+      if (line.startsWith("**Note**: ")) {
+        allNotesText.push(line.slice("**Note**: ".length));
+      }
+    }
+    const truncated = allNotesText.some(n => n.includes("truncated"));
+    const partialExtraction = allNotesText.some(n => n.includes("partial extraction"));
+
+    return {
+      source: source ?? "",
+      finalUrl: finalUrl ?? undefined,
+      title,
+      sourceType: "web",
+      retrievedAt,
+      citationNumber,
+      snippets,
+      contentType,
+      truncated,
+      contentHash: contentHash ?? undefined,
+      partialExtraction,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Extract a field value from lines like "**Field**: value".
+ * Skips lines that also contain other markers (truncation, partial extraction).
+ */
+function extractField(lines: string[], field: string, skipIndex: number = 0): string | undefined {
+  let count = 0;
+  for (const line of lines) {
+    if (line.startsWith(field + ": ")) {
+      if (count === skipIndex) {
+        return line.slice(field.length + 2);
+      }
+      count++;
+    }
+  }
+  return undefined;
+}
+
 // ── Ledger ─────────────────────────────────────────────────────────────────
 
 function appendLedger(cwd: string, runId: string, entry: LedgerEntry): void {
@@ -600,6 +678,40 @@ export async function executeResearchRun(
   const negativeEvidence = new NegativeEvidence();
 
   const startTimeMs = Date.now();
+
+  // On resume (skipInit=true), initialize state from existing artifacts
+  if (skipInit) {
+    const notesDir = sourceNotesDir(cwd, runId);
+    // Ensure notes directory exists — readiness_failed runs may never have had one
+    if (!existsSync(notesDir)) {
+      mkdirSync(notesDir, { recursive: true });
+    }
+    try {
+      const noteFiles = readdirSync(notesDir, { withFileTypes: true })
+        .filter((entry) => entry.isFile() && entry.name.endsWith(".md"));
+      sourceNoteCount = noteFiles.length;
+
+      // Load existing source notes into memory for citation validation
+      for (const noteFile of noteFiles) {
+        const parsed = parseSourceNoteFromFile(join(notesDir, noteFile.name));
+        if (parsed) {
+          sourceNoteDataList.push(parsed);
+        }
+      }
+    } catch {
+      sourceNoteCount = 0;
+    }
+
+    // Load existing run summary for brain context continuity
+    const summaryFilePath = summaryPath(cwd, runId);
+    if (existsSync(summaryFilePath)) {
+      try {
+        currentSummary = readFileSync(summaryFilePath, "utf-8");
+      } catch {
+        currentSummary = "";
+      }
+    }
+  }
 
   // Record budget approval as the first ledger entry (append-only audit trail)
   // For continuations, record budget_revision instead (preserving the original budget_approved)
@@ -1160,6 +1272,95 @@ export async function continueResearchRun(
   if (run.status !== "budget_exhausted") {
     throw new Error(
       `Cannot continue run ${runId}: status is "${run.status}", expected "budget_exhausted".`,
+    );
+  }
+
+  // Transition back to running for the continuation
+  updateStatus(cwd, runId, "running");
+
+  // Execute the research loop with skipInit=true (preserves existing artifacts,
+  // records budget_revision instead of budget_approved)
+  return executeResearchRun(
+    cwd,
+    runId,
+    brain,
+    budget,
+    options,
+    1,
+    evidenceCategories,
+    true, // skipInit
+  );
+}
+
+/**
+ * Resume an interrupted, readiness_failed, or budget_exhausted Research Run.
+ *
+ * For "interrupted": transitions back to running and resumes from existing
+ * artifacts (skipInit=true), recording a budget_revision ledger entry.
+ *
+ * For "readiness_failed": reruns readiness check before resuming.
+ * For "budget_exhausted": delegates to continueResearchRun.
+ *
+ * @param cwd     - Workspace root directory
+ * @param runId   - Research Run identity (existing run in resumable status)
+ * @param brain   - Research Brain instance
+ * @param budget  - New Research Budget for the continuation
+ * @param options - Injection seams for orchestrator side effects
+ * @param evidenceCategories - Intended evidence categories
+ * @param readinessParams - Optional: resolved model and brain for readiness re-check
+ *   on readiness_failed resume
+ * @returns Metadata about the completed run
+ */
+export async function resumeResearchRun(
+  cwd: string,
+  runId: string,
+  brain: ResearchBrain,
+  budget: Budget,
+  options: RunLoopOptions,
+  evidenceCategories: string[] = [],
+  readinessParams?: {
+    resolved: import("../brain/setup-policy/setup-policy").ResolvedModel;
+    brain: import("../brain/setup-policy/setup-policy").BrainWithModel;
+  },
+): Promise<ResearchRunMeta> {
+  const run = getRun(cwd, runId);
+  if (!run) throw new Error(`Run not found: ${runId}`);
+
+  if (run.status === "budget_exhausted") {
+    // Delegate to the existing continuation path
+    return continueResearchRun(cwd, runId, brain, budget, options, evidenceCategories);
+  }
+
+  if (run.status === "readiness_failed") {
+    // Present diagnostics and rerun readiness check before source work
+    if (readinessParams) {
+      const { runReadinessGate } = await import("../lifecycle/run-readiness");
+      await runReadinessGate(
+        cwd,
+        runId,
+        readinessParams.resolved,
+        readinessParams.brain,
+      );
+    } else {
+      // No readiness params provided — transition to running directly
+      updateStatus(cwd, runId, "running");
+    }
+    return executeResearchRun(
+      cwd,
+      runId,
+      brain,
+      budget,
+      options,
+      1,
+      evidenceCategories,
+      true, // skipInit
+    );
+  }
+
+  if (run.status !== "interrupted") {
+    throw new Error(
+      `Run ${runId} with status "${run.status}" cannot be resumed. ` +
+      `Only interrupted, readiness_failed, or budget_exhausted runs are resumable.`,
     );
   }
 

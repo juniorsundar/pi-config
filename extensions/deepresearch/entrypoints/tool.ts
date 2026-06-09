@@ -5,7 +5,7 @@ import { proposeWithReadiness } from "../proposals/propose-with-readiness";
 import { renderRun } from "../rendering/human-view-facade";
 import { getRun } from "../lifecycle/run-store";
 import { getStorePath } from "../workspace/store";
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync, readdirSync } from "fs";
 import { join } from "path";
 import type { ResearchBrain } from "../brain/harness/types";
 import { OllamaBrain } from "../brain/harness/ollama-brain";
@@ -453,6 +453,145 @@ export function registerDeepresearchTool(
             runId,
             briefPath,
             sections: meta.status,
+          },
+        };
+      }
+
+      // recommend_resume — check if a run can be resumed and return resume details
+      if (action === "recommend_resume") {
+        const runId = params.run_id as string | undefined;
+
+        if (!runId || runId.trim().length === 0) {
+          return {
+            content: [
+              {
+                type: "text",
+                text:
+                  "**Error**: Research Run ID is required for recommend_resume. " +
+                  "Please provide a `run_id` parameter.",
+              },
+            ],
+            details: { action: "recommend_resume", status: "error", reason: "missing_run_id" },
+          };
+        }
+
+        const meta = getRun(cwd, runId);
+        if (!meta) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `**Error**: Run not found: ${runId}. Cannot recommend resume for an unknown run.`,
+              },
+            ],
+            details: { action: "recommend_resume", status: "error", runId, reason: "not_found" },
+          };
+        }
+
+        // Resumable statuses in v1
+        const RESUMABLE_STATUSES = new Set(["interrupted", "readiness_failed", "budget_exhausted"]);
+
+        if (meta.status === "completed") {
+          return {
+            content: [
+              {
+                type: "text",
+                text:
+                  `**Error**: Run ${runId} has status "completed" which is terminal in v1. ` +
+                  `To research new facts or angles, create a new Research Proposal.`,
+              },
+            ],
+            details: {
+              action: "recommend_resume",
+              status: "terminal",
+              runId,
+              resumable: false,
+              reason: "terminal_in_v1",
+              runStatus: meta.status,
+            },
+          };
+        }
+
+        if (!RESUMABLE_STATUSES.has(meta.status)) {
+          return {
+            content: [
+              {
+                type: "text",
+                text:
+                  `**Error**: Run ${runId} has status "${meta.status}" and cannot be resumed. ` +
+                  `Only interrupted, readiness_failed, or budget_exhausted runs are resumable.`,
+              },
+            ],
+            details: {
+              action: "recommend_resume",
+              status: "not_resumable",
+              runId,
+              resumable: false,
+              reason: "not_resumable",
+              runStatus: meta.status,
+            },
+          };
+        }
+
+        // Gather resume details
+        const runDir = join(getStorePath(cwd), "runs", runId);
+
+        // Count source notes
+        const notesDir = join(runDir, "source-notes");
+        let sourceNoteCount = 0;
+        if (existsSync(notesDir)) {
+          try {
+            sourceNoteCount = readdirSync(notesDir, { withFileTypes: true })
+              .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
+              .length;
+          } catch {
+            sourceNoteCount = 0;
+          }
+        }
+
+        // Count ledger entries
+        const ledgerPath = join(runDir, "ledger.jsonl");
+        let ledgerEntryCount = 0;
+        if (existsSync(ledgerPath)) {
+          try {
+            const raw = readFileSync(ledgerPath, "utf-8");
+            ledgerEntryCount = raw.split("\n").filter((l) => l.trim().length > 0).length;
+          } catch {
+            ledgerEntryCount = 0;
+          }
+        }
+
+        // Check for existing brief (budget_exhausted preserves prior brief versions)
+        const briefPath = join(runDir, "brief.md");
+        const hasExistingBrief = existsSync(briefPath);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text:
+                `## Resume Recommendation: ${runId}\n\n` +
+                `**Status**: ${meta.status}\n` +
+                `**Question**: ${meta.question}\n` +
+                `**Source Notes**: ${sourceNoteCount}\n` +
+                `**Ledger Entries**: ${ledgerEntryCount}\n` +
+                (hasExistingBrief ? `**Existing brief**: brief.md (preserved)\n` : ``) +
+                `\n` +
+                `This run can be resumed. Use the researcher's resume capability to continue ` +
+                `from existing artifacts.`,
+            },
+          ],
+          details: {
+            action: "recommend_resume",
+            status: "resumable",
+            runId,
+            resumable: true,
+            runStatus: meta.status,
+            question: meta.question,
+            sourceNoteCount,
+            ledgerEntryCount,
+            hasExistingBrief,
+            resumeMetadata: meta.resumeMetadata,
           },
         };
       }

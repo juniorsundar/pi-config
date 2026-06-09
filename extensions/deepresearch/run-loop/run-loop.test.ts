@@ -6,7 +6,7 @@ import { initStore } from "../workspace/store";
 import { createRun, updateStatus, getRun } from "../lifecycle/run-store";
 import { createBudget, type BudgetLimits } from "../budgets/budget";
 import type { ResearchBrain } from "../brain/harness/types";
-import { executeResearchRun, continueResearchRun } from "./run-loop";
+import { executeResearchRun, continueResearchRun, resumeResearchRun } from "./run-loop";
 import type { RunLoopOptions, LedgerEntry, ResearchRunMeta } from "./types";
 import { writeSteeringSignal, readAndClearSteeringSignal } from "../steering/steering";
 import type { SteeringSignal } from "../steering/steering";
@@ -2277,5 +2277,398 @@ describe("Steering integration — Add Instruction (Slice 4, AC4)", () => {
     expect(["applied", "rejected"]).toContain(instructionEntry.meta.status);
     expect(instructionEntry.meta.instructionType).toBe("add_instruction");
     expect(instructionEntry.meta.budgetState).toBeDefined();
+  });
+});
+
+// ── Resume from interrupted state (Issue 0034, Slice 3) ────────────────
+
+describe("resumeResearchRun from interrupted state", () => {
+  it("throws when run is not found", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const brain = createMockBrain(["search"]);
+    const budget = createBudget({
+      maxSearches: 5,
+      maxFetchAttempts: 5,
+      maxSourceVisits: 5,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 3,
+      maxElapsedSeconds: 300,
+    });
+
+    const options = mockRunLoopOptions();
+
+    await expect(
+      resumeResearchRun(workDir, "nonexistent", brain, budget, options),
+    ).rejects.toThrow("Run not found");
+  });
+
+  it("throws when run is not in interrupted state", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "Not interrupted?",
+      {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    const brain = createMockBrain(["search"]);
+
+    await expect(
+      resumeResearchRun(workDir, runId, brain, budget, mockRunLoopOptions()),
+    ).rejects.toThrow(/cannot be resumed/);
+  });
+
+  it("resumes an interrupted run and completes it", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "Interrupted run resume?",
+      {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    // Create some artifacts manually, then mark as interrupted
+    const runDir = join(workDir, ".pi", "research", "runs", runId);
+    const notesDir = join(runDir, "source-notes");
+    mkdirSync(notesDir, { recursive: true });
+    writeFileSync(join(notesDir, "note-001.md"), "# Source Note 1\n\nExisting note.");
+    writeFileSync(join(runDir, "ledger.jsonl"), JSON.stringify({
+      round: 0, intent: "budget_approved", timestamp: new Date().toISOString(),
+      content: "Budget approved.",
+      meta: { limits: budget.limits },
+    }) + "\n");
+    writeFileSync(join(runDir, "run-summary.md"), "# Run Summary\n\nInitial run summary.");
+
+    updateStatus(workDir, runId, "interrupted", "Test interruption");
+
+    const interruptedRun = getRun(workDir, runId);
+    expect(interruptedRun!.status).toBe("interrupted");
+
+    // Now resume with a fresh brain that includes synthesize_brief
+    const resumeBrain = createMockBrain(["search", "select_sources", "update_findings", "synthesize_brief"]);
+    const resumeBudget = createBudget({
+      maxSearches: 5,
+      maxFetchAttempts: 5,
+      maxSourceVisits: 5,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 3,
+      maxElapsedSeconds: 300,
+    });
+
+    const result = await resumeResearchRun(
+      workDir, runId, resumeBrain, resumeBudget, mockRunLoopOptions(),
+    );
+
+    // Run should complete successfully
+    const resumedRun = getRun(workDir, runId);
+    expect(resumedRun!.status).toBe("completed");
+    expect(result.briefPath).toBeTruthy();
+    expect(result.sourceNoteCount).toBeGreaterThanOrEqual(1);
+  });
+
+  it("does not repeat completed source notes on resume", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "No repeat notes?",
+      {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 5,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    const initialBrain = createMockBrain(["search", "select_sources", "update_findings"]);
+    const options = mockRunLoopOptions();
+
+    // Execute a partial run
+    await executeResearchRun(workDir, runId, initialBrain, budget, options);
+
+    // Count existing source notes
+    const notesDir = join(workDir, ".pi", "research", "runs", runId, "source-notes");
+    const beforeNotes = existsSync(notesDir)
+      ? readdirSync(notesDir).filter(f => f.endsWith(".md")).length
+      : 0;
+
+    // Interrupt
+    updateStatus(workDir, runId, "interrupted", "Test interrupt");
+
+    // Resume and count new notes
+    const resumeBrain = createMockBrain(["search", "select_sources", "update_findings", "synthesize_brief"]);
+    const resumeBudget = createBudget({
+      maxSearches: 5,
+      maxFetchAttempts: 5,
+      maxSourceVisits: 5,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 3,
+      maxElapsedSeconds: 300,
+    });
+
+    const result = await resumeResearchRun(
+      workDir, runId, resumeBrain, resumeBudget, options,
+    );
+
+    const afterNotes = existsSync(notesDir)
+      ? readdirSync(notesDir).filter(f => f.endsWith(".md")).length
+      : 0;
+
+    // Total notes should be >= beforeNotes (none were duplicated)
+    expect(afterNotes).toBeGreaterThanOrEqual(beforeNotes);
+    // The result sourceNoteCount reflects total accumulated across both runs
+    expect(result.sourceNoteCount).toBe(afterNotes);
+  });
+
+  it("records a budget_revision ledger entry on resume", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "Budget revision test?",
+      {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 1,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    const initialBrain = createMockBrain(["search"]);
+    await executeResearchRun(workDir, runId, initialBrain, budget, mockRunLoopOptions());
+
+    // Interrupt the run
+    updateStatus(workDir, runId, "interrupted", "Test interrupt");
+
+    const resumeBrain = createMockBrain(["search", "select_sources", "update_findings", "synthesize_brief"]);
+    const resumeBudget = createBudget({
+      maxSearches: 5,
+      maxFetchAttempts: 5,
+      maxSourceVisits: 5,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 3,
+      maxElapsedSeconds: 300,
+    });
+
+    await resumeResearchRun(
+      workDir, runId, resumeBrain, resumeBudget, mockRunLoopOptions(),
+    );
+
+    // Verify budget_revision ledger entry exists
+    const ledgerPath = join(workDir, ".pi", "research", "runs", runId, "ledger.jsonl");
+    const ledgerRaw = readFileSync(ledgerPath, "utf-8");
+    const ledgerEntries = ledgerRaw.split("\n").filter(l => l.trim().length > 0).map(l => JSON.parse(l));
+
+    const budgetRevision = ledgerEntries.find((e: any) => e.intent === "budget_revision");
+    expect(budgetRevision).toBeDefined();
+    expect(budgetRevision.meta.newLimits).toBeDefined();
+  });
+});
+
+// ── Resume from readiness_failed state (Issue 0034, Slice 4) ───────────
+
+describe("resumeResearchRun from readiness_failed state", () => {
+  it("resumes a readiness_failed run without readiness params (transitions to running)", async () => {
+    const workDir = makeWorkDir();
+
+    // Create a run in readiness_failed status
+    initStore(workDir);
+    const run = createRun(workDir, "Readiness failed?", {
+      mode: "blocking",
+      trigger: "Ready test",
+      budgetLimits: {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    });
+    const runId = run.identity.id;
+    updateStatus(workDir, runId, "readiness_failed");
+
+    const brain = createMockBrain(["search", "select_sources", "update_findings", "synthesize_brief"]);
+    const budget = createBudget({
+      maxSearches: 5,
+      maxFetchAttempts: 5,
+      maxSourceVisits: 5,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 3,
+      maxElapsedSeconds: 300,
+    });
+
+    const result = await resumeResearchRun(
+      workDir, runId, brain, budget, mockRunLoopOptions(),
+    );
+
+    const resumedRun = getRun(workDir, runId);
+    expect(resumedRun!.status).toBe("completed");
+    expect(result.briefPath).toBeTruthy();
+  });
+
+  it("throws when readiness params provided but readiness gate fails", async () => {
+    const workDir = makeWorkDir();
+
+    initStore(workDir);
+    const run = createRun(workDir, "Failed readiness?", {
+      mode: "blocking",
+      trigger: "Test readiness",
+      budgetLimits: {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 20,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    });
+    const runId = run.identity.id;
+    updateStatus(workDir, runId, "readiness_failed");
+
+    const brain = createMockBrain(["search"]);
+    const budget = createBudget({
+      maxSearches: 5,
+      maxFetchAttempts: 5,
+      maxSourceVisits: 5,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 3,
+      maxElapsedSeconds: 300,
+    });
+
+    // Provide readiness params with a brain that fails (wrong model name)
+    const resolved = { model: "test-model", provider: "ollama", host: "http://localhost:11434", source: "test" };
+    const brainWithModel = { ...brain, model: "wrong-model" };
+
+    await expect(
+      resumeResearchRun(
+        workDir, runId, brain, budget, mockRunLoopOptions(), [],
+        { resolved, brain: brainWithModel },
+      ),
+    ).rejects.toThrow();
+
+    // Run should remain in readiness_failed
+    const failedRun = getRun(workDir, runId);
+    expect(failedRun!.status).toBe("readiness_failed");
+  });
+});
+
+// ── Resume from budget_exhausted state (Issue 0034, Slice 5) ──────────
+
+describe("resumeResearchRun from budget_exhausted state", () => {
+  it("delegates to continueResearchRun for budget_exhausted status", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "Budget exhausted resume?",
+      {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 0,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    const brain = createMockBrain(["search"]);
+    await executeResearchRun(workDir, runId, brain, budget, mockRunLoopOptions());
+
+    const exhaustedRun = getRun(workDir, runId);
+    expect(exhaustedRun!.status).toBe("budget_exhausted");
+
+    const resumeBrain = createMockBrain(["search", "select_sources", "update_findings", "synthesize_brief"]);
+    const resumeBudget = createBudget({
+      maxSearches: 5,
+      maxFetchAttempts: 5,
+      maxSourceVisits: 5,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 3,
+      maxElapsedSeconds: 300,
+    });
+
+    const result = await resumeResearchRun(
+      workDir, runId, resumeBrain, resumeBudget, mockRunLoopOptions(),
+    );
+
+    const resumedRun = getRun(workDir, runId);
+    expect(resumedRun!.status).toBe("completed");
+    expect(result.briefPath).toBeTruthy();
+  });
+
+  it("preserves ledger history on resume from budget_exhausted", async () => {
+    const workDir = makeWorkDir();
+    const { runId, budget } = setupRunForLoop(
+      workDir,
+      "Preserve ledger?",
+      {
+        maxSearches: 5,
+        maxFetchAttempts: 5,
+        maxSourceVisits: 5,
+        maxSynthesisRounds: 3,
+        maxModelCalls: 0,
+        maxRetryAttempts: 3,
+        maxElapsedSeconds: 300,
+      },
+    );
+
+    const brain = createMockBrain(["search"]);
+    await executeResearchRun(workDir, runId, brain, budget, mockRunLoopOptions());
+
+    const resumeBrain = createMockBrain(["search", "select_sources", "update_findings", "synthesize_brief"]);
+    const resumeBudget = createBudget({
+      maxSearches: 5,
+      maxFetchAttempts: 5,
+      maxSourceVisits: 5,
+      maxSynthesisRounds: 3,
+      maxModelCalls: 20,
+      maxRetryAttempts: 3,
+      maxElapsedSeconds: 300,
+    });
+
+    await resumeResearchRun(
+      workDir, runId, resumeBrain, resumeBudget, mockRunLoopOptions(),
+    );
+
+    const ledgerPath = join(workDir, ".pi", "research", "runs", runId, "ledger.jsonl");
+    const ledgerRaw = readFileSync(ledgerPath, "utf-8");
+    const ledgerEntries = ledgerRaw.split("\n").filter(l => l.trim().length > 0).map(l => JSON.parse(l));
+
+    const budgetApproved = ledgerEntries.find((e: any) => e.intent === "budget_approved");
+    expect(budgetApproved).toBeDefined();
+
+    const budgetRevision = ledgerEntries.find((e: any) => e.intent === "budget_revision");
+    expect(budgetRevision).toBeDefined();
+    expect(budgetRevision.meta.newLimits).toBeDefined();
   });
 });

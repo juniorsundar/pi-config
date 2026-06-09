@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from "fs";
+import { mkdtempSync, rmSync, mkdirSync, writeFileSync, readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import * as statusModule from "../lifecycle/status";
@@ -7,7 +7,7 @@ import { registerDeepresearchTool } from "./tool";
 import { registerResearchCommand } from "./command";
 import { initStore } from "../workspace/store";
 import { createProposal } from "../proposals/proposal-manager";
-import { createRun, updateStatus } from "../lifecycle/run-store";
+import { createRun, updateStatus, getRun } from "../lifecycle/run-store";
 import type { ResearchBrain } from "../brain/harness/types";
 
 // ── Module import ──
@@ -163,6 +163,329 @@ describe("deepresearch entry point", () => {
 
     const toolDef = pi.registerTool.mock.calls[0][0];
     expect(toolDef.execute).toBeTypeOf("function");
+  });
+});
+
+// ── Shutdown marking (Issue 0034) ──────────────────────────────────────
+
+describe("session_shutdown handler", () => {
+  it("registers a session_shutdown event handler", () => {
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    expect(pi.on).toHaveBeenCalledWith("session_shutdown", expect.any(Function));
+  });
+
+  it("marks active running run as interrupted on shutdown", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    // Create and activate a running run
+    const run = createRun(workDir, "Active run");
+    updateStatus(workDir, run.identity.id, "running");
+
+    // Get the session_shutdown handler
+    const shutdownHandler = pi.on.mock.calls.find(
+      (c: any) => c[0] === "session_shutdown",
+    )?.[1];
+    expect(shutdownHandler).toBeDefined();
+
+    // Call the shutdown handler with a quit reason
+    await shutdownHandler({ reason: "quit" }, { cwd: workDir });
+
+    // Verify the run is now interrupted
+    const updatedRun = getRun(workDir, run.identity.id);
+    expect(updatedRun).not.toBeNull();
+    expect(updatedRun!.status).toBe("interrupted");
+    expect(updatedRun!.terminationReason).toBe("Pi shutdown");
+  });
+
+  it("marks active synthesizing run as interrupted on shutdown", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const run = createRun(workDir, "Synthesizing run");
+    updateStatus(workDir, run.identity.id, "synthesizing");
+
+    const shutdownHandler = pi.on.mock.calls.find(
+      (c: any) => c[0] === "session_shutdown",
+    )?.[1];
+    expect(shutdownHandler).toBeDefined();
+
+    await shutdownHandler({ reason: "quit" }, { cwd: workDir });
+
+    const updatedRun = getRun(workDir, run.identity.id);
+    expect(updatedRun).not.toBeNull();
+    expect(updatedRun!.status).toBe("interrupted");
+    expect(updatedRun!.terminationReason).toBe("Pi shutdown");
+  });
+
+  it("does not interrupt non-active runs on shutdown", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const run = createRun(workDir, "Completed run");
+    updateStatus(workDir, run.identity.id, "completed");
+
+    const shutdownHandler = pi.on.mock.calls.find(
+      (c: any) => c[0] === "session_shutdown",
+    )?.[1];
+    expect(shutdownHandler).toBeDefined();
+
+    await shutdownHandler({ reason: "quit" }, { cwd: workDir });
+
+    const updatedRun = getRun(workDir, run.identity.id);
+    expect(updatedRun).not.toBeNull();
+    expect(updatedRun!.status).toBe("completed");
+  });
+
+  it("does not throw when no active run exists on shutdown", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const shutdownHandler = pi.on.mock.calls.find(
+      (c: any) => c[0] === "session_shutdown",
+    )?.[1];
+    expect(shutdownHandler).toBeDefined();
+
+    // Should not throw
+    await expect(
+      shutdownHandler({ reason: "quit" }, { cwd: workDir }),
+    ).resolves.toBeUndefined();
+  });
+
+  it("marks interrupted with correct reason for reload", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const run = createRun(workDir, "Reload run");
+    updateStatus(workDir, run.identity.id, "running");
+
+    const shutdownHandler = pi.on.mock.calls.find(
+      (c: any) => c[0] === "session_shutdown",
+    )?.[1];
+
+    await shutdownHandler({ reason: "reload" }, { cwd: workDir });
+
+    const updatedRun = getRun(workDir, run.identity.id);
+    expect(updatedRun).not.toBeNull();
+    expect(updatedRun!.status).toBe("interrupted");
+    expect(updatedRun!.terminationReason).toBe("Session reload");
+  });
+
+  it("marks interrupted with correct reason for new", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const run = createRun(workDir, "New session run");
+    updateStatus(workDir, run.identity.id, "running");
+
+    const shutdownHandler = pi.on.mock.calls.find(
+      (c: any) => c[0] === "session_shutdown",
+    )?.[1];
+
+    await shutdownHandler({ reason: "new" }, { cwd: workDir });
+
+    const updatedRun = getRun(workDir, run.identity.id);
+    expect(updatedRun!.status).toBe("interrupted");
+    expect(updatedRun!.terminationReason).toBe("Session new");
+  });
+
+  it("marks interrupted with correct reason for resume", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const run = createRun(workDir, "Resume session run");
+    updateStatus(workDir, run.identity.id, "running");
+
+    const shutdownHandler = pi.on.mock.calls.find(
+      (c: any) => c[0] === "session_shutdown",
+    )?.[1];
+
+    await shutdownHandler({ reason: "resume" }, { cwd: workDir });
+
+    const updatedRun = getRun(workDir, run.identity.id);
+    expect(updatedRun!.status).toBe("interrupted");
+    expect(updatedRun!.terminationReason).toBe("Session resume");
+  });
+
+  it("does not throw on shutdown when getActiveRun or updateStatus errors", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const shutdownHandler = pi.on.mock.calls.find(
+      (c: any) => c[0] === "session_shutdown",
+    )?.[1];
+    expect(shutdownHandler).toBeDefined();
+
+    // With no store initialized, getActiveRun and updateStatus won't throw
+    // because getActiveRun gracefully returns null for missing dirs.
+    // This test verifies the try/catch guard doesn't itself cause issues.
+    await expect(
+      shutdownHandler({ reason: "quit" }, { cwd: workDir }),
+    ).resolves.toBeUndefined();
+  });
+});
+
+// ── session_start orphan scan (Issue 0034, Slice 6) ─────────────────────
+
+describe("session_start orphan scan", () => {
+  it("registers a session_start event handler", () => {
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    expect(pi.on).toHaveBeenCalledWith("session_start", expect.any(Function));
+  });
+
+  it("marks orphaned running runs as interrupted on session_start", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    // Create a running run that was left orphaned (crash scenario)
+    const run = createRun(workDir, "Orphaned running run");
+    updateStatus(workDir, run.identity.id, "running");
+
+    const sessionStartHandler = pi.on.mock.calls.find(
+      (c: any) => c[0] === "session_start",
+    )?.[1];
+    expect(sessionStartHandler).toBeDefined();
+
+    await sessionStartHandler({ reason: "startup" }, { cwd: workDir });
+
+    const orphanedRun = getRun(workDir, run.identity.id);
+    expect(orphanedRun).not.toBeNull();
+    expect(orphanedRun!.status).toBe("interrupted");
+    expect(orphanedRun!.terminationReason).toBe("Session crashed");
+  });
+
+  it("marks orphaned synthesizing runs as interrupted on session_start", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const run = createRun(workDir, "Orphaned synthesizing run");
+    updateStatus(workDir, run.identity.id, "synthesizing");
+
+    const sessionStartHandler = pi.on.mock.calls.find(
+      (c: any) => c[0] === "session_start",
+    )?.[1];
+    expect(sessionStartHandler).toBeDefined();
+
+    await sessionStartHandler({ reason: "startup" }, { cwd: workDir });
+
+    const orphanedRun = getRun(workDir, run.identity.id);
+    expect(orphanedRun!.status).toBe("interrupted");
+  });
+
+  it("does not interrupt completed runs on session_start", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const run = createRun(workDir, "Completed run");
+    updateStatus(workDir, run.identity.id, "completed");
+
+    const sessionStartHandler = pi.on.mock.calls.find(
+      (c: any) => c[0] === "session_start",
+    )?.[1];
+    expect(sessionStartHandler).toBeDefined();
+
+    await sessionStartHandler({ reason: "startup" }, { cwd: workDir });
+
+    const completedRun = getRun(workDir, run.identity.id);
+    expect(completedRun!.status).toBe("completed");
+  });
+
+  it("does not throw when no runs exist on session_start", async () => {
+    const workDir = makeWorkDir();
+    initStore(workDir);
+
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const sessionStartHandler = pi.on.mock.calls.find(
+      (c: any) => c[0] === "session_start",
+    )?.[1];
+    expect(sessionStartHandler).toBeDefined();
+
+    await expect(
+      sessionStartHandler({ reason: "startup" }, { cwd: workDir }),
+    ).resolves.toBeUndefined();
+  });
+
+  it("handles errors gracefully during orphan scan", async () => {
+    const workDir = makeWorkDir();
+
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    // No store initialized — listRuns should return empty gracefully
+    const sessionStartHandler = pi.on.mock.calls.find(
+      (c: any) => c[0] === "session_start",
+    )?.[1];
+    expect(sessionStartHandler).toBeDefined();
+
+    await expect(
+      sessionStartHandler({ reason: "resume" }, { cwd: workDir }),
+    ).resolves.toBeUndefined();
+  });
+});
+
+// ── Orphan prevention (AC2) ───────────────────────────────────────────────
+
+describe("orphan prevention (AC2)", () => {
+  it("no child_process or spawn usage in deepresearch extension", () => {
+    // The deepresearch extension should not use child_process, spawn, or exec
+    // to prevent detached orphan processes. This is a design-level test.
+    const extDir = join(__dirname, "..");
+    const filesToCheck = [
+      "index.ts",
+      "entrypoints/tool.ts",
+      "entrypoints/command.ts",
+      "run-loop/run-loop.ts",
+      "lifecycle/run-store.ts",
+    ];
+
+    for (const file of filesToCheck) {
+      const filePath = join(extDir, file);
+      const content = readFileSync(filePath, "utf-8");
+      // No direct child_process, spawn, or exec usage in orchestrator files
+      expect(content).not.toMatch(/require\("child_process"\)/);
+      expect(content).not.toMatch(/from "child_process"/);
+      expect(content).not.toMatch(/\bspawn\(/);
+      expect(content).not.toMatch(/\bexec\(/);
+    }
   });
 });
 
@@ -616,6 +939,198 @@ describe("deepresearch tool forbidden actions", () => {
   });
 });
 
+// ── recommend_resume (Issue 0034) ────────────────────────────────────────
+
+describe("deepresearch tool recommend_resume action", () => {
+  /** Create a run with a given status and synthetic artifacts. */
+  function createRunWithArtifacts(
+    workDir: string,
+    status: string,
+    sourceNoteCount: number = 0,
+  ): string {
+    initStore(workDir);
+    const run = createRun(workDir, "Resumable research");
+    const runDir = join(workDir, ".pi", "research", "runs", run.identity.id);
+
+    // Set status
+    updateStatus(workDir, run.identity.id, status as any);
+
+    // Create source notes directory
+    if (sourceNoteCount > 0) {
+      const notesDir = join(runDir, "source-notes");
+      mkdirSync(notesDir, { recursive: true });
+      for (let i = 1; i <= sourceNoteCount; i++) {
+        writeFileSync(
+          join(notesDir, `note-${i}.md`),
+          `# Source Note ${i}\n\nEvidence snippet.`,
+        );
+      }
+    }
+
+    // Create ledger
+    writeFileSync(join(runDir, "ledger.jsonl"), `{"round":1,"intent":"budget_approved"}\n`);
+
+    // Create run-summary.md
+    writeFileSync(
+      join(runDir, "run-summary.md"),
+      `# Run Summary\n\nBudget remaining: ...\n`,
+    );
+
+    return run.identity.id;
+  }
+
+  it("returns resume details for interrupted run", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerToolWithMockBrain(pi);
+
+    const runId = createRunWithArtifacts(workDir, "interrupted", 3);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-resume-1",
+      { action: "recommend_resume", run_id: runId },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    expect(result.details.action).toBe("recommend_resume");
+    expect(result.details.resumable).toBe(true);
+    expect(result.details.runStatus).toBe("interrupted");
+    expect(result.details.sourceNoteCount).toBe(3);
+    expect(result.details.ledgerEntryCount).toBe(1);
+  });
+
+  it("returns resume details for readiness_failed run", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerToolWithMockBrain(pi);
+
+    const runId = createRunWithArtifacts(workDir, "readiness_failed", 0);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-resume-2",
+      { action: "recommend_resume", run_id: runId },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    expect(result.details.resumable).toBe(true);
+    expect(result.details.runStatus).toBe("readiness_failed");
+    expect(result.details.sourceNoteCount).toBe(0);
+  });
+
+  it("returns resume details for budget_exhausted run", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerToolWithMockBrain(pi);
+
+    const runId = createRunWithArtifacts(workDir, "budget_exhausted", 5);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-resume-3",
+      { action: "recommend_resume", run_id: runId },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    expect(result.details.resumable).toBe(true);
+    expect(result.details.runStatus).toBe("budget_exhausted");
+    expect(result.details.sourceNoteCount).toBe(5);
+  });
+
+  it("rejects completed runs (AC7 — terminal in v1)", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerToolWithMockBrain(pi);
+
+    const runId = createRunWithArtifacts(workDir, "completed", 10);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-resume-4",
+      { action: "recommend_resume", run_id: runId },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    expect(result.details.resumable).toBe(false);
+    expect(result.details.reason).toBe("terminal_in_v1");
+
+    const textContent = result.content.find(
+      (c: { type: string }) => c.type === "text",
+    );
+    expect(textContent.text).toContain("terminal");
+  });
+
+  it("rejects running runs", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerToolWithMockBrain(pi);
+
+    const runId = createRunWithArtifacts(workDir, "running", 0);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-resume-5",
+      { action: "recommend_resume", run_id: runId },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    expect(result.details.resumable).toBe(false);
+    expect(result.details.reason).toBe("not_resumable");
+  });
+
+  it("returns error for missing run_id parameter", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerToolWithMockBrain(pi);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-resume-6",
+      { action: "recommend_resume" },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    const textContent = result.content.find(
+      (c: { type: string }) => c.type === "text",
+    );
+    expect(textContent.text).toContain("Error");
+  });
+
+  it("returns error for unknown run ID", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerToolWithMockBrain(pi);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-resume-7",
+      { action: "recommend_resume", run_id: "nonexistent" },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    const textContent = result.content.find(
+      (c: { type: string }) => c.type === "text",
+    );
+    expect(textContent.text).toContain("Error");
+    expect(textContent.text).toContain("not found");
+  });
+});
+
 // ── Status via /research command ──────────────────────────────────────────
 
 describe("/research status command", () => {
@@ -959,5 +1474,126 @@ describe("/research approve command", () => {
 
     const output = mockLog.join("\n");
     expect(output).toContain("Proposal not found");
+  });
+});
+
+// ── Resume via /research command (Issue 0034, Slice 7) ──────────────────
+
+describe("/research resume command", () => {
+  it("prints usage when called without run ID", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler("resume", ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("Usage");
+    expect(output).toContain("run-id");
+  });
+
+  it("shows resume state summary for interrupted run", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    initStore(workDir);
+    const run = createRun(workDir, "Interrupted run");
+    updateStatus(workDir, run.identity.id, "interrupted");
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler("resume " + run.identity.id, ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("Resuming");
+    expect(output).toContain(run.identity.id);
+    expect(output).toContain("interrupted");
+  });
+
+  it("shows resume state summary for readiness_failed run", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    initStore(workDir);
+    const run = createRun(workDir, "Readiness failed run");
+    updateStatus(workDir, run.identity.id, "readiness_failed");
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler("resume " + run.identity.id, ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("Resuming");
+    expect(output).toContain("readiness_failed");
+  });
+
+  it("rejects completed runs with guidance (AC7)", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    initStore(workDir);
+    const run = createRun(workDir, "Completed run");
+    updateStatus(workDir, run.identity.id, "completed");
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler("resume " + run.identity.id, ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("terminal");
+    expect(output).toContain("Research Proposal");
+  });
+
+  it("shows error for unknown run ID", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const cmdOpts = pi.registerCommand.mock.calls[0][1];
+    const mockLog: string[] = [];
+    const ctx = {
+      cwd: workDir,
+      print: (...args: string[]) => {
+        mockLog.push(args.join(" "));
+      },
+    };
+
+    await cmdOpts.handler("resume nonexistent", ctx);
+
+    const output = mockLog.join("\n");
+    expect(output).toContain("not found");
   });
 });

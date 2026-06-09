@@ -8,6 +8,9 @@ import { writeDoctorDiagnostic } from "../brain/setup-policy/diagnostics";
 import { renderRun } from "../rendering/human-view-facade";
 import { writeSteeringSignal } from "../steering/steering";
 import { getRun } from "../lifecycle/run-store";
+import { getStorePath } from "../workspace/store";
+import { readFileSync, existsSync, readdirSync } from "fs";
+import { join } from "path";
 import type { BrainFactory } from "./tool";
 import { OllamaBrain } from "../brain/harness/ollama-brain";
 import { loadDeepresearchConfig } from "../brain/harness/config";
@@ -508,8 +511,72 @@ export function registerResearchCommand(
           "The run loop will validate and apply the instruction. " +
           "Use /research status to check progress.",
         );
+      } else if (args.startsWith("resume")) {
+        const runId = args.slice("resume".length).trim();
+
+        if (runId.length === 0) {
+          ctx.print("Usage: /research resume <run-id>");
+          ctx.print("");
+          ctx.print(
+            "Shows resume state summary for an interrupted, readiness_failed, or budget_exhausted run.",
+          );
+          return;
+        }
+
+        const run = getRun(cwd, runId);
+        if (!run) {
+          ctx.print(`Run not found: ${runId}`);
+          return;
+        }
+
+        // Check if resumable
+        const RESUMABLE = new Set(["interrupted", "readiness_failed", "budget_exhausted"]);
+        if (run.status === "completed") {
+          ctx.print(
+            `Run ${runId} has status "completed" which is terminal in v1. ` +
+            "To research new facts or angles, create a new Research Proposal.",
+          );
+          return;
+        }
+
+        if (!RESUMABLE.has(run.status)) {
+          ctx.print(`Run ${runId} has status "${run.status}" and cannot be resumed.`);
+          return;
+        }
+
+        // Gather state summary
+        const storePath = getStorePath(cwd);
+        const runDirPath = join(storePath, "runs", runId);
+        const notesDir = join(runDirPath, "source-notes");
+        let sourceNoteCount = 0;
+        if (existsSync(notesDir)) {
+          try {
+            sourceNoteCount = readdirSync(notesDir).filter(f => f.endsWith(".md")).length;
+          } catch { sourceNoteCount = 0; }
+        }
+
+        const ledgerPath = join(runDirPath, "ledger.jsonl");
+        let ledgerEntryCount = 0;
+        if (existsSync(ledgerPath)) {
+          try {
+            const raw = readFileSync(ledgerPath, "utf-8");
+            ledgerEntryCount = raw.split("\n").filter(l => l.trim().length > 0).length;
+          } catch { ledgerEntryCount = 0; }
+        }
+
+        ctx.print(`Resuming: ${runId}`);
+        ctx.print(`  Status:     ${run.status}`);
+        ctx.print(`  Question:   ${run.question.slice(0, 80)}`);
+        ctx.print(`  Source Notes: ${sourceNoteCount}`);
+        ctx.print(`  Ledger Entries: ${ledgerEntryCount}`);
+        if (run.terminationReason) {
+          ctx.print(`  Termination: ${run.terminationReason}`);
+        }
+        ctx.print("");
+        ctx.print(
+          "To proceed, approve a revised Research Budget and re-run with the resume capability.",
+        );
       } else {
-        ctx.print(`Unknown research subcommand: ${args.slice(0, 50)}`);
         ctx.print("Available: status, propose, approve, deny, doctor, render, cancel, force_synthesis, add_instruction");
       }
     },
