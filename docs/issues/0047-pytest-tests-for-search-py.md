@@ -19,14 +19,14 @@ Add pytest-based tests for `search.py`. The script has no tests currently. Write
 
 ## Acceptance criteria
 
-- [ ] `pytest` and `pytest-httpx` added to `pyproject.toml` dev dependencies
-- [ ] `uv run pytest` passes with all tests
-- [ ] Tests use a mock HTTP server — no real SearXNG instance needed
-- [ ] URL construction test covers: query, max results, categories, language, safesearch mapping (string to int), timelimit
-- [ ] Response normalization test covers: successful SearXNG JSON → expected output shape
-- [ ] Error handling tests cover: unreachable server, non-200 status, malformed JSON
-- [ ] CLI exit code tests cover: success (0) and error (1)
-- [ ] Tests do not depend on real web access or a running SearXNG instance
+- [x] `pytest` and `pytest-httpx` added to `pyproject.toml` dev dependencies
+- [x] `uv run pytest` passes with all tests
+- [x] Tests use a mock HTTP server — no real SearXNG instance needed
+- [x] URL construction test covers: query, max results, categories, language, safesearch mapping (string to int), timelimit
+- [x] Response normalization test covers: successful SearXNG JSON → expected output shape
+- [x] Error handling tests cover: unreachable server, non-200 status, malformed JSON
+- [x] CLI exit code tests cover: success (0) and error (1)
+- [x] Tests do not depend on real web access or a running SearXNG instance
 
 ## Blocked by
 
