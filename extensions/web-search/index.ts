@@ -8,10 +8,15 @@ interface SearchResult {
 	title: string;
 	href: string;
 	body: string;
+	publishedDate?: string;
+	engines?: string[];
 }
 
 interface SearchResponse {
 	results?: SearchResult[];
+	answers?: string[];
+	corrections?: string[];
+	suggestions?: string[];
 	error?: string;
 }
 
@@ -35,6 +40,11 @@ const WebSearchParams = Type.Object({
 	query: Type.String({ description: "Search query string" }),
 	maxResults: Type.Optional(
 		Type.Number({ description: "Maximum results (1-20, default 10)", minimum: 1, maximum: 20 }),
+	),
+	categories: Type.Optional(
+		StringEnum(["general", "it", "news", "science", "files", "social media"] as const, {
+			description: "Search category filter. Use 'general' for broad, 'it' for code/tech, 'news' for recent news, 'science' for academic, 'files' for downloads, 'social media' for community discussions. Default 'general'.",
+		}),
 	),
 	language: Type.Optional(
 		StringEnum(["all", "en", "de", "fr", "es", "pt", "zh", "ja", "ko", "ar", "ru"] as const, {
@@ -119,6 +129,7 @@ async function runSearch(
 		query: string;
 		maxResults?: number;
 		language?: string;
+		categories?: string;
 		safesearch?: "on" | "moderate" | "off";
 		timelimit?: "d" | "w" | "m" | "y";
 	},
@@ -151,6 +162,7 @@ async function runSearch(
 		params.safesearch ?? "moderate",
 	];
 
+	if (params.categories) args.push("--categories", params.categories);
 	if (params.timelimit) args.push("--timelimit", params.timelimit);
 
 	try {
@@ -168,16 +180,51 @@ async function runSearch(
 
 function formatResults(response: SearchResponse): string {
 	if (response.error) return `Search failed: ${response.error}`;
-	if (!response.results?.length) return "No results found.";
 
-	return response.results
-		.map((result, index) => {
-			const title = result.title || "Untitled";
-			const href = result.href || "No URL";
-			const body = result.body || "No snippet";
-			return `${index + 1}. **${title}**\n   ${href}\n   ${body}`;
-		})
-		.join("\n\n");
+	const parts: string[] = [];
+
+	// Enrichment fields (answers, corrections, suggestions)
+	if (response.answers?.length) {
+		parts.push("**Answers:**");
+		for (const answer of response.answers) {
+			parts.push(`- ${answer}`);
+		}
+	}
+	if (response.corrections?.length) {
+		parts.push("**Spell corrections:**");
+		for (const correction of response.corrections) {
+			parts.push(`- ${correction}`);
+		}
+	}
+	if (response.suggestions?.length) {
+		parts.push("**Suggestions:**");
+		for (const suggestion of response.suggestions) {
+			parts.push(`- ${suggestion}`);
+		}
+	}
+
+	if (response.results?.length) {
+		const lines = response.results
+			.map((result, index) => {
+				const title = result.title || "Untitled";
+				const href = result.href || "No URL";
+				const body = result.body || "No snippet";
+				let text = `${index + 1}. **${title}**\n   ${href}\n   ${body}`;
+				if (result.publishedDate) {
+					text += `\n   Published: ${result.publishedDate}`;
+				}
+				if (result.engines?.length) {
+					text += `\n   Engines: ${result.engines.join(", ")}`;
+				}
+				return text;
+			})
+			.join("\n\n");
+		parts.push(lines);
+	} else if (!response.answers?.length && !response.corrections?.length && !response.suggestions?.length) {
+		parts.push("No results found.");
+	}
+
+	return parts.join("\n\n");
 }
 
 // ---------------------------------------------------------------------------
@@ -281,7 +328,9 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 		description:
 			"Search the web using SearXNG (local multi-engine aggregator). Returns titles, URLs, and snippets. " +
 			"Use for current facts, documentation, news, package versions, or information not in training data. " +
-			"Supports language, safesearch, and time filters. Output is limited to 20 results.",
+			"Supports categories (general, it, news, science, files, social media), language, safesearch, and time filters. " +
+			"Results include enrichment fields: answers, corrections, suggestions, publication dates, and engine provenance. " +
+			"Output is limited to 20 results.",
 		promptSnippet: "Search the web via SearXNG and return titles, URLs, and snippets",
 		promptGuidelines: [
 			"Use web_search when you need current, factual, or documentation-related information not in your training data.",
@@ -290,6 +339,10 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 			"Do not use web_search for questions about files in the repository or the current conversation history.",
 			"Use web_fetch when the user provides a URL or after web_search discovers a relevant URL.",
 			"Use web_search first when no URL is known yet.",
+			"Use web_search to filter by category (it, news, science, files, social media) for targeted searches, or omit for general search.",
+			"Use web_search with language filter to find results in a specific language when helping with locale-specific dependencies.",
+			"When web_search returns answers (direct answer boxes), prefer those over fetching individual pages.",
+			"When web_search returns corrections or suggestions, use them to refine your search strategy.",
 		],
 		parameters: WebSearchParams,
 
@@ -303,6 +356,7 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 				query: params.query,
 				maxResults: params.maxResults,
 				language: params.language,
+				categories: params.categories,
 				safesearch: params.safesearch,
 				timelimit: params.timelimit,
 			}, signal);
@@ -311,6 +365,8 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 				content: [{ type: "text", text: formatResults(results) }],
 				details: {
 					query: params.query,
+					categories: params.categories,
+					language: params.language,
 					resultCount: results.results?.length ?? 0,
 					raw: results,
 				},

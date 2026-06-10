@@ -18,15 +18,15 @@ Update the tool description and prompt guidelines to reflect SearXNG's capabilit
 
 ## Acceptance criteria
 
-- [ ] `categories` parameter works with all six valid values; invalid values are rejected
-- [ ] `language` parameter works with all eleven valid values; invalid values are rejected
-- [ ] `region` parameter is removed and no longer accepted
-- [ ] Response output includes `answers`, `corrections`, and `suggestions` when SearXNG returns them
-- [ ] Each result in the output includes `publishedDate` and `engines`
-- [ ] `score`, `category`, and `infoboxes` are not present in the formatted output
-- [ ] Tool description and prompt guidelines mention SearXNG, categories, and language (not DDG-specific details)
-- [ ] `web_fetch` is unaffected
-- [ ] TypeScript compiles without errors
+- [x] `categories` parameter works with all six valid values; invalid values are rejected
+- [x] `language` parameter works with all eleven valid values; invalid values are rejected
+- [x] `region` parameter is removed and no longer accepted
+- [x] Response output includes `answers`, `corrections`, and `suggestions` when SearXNG returns them
+- [x] Each result in the output includes `publishedDate` and `engines`
+- [x] `score`, `category`, and `infoboxes` are not present in the formatted output
+- [x] Tool description and prompt guidelines mention SearXNG, categories, and language (not DDG-specific details)
+- [x] `web_fetch` is unaffected
+- [x] TypeScript compiles without errors
 
 ## Blocked by
 
