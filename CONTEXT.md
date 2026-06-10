@@ -54,7 +54,7 @@ _Avoid_: Parallel chat, unlimited replanning, scope expansion
 
 **Research Trigger**:
 An external, decision-relevant uncertainty that justifies proposing a **Research Run**. Common **Research Triggers** include technology feasibility, library or provider comparisons, current API behavior, benchmarks, pricing, recent changes, and alternatives for an architectural choice. Agent-triggered research requires a valid **Research Trigger** and should refuse routine lookup or curiosity-only requests; human-initiated research may proceed with any trigger. A valid **Research Trigger** must satisfy all three: (1) names a specific decision, (2) requires facts beyond the agent's training data, and (3) cannot be resolved by local codebase exploration. The regex validator in `propose` is a safety net — the agent's own judgment informed by this rubric is the primary filter.
-_Avoid_: Local codebase exploration, routine lookup, curiosity-only search, weak trigger
+_Avoid_: Local codebase exploration, routine lookup, curiosity-only search
 
 **Blocking Research Run**:
 A **Research Run** whose answer is needed before the current design or grilling conversation can responsibly continue. A **Blocking Research Run** pauses the human's decision path, not the agent's tool loop — the agent proposes research and informs the user; it does not block its own tool call waiting for completion. The agent's lifecycle is stateless: propose → inform user → check status on a later turn → read brief when terminal. A future version may define a blocking tool call or notification mechanism.

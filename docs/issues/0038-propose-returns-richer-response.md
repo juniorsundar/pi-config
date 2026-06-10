@@ -31,12 +31,12 @@ Additionally, update the tool description to embed:
 
 ### Acceptance criteria
 
-- [ ] `propose` returns `summary`, `trigger`, `blockingMode`, `evidenceMix`, and `budget` fields alongside existing `status` and `proposal` fields
-- [ ] Existing callers (agent path, command path) continue to work — no breaking changes to the return shape
-- [ ] Tool description includes the three-criteria Research Trigger rubric
-- [ ] Tool description includes the stateless agent lifecycle
-- [ ] "Weak trigger" references removed from tool description and related user-facing text
-- [ ] Tests: `propose` handler returns all new fields; trigger validation passes for rubric-satisfying triggers, rejects local exploration/routine/curiosity triggers
+- [x] `propose` returns `summary`, `trigger`, `blockingMode`, `evidenceMix`, and `budget` fields alongside existing `status` and `proposal` fields
+- [x] Existing callers (agent path, command path) continue to work — no breaking changes to the return shape
+- [x] Tool description includes the three-criteria Research Trigger rubric
+- [x] Tool description includes the stateless agent lifecycle
+- [x] "Weak trigger" references removed from tool description and related user-facing text
+- [x] Tests: `propose` handler returns all new fields; trigger validation passes for rubric-satisfying triggers, rejects local exploration/routine/curiosity triggers
 
 ### Blocked by
 

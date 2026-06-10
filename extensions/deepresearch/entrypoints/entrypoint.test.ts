@@ -142,6 +142,41 @@ describe("deepresearch entry point", () => {
     expect(toolDef.description.length).toBeGreaterThan(0);
   });
 
+  it("tool description includes the three-criteria Research Trigger rubric", () => {
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const desc = toolDef.description;
+
+    expect(desc).toContain("names a specific decision");
+    expect(desc).toContain("beyond the agent");
+    expect(desc).toContain("local codebase exploration");
+  });
+
+  it("tool description includes the stateless agent lifecycle", () => {
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const desc = toolDef.description;
+
+    expect(desc).toContain("propose");
+    expect(desc).toContain("status");
+    expect(desc).toContain("read_brief");
+  });
+
+  it("tool description does not reference 'weak trigger'", () => {
+    const pi = mockExtensionAPI();
+    deepresearchEntryPoint(pi as any);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const desc = toolDef.description;
+
+    expect(desc).not.toContain("weak trigger");
+    expect(desc).not.toContain("weak_trigger");
+  });
+
   it("deepresearch tool has parameter schema with action field", () => {
     const pi = mockExtensionAPI();
     deepresearchEntryPoint(pi as any);
@@ -640,6 +675,49 @@ describe("deepresearch tool propose action", () => {
     const proposals = statusModule.getStatus(workDir).proposals;
     expect(proposals.length).toBe(1);
     expect(proposals[0].status).toBe("draft");
+  });
+
+  it("propose returns summary, trigger, blockingMode, evidenceMix, and budget fields in details", async () => {
+    const workDir = makeWorkDir();
+    const pi = mockExtensionAPI();
+    registerToolWithMockBrain(pi);
+
+    const toolDef = pi.registerTool.mock.calls[0][0];
+    const result = await toolDef.execute(
+      "call-newfields",
+      {
+        action: "propose",
+        question: "Is Deno better than Node.js for CLI tools?",
+        trigger: "Evaluating runtime options for a new CLI project",
+      },
+      new AbortController().signal,
+      undefined,
+      { cwd: workDir },
+    );
+
+    expect(result.details.action).toBe("propose");
+    expect(result.details.status).toBe("draft");
+
+    // Existing fields preserved
+    expect(result.details.proposal).toBeDefined();
+    expect(result.details.proposal.id).toBeTypeOf("string");
+    expect(result.details.proposal.path).toContain("proposal.md");
+
+    // New additive fields
+    expect(result.details).toHaveProperty("summary");
+    expect(result.details).toHaveProperty("trigger");
+    expect(result.details).toHaveProperty("blockingMode");
+    expect(result.details).toHaveProperty("evidenceMix");
+    expect(result.details).toHaveProperty("budget");
+
+    expect(typeof result.details.summary).toBe("string");
+    expect(typeof result.details.trigger).toBe("string");
+    expect(result.details.trigger).toBe("Evaluating runtime options for a new CLI project");
+    expect(typeof result.details.blockingMode).toBe("boolean");
+    expect(result.details.blockingMode).toBe(true);
+    expect(Array.isArray(result.details.evidenceMix)).toBe(true);
+    expect(result.details.evidenceMix).toEqual([]);
+    expect(result.details.budget).toBeNull();
   });
 
   it("returns error when question is missing", async () => {

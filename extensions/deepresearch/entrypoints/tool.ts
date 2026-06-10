@@ -36,7 +36,13 @@ export function registerDeepresearchTool(
       "render_view (render a Human Research View), " +
       "recommend_resume (check if a run can be resumed). " +
       "The tool cannot approve, deny, start, resume, cancel, " +
-      "force synthesis, add steering instructions, or otherwise steer runs.",
+      "force synthesis, add steering instructions, or otherwise steer runs. " +
+      "Research Trigger rubric: a valid Research Trigger " +
+      "(a) names a specific decision, " +
+      "(b) requires facts beyond the agent's training data, " +
+      "and (c) cannot be resolved by local codebase exploration. " +
+      "The agent research lifecycle is stateless: propose → " +
+      "inform user → check status on a later turn → read_brief when terminal.",
     parameters: {
       type: "object",
       properties: {
@@ -62,7 +68,10 @@ export function registerDeepresearchTool(
           type: "string",
           description:
             "Research Trigger (required for propose action) — " +
-            "the external decision-relevant uncertainty justifying this research.",
+            "the external decision-relevant uncertainty justifying this research. " +
+            "A valid Research Trigger (a) names a specific decision, " +
+            "(b) requires facts beyond the agent's training data, " +
+            "and (c) cannot be resolved by local codebase exploration.",
         },
         run_id: {
           type: "string",
@@ -283,6 +292,11 @@ export function registerDeepresearchTool(
               id: meta.identity.id,
               path: proposalPath,
             },
+            summary: meta.summary ?? "",
+            trigger: meta.trigger ?? "",
+            blockingMode: meta.mode === "blocking",
+            evidenceMix: meta.evidenceMix ?? [],
+            budget: meta.budget ?? null,
           },
         };
       }
