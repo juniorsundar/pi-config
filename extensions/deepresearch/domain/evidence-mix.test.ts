@@ -201,6 +201,14 @@ describe("EvidenceMix", () => {
     expect(section).toContain("Overall");
   });
 
+  it("toPromptSection includes suggested search queries for not-searched categories", () => {
+    const mix = new EvidenceMix(["API documentation", "Community comparison articles"]);
+    const section = mix.toPromptSection();
+    expect(section).toContain("API documentation: **not-searched**");
+    expect(section).toContain("Consider searching for");
+    expect(section).toContain("Consider searching for: community comparison articles");
+  });
+
   it("toPromptSection includes notes when present", () => {
     const mix = new EvidenceMix(["docs"]);
     mix.update("docs", "missing", "Could not find any relevant docs.");

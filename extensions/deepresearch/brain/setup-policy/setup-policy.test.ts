@@ -366,6 +366,7 @@ function passingBrain(model: string) {
       citation_number: 1,
     }),
     synthesis: "Findings show results [1] and [2] support the conclusion.",
+    "research-simulation": JSON.stringify({ intent: "search", query: "SQLite vs DuckDB" }),
   };
   return {
     model,
@@ -462,7 +463,7 @@ describe("doctor", () => {
     expect(result.model).toBe("tongyi-deepresearch:30b");
     expect(result.provider).toBe("ollama");
     expect(result.harness).toBeDefined();
-    expect(result.harness.results.length).toBe(6);
+    expect(result.harness.results.length).toBe(7);
   });
 
   it("runs diagnostics with an explicit model override", async () => {

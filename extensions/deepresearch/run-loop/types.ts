@@ -78,7 +78,12 @@ export interface ParsedIntent {
   intent: string;
   reasoning?: string;
   query?: string;
+  /** Brain-classified query type for search intents ("comparison" | "general"). */
+  queryType?: "comparison" | "general";
+  /** URLs the Brain selected for fetching. */
   selectedUrls?: string[];
+  /** Per-URL justification from the Brain (used to override hallucination checks). */
+  reasoningPerUrl?: Record<string, string>;
   snippets?: string[];
   briefDraft?: string;
   confidence?: string;

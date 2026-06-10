@@ -2,7 +2,7 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { getStatus } from "../lifecycle/status";
 import { proposeWithReadiness } from "../proposals/propose-with-readiness";
 import { approveAndActivateRun } from "../lifecycle/approve-and-create-run";
-import { getProposal } from "../proposals/proposal-manager";
+import { getProposal, denyProposal, parseProposalMd } from "../proposals/proposal-manager";
 import { doctor, resolveModel } from "../brain/setup-policy/setup-policy";
 import { writeDoctorDiagnostic } from "../brain/setup-policy/diagnostics";
 import { renderRun } from "../rendering/human-view-facade";
@@ -15,7 +15,7 @@ import { type BrainFactory, defaultBrainFactory } from "../brain/harness/shared"
 import { OllamaBrain } from "../brain/harness/ollama-brain";
 import { loadDeepresearchConfig } from "../brain/harness/config";
 import { promoteResearchBrief } from "../promotion/promote";
-import { executeResearchRun } from "../run-loop/run-loop";
+import { executeResearchRun, resumeResearchRun } from "../run-loop/run-loop";
 import { createBudget, type BudgetLimits } from "../budgets/budget";
 import { buildRunLoopOptions } from "../run-loop/pi-adapters";
 import type { ResearchRunMeta } from "../run-loop/types";
@@ -441,6 +441,30 @@ export function registerResearchCommand(
             print(`Approval failed: ${message}`);
           }
         }
+      } else if (args.startsWith("deny")) {
+        // Parse: /research deny <proposal-id>
+        const proposalId = args.slice("deny".length).trim();
+
+        if (proposalId.length === 0) {
+          print("Usage: /research deny <proposal-id>");
+          print("");
+          print(
+            "Denies a draft Research Proposal. The proposal status is set to 'denied'",
+          );
+          print(
+            "and the proposal directory is marked accordingly.",
+          );
+          return;
+        }
+
+        try {
+          const meta = denyProposal(cwd, proposalId);
+          print(`Proposal denied: ${proposalId}`);
+          print(`  Status:     ${meta.status}`);
+          print(`  Question:   ${meta.question.slice(0, 80)}`);
+        } catch (err: any) {
+          print(`Error: ${err.message ?? String(err)}`);
+        }
       } else if (args.startsWith("render")) {
         const rest = args.slice("render".length).trim();
 
@@ -619,7 +643,7 @@ export function registerResearchCommand(
           print("Usage: /research resume <run-id>");
           print("");
           print(
-            "Shows resume state summary for an interrupted, readiness_failed, or budget_exhausted run.",
+            "Resumes an interrupted, readiness_failed, or budget_exhausted Research Run.",
           );
           return;
         }
@@ -645,38 +669,99 @@ export function registerResearchCommand(
           return;
         }
 
-        // Gather state summary
+        // Get the brain
         const storePath = getStorePath(cwd);
+        const config = await loadDeepresearchConfig();
+        const brain = await getBrain();
+
+        // Build budget from existing run limits or defaults
+        const budget = buildBudgetFromLimits(run.budgetLimits);
+
+        // Build run loop options
+        const options = buildRunLoopOptions(pi);
+
+        // Extract evidence categories from the run's proposal.md (if present)
         const runDirPath = join(storePath, "runs", runId);
-        const notesDir = join(runDirPath, "source-notes");
-        let sourceNoteCount = 0;
-        if (existsSync(notesDir)) {
+        const runProposalPath = join(runDirPath, "proposal.md");
+        let evidenceCategories: string[] = [];
+        if (existsSync(runProposalPath)) {
           try {
-            sourceNoteCount = readdirSync(notesDir).filter(f => f.endsWith(".md")).length;
-          } catch { sourceNoteCount = 0; }
+            const proposalContent = readFileSync(runProposalPath, "utf-8");
+            const parsed = parseProposalMd(proposalContent);
+            if (parsed.evidenceMix) {
+              evidenceCategories = parsed.evidenceMix;
+            }
+          } catch {
+            // Non-fatal — continue with empty evidence categories
+          }
         }
 
-        const ledgerPath = join(runDirPath, "ledger.jsonl");
-        let ledgerEntryCount = 0;
-        if (existsSync(ledgerPath)) {
-          try {
-            const raw = readFileSync(ledgerPath, "utf-8");
-            ledgerEntryCount = raw.split("\n").filter(l => l.trim().length > 0).length;
-          } catch { ledgerEntryCount = 0; }
+        // For readiness_failed runs, we need readiness params
+        let readinessParams: {
+          resolved: import("../brain/setup-policy/setup-policy").ResolvedModel;
+          brain: import("../brain/setup-policy/setup-policy").BrainWithModel;
+        } | undefined;
+
+        if (run.status === "readiness_failed") {
+          const resolved = resolveModel({ config, proposal: undefined });
+          // Create an ollama brain for the resolved model
+          const { OllamaBrain } = await import("../brain/harness/ollama-brain");
+          const readinessBrain = new OllamaBrain({
+            model: resolved.model,
+            host: config.ollamaHost,
+            systemPrompt: config.systemPrompt,
+            options: config.options,
+          });
+          readinessParams = {
+            resolved,
+            brain: Object.assign(readinessBrain, { model: resolved.model }) as import("../brain/setup-policy/setup-policy").BrainWithModel,
+          };
         }
 
         print(`Resuming: ${runId}`);
         print(`  Status:     ${run.status}`);
         print(`  Question:   ${run.question.slice(0, 80)}`);
-        print(`  Source Notes: ${sourceNoteCount}`);
-        print(`  Ledger Entries: ${ledgerEntryCount}`);
-        if (run.terminationReason) {
-          print(`  Termination: ${run.terminationReason}`);
-        }
+        print(`  Evidence categories: ${evidenceCategories.length > 0 ? evidenceCategories.join(", ") : "(none)"}`);
         print("");
         print(
-          "To proceed, approve a revised Research Budget and re-run with the resume capability.",
+          `Starting resume of ${runId}...`,
         );
+
+        // Fire-and-forget — the handler returns before the resume finishes
+        resumeResearchRun(
+          cwd,
+          runId,
+          brain,
+          budget,
+          options,
+          evidenceCategories,
+          readinessParams,
+        ).then(
+          (meta: ResearchRunMeta) => {
+            pi.sendMessage({
+              customType: "deepresearch-command-output",
+              content:
+                `Research Run ${runId} resumed and completed.\n\n` +
+                `Brief: .pi/research/runs/${runId}/brief.md\n` +
+                `Source notes: ${meta.sourceNoteCount}\n` +
+                `Rounds: ${meta.roundCount}`,
+              display: true,
+              details: { command: "research", args: "resume" },
+            });
+          },
+          (err: Error) => {
+            const errMsg = err.message ?? String(err);
+            updateStatus(cwd, runId, "interrupted", errMsg);
+            pi.sendMessage({
+              customType: "deepresearch-command-output",
+              content:
+                `Research Run ${runId} resume interrupted: ${errMsg}`,
+              display: true,
+              details: { command: "research", args: "resume" },
+            });
+          },
+        );
+
       } else if (args.startsWith("promote")) {
         // Parse: /research promote <run-id> --to <destination> [--force]
         const rest = args.slice("promote".length).trim();

@@ -64,7 +64,7 @@ export interface BriefInput {
   /** Optional continuation recommendation. */
   continuationRecommendation?: string;
   /** What triggered this research run. */
-  triggerType: "human" | "agent" | "task";
+  triggerType: "human" | "agent";
   /** Implications for Pi or the current task (only for agent/task triggers). */
   taskImplications?: string;
   /** Optional Evidence Mix coverage block appended to the brief. */
@@ -170,7 +170,7 @@ export function renderBrief(input: BriefInput): RenderedBrief {
 
   // ── Task Implications (agent/task triggered only) ────────────────────
   if (
-    (input.triggerType === "agent" || input.triggerType === "task") &&
+    input.triggerType === "agent" &&
     input.taskImplications &&
     input.taskImplications.trim().length > 0
   ) {

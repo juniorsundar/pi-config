@@ -257,4 +257,63 @@ describe("CandidateFilter", () => {
     expect(out.drops[0].title).toBe("Forum Topic");
     expect(out.drops[0].reason.length).toBeGreaterThan(0);
   });
+
+  // ── queryType (Brain self-classification) ────────────────────────────
+
+  it("accepts comparison queryType from Brain keeps low-signal comparison sources", () => {
+    // A query that doesn't match the regex should still be treated as comparison
+    // when the Brain provides queryType="comparison"
+    const filter = new CandidateFilter("non-comparison query", "comparison");
+    const raw = [result({
+      url: "https://forum.example.com/topic",
+      title: "Forum Discussion",
+      snippet: "Some discussion content",
+    })];
+    const out = filter.filter(raw);
+    // Low-signal forum source should be kept (not dropped) because queryType=comparison
+    expect(out.candidates).toHaveLength(1);
+    expect(out.drops).toHaveLength(0);
+  });
+
+  it("accepts general queryType from Brain drops low-signal sources", () => {
+    // A query that would match the regex should NOT be treated as comparison
+    // when the Brain provides queryType="general"
+    const filter = new CandidateFilter("X vs Y comparison", "general");
+    const raw = [result({
+      url: "https://forum.example.com/topic",
+      title: "Forum Topic",
+      snippet: "Forum discussion about X vs Y",
+    })];
+    const out = filter.filter(raw);
+    // Low-signal forum source should be dropped because queryType=general
+    expect(out.candidates).toHaveLength(0);
+    expect(out.drops).toHaveLength(1);
+  });
+
+  it("falls back to regex heuristic when queryType is not provided", () => {
+    // Without queryType, the regex should detect "vs" as comparison
+    const filter = new CandidateFilter("X vs Y");
+    const raw = [result({
+      url: "https://forum.example.com/topic",
+      title: "Forum Topic",
+      snippet: "Comparing X and Y",
+    })];
+    const out = filter.filter(raw);
+    // Low-signal forum source should be kept (regex detects comparison)
+    expect(out.candidates).toHaveLength(1);
+    expect(out.drops).toHaveLength(0);
+  });
+
+  it("falls back to regex when queryType is undefined", () => {
+    // Explicit undefined queryType should fall back to regex
+    const filter = new CandidateFilter("X vs Y", undefined);
+    const raw = [result({
+      url: "https://forum.example.com/topic",
+      title: "Forum Topic",
+      snippet: "Comparing X and Y",
+    })];
+    const out = filter.filter(raw);
+    expect(out.candidates).toHaveLength(1);
+    expect(out.drops).toHaveLength(0);
+  });
 });

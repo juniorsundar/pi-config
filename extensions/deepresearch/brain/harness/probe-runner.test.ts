@@ -72,7 +72,7 @@ describe("runHarness", () => {
       "structured-intents": JSON.stringify({ intent: "search" }),
     });
     const result = await runHarness(brain);
-    expect(result.results.length).toBe(6);
+    expect(result.results.length).toBe(7);
     const si = result.results.find((r) => r.probe === "structured-intents");
     expect(si!.status).toBe("pass");
   });
@@ -512,6 +512,72 @@ describe("runHarness", () => {
       (r) => r.probe === "evidence-grounded-synthesis",
     );
     expect(probe!.status).toBe("failure");
+  });
+
+  // -- 4: research-simulation --------------------------------------------
+
+  it("research-simulation: valid search intent -> pass", async () => {
+    const brain = new MockBrain({
+      "research-simulation": JSON.stringify({ intent: "search", query: "SQLite vs DuckDB benchmarks" }),
+    });
+    const result = await runHarness(brain);
+    const probe = result.results.find((r) => r.probe === "research-simulation");
+    expect(probe).toBeDefined();
+    expect(probe!.status).toBe("pass");
+  });
+
+  it("research-simulation: valid select_sources intent -> pass", async () => {
+    const brain = new MockBrain({
+      "research-simulation": JSON.stringify({ intent: "select_sources", selectedUrls: ["https://example.com/1"] }),
+    });
+    const result = await runHarness(brain);
+    const probe = result.results.find((r) => r.probe === "research-simulation");
+    expect(probe!.status).toBe("pass");
+  });
+
+  it("research-simulation: valid update_findings intent -> pass", async () => {
+    const brain = new MockBrain({
+      "research-simulation": JSON.stringify({ intent: "update_findings", snippets: ["Finding 1"] }),
+    });
+    const result = await runHarness(brain);
+    const probe = result.results.find((r) => r.probe === "research-simulation");
+    expect(probe!.status).toBe("pass");
+  });
+
+  it("research-simulation: invalid intent -> failure", async () => {
+    const brain = new MockBrain({
+      "research-simulation": JSON.stringify({ intent: "do_something_else" }),
+    });
+    const result = await runHarness(brain);
+    const probe = result.results.find((r) => r.probe === "research-simulation");
+    expect(probe!.status).toBe("failure");
+  });
+
+  it("research-simulation: non-JSON response -> failure", async () => {
+    const brain = new MockBrain({
+      "research-simulation": "I think we should search for more information.",
+    });
+    const result = await runHarness(brain);
+    const probe = result.results.find((r) => r.probe === "research-simulation");
+    expect(probe!.status).toBe("failure");
+  });
+
+  it("research-simulation: fenced JSON response -> pass", async () => {
+    const brain = new MockBrain({
+      "research-simulation": '```json\n{"intent": "search", "query": "test"}\n```',
+    });
+    const result = await runHarness(brain);
+    const probe = result.results.find((r) => r.probe === "research-simulation");
+    expect(probe!.status).toBe("pass");
+  });
+
+  it("research-simulation: brain generate rejects -> failure", async () => {
+    const brain = new MockBrain();
+    brain.generate = async () => { throw new Error("model unreachable"); };
+    const result = await runHarness(brain);
+    const probe = result.results.find((r) => r.probe === "research-simulation");
+    expect(probe!.status).toBe("failure");
+    expect(probe!.detail).toContain("unreachable");
   });
 
   // -- C4: Raw response isolation ---------------------------------------

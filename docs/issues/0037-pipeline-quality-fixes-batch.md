@@ -31,15 +31,15 @@ Nine fixes across three categories:
 
 ### Acceptance criteria
 
-- [ ] Hallucinated URLs selected by the Brain are rejected before fetch and recorded as Negative Evidence
-- [ ] Brief normalization accepts variant section headers (e.g., "Key Finding", "Analysis") without replacing content with boilerplate
-- [ ] Brain prompt coverage section includes suggested search queries for not-searched Evidence Mix categories
-- [ ] Readiness check includes a research simulation probe that tests the model against a realistic multi-source prompt
-- [ ] Comparison detection works for implicit and non-English queries, or the Brain self-classifies
-- [ ] `/research deny <proposal-id>` updates proposal status to `denied`
-- [ ] `/research resume <run-id>` invokes the actual resume loop for resumable runs
-- [ ] Deep-research config loads from `~/.pi/agent/settings.json` not CWD
-- [ ] `triggerSource` type is `"human" | "agent"` only
+- [x] Hallucinated URLs selected by the Brain are rejected before fetch and recorded as Negative Evidence
+- [x] Brief normalization accepts variant section headers (e.g., "Key Finding", "Analysis") without replacing content with boilerplate
+- [x] Brain prompt coverage section includes suggested search queries for not-searched Evidence Mix categories
+- [x] Readiness check includes a research simulation probe that tests the model against a realistic multi-source prompt
+- [x] Comparison detection works for implicit and non-English queries, or the Brain self-classifies
+- [x] `/research deny <proposal-id>` updates proposal status to `denied`
+- [x] `/research resume <run-id>` invokes the actual resume loop for resumable runs
+- [x] Deep-research config loads from `~/.pi/agent/settings.json` not CWD
+- [x] `triggerSource` type is `"human" | "agent"` only
 
 ### Blocked by
 

@@ -252,14 +252,6 @@ describe("Research Brief renderer (agent/task gating)", () => {
     expect(result.sections).toContain("task-implications");
   });
 
-  it("includes task implications for task-triggered runs", () => {
-    const input: BriefInput = { ...baseInput, triggerType: "task" };
-    const result = renderBrief(input);
-
-    expect(result.markdown).toContain("Implications for Current Task");
-    expect(result.sections).toContain("task-implications");
-  });
-
   it("omits task implications for human-triggered runs", () => {
     const input: BriefInput = { ...baseInput, triggerType: "human" };
     const result = renderBrief(input);

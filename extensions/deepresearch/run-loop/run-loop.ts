@@ -40,7 +40,7 @@ import { renderRun } from "../rendering/human-view-facade";
 import { extractFromWebSource, chunkContent, mergeChunkExtractions, DEFAULT_CHUNK_THRESHOLD } from "../source-notes/extractor";
 import { writeRawContentToDiagnostics } from "../source-notes/diagnostics";
 import { EvidenceMix } from "../domain/evidence-mix";
-import { CandidateFilter, type AnnotatedCandidate } from "../domain/candidate-filter";
+import { CandidateFilter, normalizeUrl, type AnnotatedCandidate } from "../domain/candidate-filter";
 import {
   NegativeEvidence,
   coverageToPromptSection,
@@ -449,7 +449,7 @@ function buildPrompt(
     `Valid intents: ${VALID_INTENTS.join(", ")}`,
     ``,
     `Respond with a JSON object containing your chosen intent and any parameters.`,
-    `For "search", include a "query" field.`,
+    `For "search", include a "query" field and, optionally, a "queryType" ("comparison" or "general") to self-classify your query.`,
     `For "select_sources", include a "selectedUrls" array and "reasoningPerUrl".`,
     `For "update_findings", include "snippets" array and "reasoning".`,
     `For "synthesize_brief", include "briefDraft" (full markdown brief), "confidence" (high/medium/low), and "gaps" (array of strings).`,
@@ -1044,7 +1044,8 @@ export async function executeResearchRun(
         budget = trackUsage(budget, { searches: 1 });
 
         // Apply Candidate Filtering — dedup, annotate, rank, drop low-signal
-        const filter = new CandidateFilter(query);
+        // Use the Brain's self-classified queryType when available; fall back to regex
+        const filter = new CandidateFilter(query, intent.queryType);
         const filtered = filter.filter(rawResults);
 
         // Store filtered candidates for the Brain's next select_sources prompt
@@ -1122,12 +1123,61 @@ export async function executeResearchRun(
           },
         });
 
-        // ── Auto-fetch selected sources ─────────────────────────────────
-        // The Brain selected sources; fetch them immediately so the next
-        // round can use update_findings for snippet extraction or skip to
-        // synthesize_brief without the Brain stalling on the protocol.
-        let fetchedCount = 0;
+        // ── URL validation against search results ────────────────────────
+        // Build a set of known URLs from accumulated search results.
+        // Check both original and canonical forms for robust matching.
+        const knownUrls = new Set<string>();
+        for (const c of lastFilteredCandidates) {
+          knownUrls.add(c.url);
+          knownUrls.add(c.canonicalUrl);
+        }
+        const reasoningPerUrl = intent.reasoningPerUrl ?? {};
+
+        const hallucinatedUrls: { url: string; reason: string }[] = [];
+        const validUrls: string[] = [];
         for (const url of urls) {
+          // Normalize the selected URL for comparison
+          const normalizedSelected = normalizeUrl(url);
+          const isKnown =
+            knownUrls.has(url) ||
+            knownUrls.has(normalizedSelected);
+          const isJustified = typeof reasoningPerUrl[url] === "string" &&
+            reasoningPerUrl[url].trim().length > 0;
+
+          if (isKnown || isJustified) {
+            validUrls.push(url);
+          } else {
+            hallucinatedUrls.push({
+              url,
+              reason: isJustified
+                ? "URL justified by Brain reasoning"
+                : "URL not found in accumulated search results",
+            });
+          }
+        }
+
+        // Record hallucinated URLs as Negative Evidence
+        for (const h of hallucinatedUrls) {
+          negativeEvidence.recordDroppedSource({
+            url: h.url,
+            title: "(hallucinated)",
+            reason: h.reason,
+          });
+          appendLedger(cwd, runId, {
+            round: roundCount,
+            intent: "url_rejected",
+            timestamp: new Date().toISOString(),
+            content: `Rejected hallucinated URL: ${h.url} — ${h.reason}`,
+            meta: { url: h.url, reason: h.reason },
+          });
+        }
+
+        // Update pendingUrls to only valid URLs for downstream use
+        pendingUrls = validUrls;
+
+        // ── Auto-fetch valid selected sources ───────────────────────────
+        let fetchedCount = 0;
+        for (const url of validUrls) {
           budget = trackUsage(budget, { fetchAttempts: 1 });
 
           let fetched;
@@ -1314,7 +1364,7 @@ export async function executeResearchRun(
           },
           false, // previousBriefAvailable
           run.question,
-          (run.triggerSource ?? "human") as "human" | "agent" | "task",
+          (run.triggerSource ?? "human") as "human" | "agent",
         );
 
         if (validatedBrief) {

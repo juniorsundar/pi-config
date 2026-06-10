@@ -165,6 +165,10 @@ export class EvidenceMix {
     for (const cat of snap.categories) {
       const note = cat.note ? ` — ${cat.note}` : "";
       lines.push(`- ${cat.category}: **${cat.status}**${note}`);
+      // For not-searched categories, include a suggested search query
+      if (cat.status === "not-searched") {
+        lines.push(`  Consider searching for: ${cat.category.toLowerCase()}`);
+      }
     }
 
     lines.push(

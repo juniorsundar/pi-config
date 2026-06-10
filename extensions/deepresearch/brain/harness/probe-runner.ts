@@ -6,6 +6,7 @@ import {
   probeFencedOutputRecovery,
   probeSourceNoteExtraction,
   probeEvidenceGroundedSynthesis,
+  probeResearchSimulation,
 } from "./probes.js";
 import { buildSummary } from "./diagnostic-summary.js";
 
@@ -22,6 +23,7 @@ const ALL_PROBES: ProbeFn[] = [
   probeFencedOutputRecovery,
   probeSourceNoteExtraction,
   probeEvidenceGroundedSynthesis,
+  probeResearchSimulation,
 ];
 
 /**

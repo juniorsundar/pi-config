@@ -1,4 +1,6 @@
 import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+import { homedir } from "node:os";
 
 export interface DeepresearchConfig {
   model: string;
@@ -28,8 +30,13 @@ export function requireOllamaProvider(config: DeepresearchConfig): void {
   }
 }
 
+/**
+ * Global Pi agent config path.
+ */
+const GLOBAL_SETTINGS_PATH = join(homedir(), ".pi", "agent", "settings.json");
+
 export async function loadDeepresearchConfig(
-  settingsPath = "settings.json",
+  settingsPath = GLOBAL_SETTINGS_PATH,
 ): Promise<DeepresearchConfig> {
   const raw = await readFile(settingsPath, "utf8");
   const parsed = JSON.parse(raw) as SettingsFile;

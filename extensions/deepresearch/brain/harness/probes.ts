@@ -394,6 +394,131 @@ export async function probeSourceNoteExtraction(
   }
 }
 
+// ── 4: Research simulation ──────────────────────────────────────────────
+
+/**
+ * Research simulation probe: sends a realistic multi-source prompt and
+ * verifies the Brain produces a valid research intent.
+ *
+ * Unlike structured-intents (pure JSON format check), this probe tests actual
+ * research capability by presenting source notes, budget tracking, and
+ * evidence coverage — the scenario the Brain faces during real runs.
+ */
+export async function probeResearchSimulation(
+  brain: ResearchBrain,
+  diagnostics: string[],
+): Promise<ProbeResult> {
+  const prompt = [
+    `probe: research-simulation — simulate a research round with the following realistic context.`,
+    ``,
+    `You are a Research Brain conducting a bounded research investigation.`,
+    ``,
+    `Research Question: What are the trade-offs between SQLite and DuckDB for embedded analytics?`,
+    ``,
+    `## Evidence Coverage`,
+    ``,
+    `- Official documentation: **found**`,
+    `- Benchmarks: **found**`,
+    `- Community comparison articles: **not-searched**`,
+    `- Source code analysis: **not-searched**`,
+    ``,
+    `**Overall**: partial`,
+    `Found: 2 | Weak: 0 | Missing: 0 | Excluded: 0 | Not searched: 2`,
+    ``,
+    `## Fetched Source Notes (2 available)`,
+    ``,
+    `### Source Note 1: SQLite Official Docs`,
+    `URL: https://sqlite.org/docs.html`,
+    `SQLite is a C-language library that implements a small, fast, self-contained,`,
+    `high-reliability, full-featured SQL database engine. It supports in-process`,
+    `storage and is ideal for embedded use [1].`,
+    ``,
+    `### Source Note 2: DuckDB vs SQLite Benchmarks`,
+    `URL: https://benchmarks.example.com/duckdb-vs-sqlite`,
+    `DuckDB excels at analytical queries on large datasets, while SQLite performs`,
+    `better on simple OLTP workloads with smaller datasets [2].`,
+    ``,
+    `Budget remaining:`,
+    `  - Searches: 8`,
+    `  - Fetch attempts: 18`,
+    `  - Source visits: 9`,
+    `  - Synthesis rounds: 2`,
+    `  - Model calls: 25`,
+    ``,
+    `Valid intents: search, select_sources, update_findings, synthesize_brief, stop_early`,
+    ``,
+    `Respond with a JSON object containing your chosen intent and any parameters.`,
+    `For "search", include a "query" field.`,
+    `For "select_sources", include a "selectedUrls" array.`,
+    `For "update_findings", include "snippets" array.`,
+    `For "synthesize_brief", include a "briefDraft" field.`,
+    `Your response must be valid JSON only, no surrounding text.`,
+  ].join("\n");
+
+  let raw: string;
+  try {
+    raw = await brain.generate(prompt);
+    diagnostics.push(`[research-simulation] raw: ${raw.slice(0, 200)}`);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    diagnostics.push(`[research-simulation] generate() rejected: ${message}`);
+    return {
+      status: "failure",
+      probe: "research-simulation",
+      detail: `Brain generate() rejected: ${message}`,
+    };
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    // Try extracting from fences
+    try {
+      const extracted = extractJson(raw);
+      parsed = JSON.parse(extracted);
+    } catch {
+      return {
+        status: "failure",
+        probe: "research-simulation",
+        detail: `Failed to parse JSON from response: ${raw.slice(0, 100)}`,
+      };
+    }
+  }
+
+  if (typeof parsed !== "object" || parsed === null) {
+    return {
+      status: "failure",
+      probe: "research-simulation",
+      detail: `Parsed value is not a JSON object: ${typeof parsed}`,
+    };
+  }
+
+  const intent = (parsed as Record<string, unknown>).intent;
+  if (typeof intent !== "string") {
+    return {
+      status: "failure",
+      probe: "research-simulation",
+      detail: `Missing or non-string "intent" field in response`,
+    };
+  }
+
+  const normalizedIntent = intent.toLowerCase();
+  if (!VALID_INTENTS.includes(normalizedIntent as typeof VALID_INTENTS[number])) {
+    return {
+      status: "failure",
+      probe: "research-simulation",
+      detail: `Invalid intent "${intent}". Valid: ${VALID_INTENTS.join(", ")}`,
+    };
+  }
+
+  return {
+    status: "pass",
+    probe: "research-simulation",
+    detail: `Valid research intent: ${normalizedIntent}`,
+  };
+}
+
 // ── 3e: Evidence-grounded synthesis ───────────────────────────────────────
 
 export async function probeEvidenceGroundedSynthesis(

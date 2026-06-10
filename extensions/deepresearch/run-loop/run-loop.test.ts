@@ -23,6 +23,16 @@ const FAKE_SEARCH_RESULTS = [
     title: "Reference Docs",
     snippet: "Official documentation and API reference.",
   },
+  {
+    url: "https://example.com/fail",
+    title: "Failing Source",
+    snippet: "A source that will fail to fetch.",
+  },
+  {
+    url: "https://example.com/empty",
+    title: "Empty Source",
+    snippet: "A source with no relevant evidence.",
+  },
 ];
 
 /** Fake fetched content for the mock seam. */

@@ -70,7 +70,7 @@ export interface RunMeta {
   /** The decision-relevant trigger (carried from approved proposal). */
   trigger?: string;
   /** Who triggered this run — carried from proposal. */
-  triggerSource?: "human" | "agent" | "task";
+  triggerSource?: "human" | "agent";
   /** Approved budget limits (carried from approved proposal). */
   budgetLimits?: Partial<import("../budgets/budget").BudgetLimits>;
   /** Optional: resume metadata for interrupted or budget_exhausted runs. */

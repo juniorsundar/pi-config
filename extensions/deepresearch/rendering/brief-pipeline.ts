@@ -55,7 +55,7 @@ export interface PipelineResult {
   previousBriefAvailable: boolean;
 }
 
-type TriggerSource = "human" | "agent" | "task";
+type TriggerSource = "human" | "agent";
 
 interface DraftSection {
   heading: string;
@@ -71,6 +71,21 @@ interface DraftValidationResult {
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const DEFAULT_MAX_REPAIR_ATTEMPTS = 3;
+
+/**
+ * Heading alias map: variant headers that the Research Brain may produce
+ * are normalized to canonical headers used by normalizeBriefDraft.
+ */
+const HEADING_ALIASES: Record<string, string> = {
+  "key finding": "Bottom Line",
+  "key findings": "Bottom Line",
+  "bottom line": "Bottom Line",
+  analysis: "Interpretation",
+  "interpretation & analysis": "Interpretation",
+  synthesis: "Interpretation",
+  "conclusion": "Interpretation",
+  "implications": "Interpretation",
+};
 const NONE_IDENTIFIED = "None identified.";
 const NO_SOURCED_EVIDENCE = "No sourced evidence identified.";
 const NO_SOURCE_CONCLUSION = "No source-grounded conclusion available.";
@@ -379,7 +394,7 @@ function normalizeBriefDraft(
     continuationRecommendation: continuation,
     triggerType: triggerSource,
     taskImplications:
-      triggerSource === "agent" || triggerSource === "task"
+      triggerSource === "agent"
         ? rawTaskImplications
         : undefined,
   };
@@ -457,6 +472,11 @@ function parseSections(markdown: string): DraftSection[] {
     if (headingMatch) {
       pushCurrent();
       currentHeading = headingMatch[1].trim();
+      // Apply heading aliases: normalize variant headers to canonical ones
+      const lower = currentHeading.toLowerCase();
+      if (HEADING_ALIASES[lower]) {
+        currentHeading = HEADING_ALIASES[lower];
+      }
       currentLines = [];
       continue;
     }

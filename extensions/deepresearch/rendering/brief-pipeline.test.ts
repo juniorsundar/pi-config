@@ -356,6 +356,47 @@ describe("validateAndRepairBrief", () => {
     expect(result!).toContain("[1] Source One — https://example.com/1");
   });
 
+  it("accepts variant section headers via heading aliases", async () => {
+    const draft = [
+      "# Research Brief",
+      "",
+      "## Key Finding",
+      "Approach A is recommended [1].",
+      "",
+      "## Confidence",
+      "**Level**: high",
+      "",
+      "**Rationale**: Multiple sources confirm the recommendation.",
+      "",
+      "## Evidence: Documentation",
+      "Approach A is documented as the preferred option [1].",
+      "",
+      "## Analysis",
+      "The sources point toward Approach A as the safest default [1].",
+      "",
+    ].join("\n");
+
+    const result = await validateAndRepairBrief(
+      draft,
+      makeSourceNotes(),
+      { generate: vi.fn() },
+      vi.fn().mockReturnValue(false),
+      vi.fn(),
+      undefined,
+      false,
+      "Best approach?",
+      "human",
+    );
+
+    // "Key Finding" should be normalized to "Bottom Line", "Analysis" to "Interpretation"
+    expect(result).not.toBeNull();
+    expect(result!).toContain("## Bottom Line");
+    expect(result!).toContain("## Interpretation");
+    // The content should be preserved, not replaced with boilerplate
+    expect(result!).toContain("Approach A is recommended");
+    expect(result!).toContain("safest default");
+  });
+
   it("removes task implications for human-triggered drafts", async () => {
     const draft = [
       "# Research Brief",

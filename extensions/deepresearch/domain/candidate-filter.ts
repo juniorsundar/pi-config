@@ -136,12 +136,22 @@ function isComparisonQuery(query: string): boolean {
  */
 export class CandidateFilter {
   private readonly query: string;
+  /** When the Brain provides a self-classified query type, use it instead of regex. */
+  private readonly comparisonQuery: boolean;
   // For URL normalization: strip trailing slash, fragment, www prefix
   private readonly seenUrls: Set<string>;
 
-  constructor(query: string) {
+  constructor(query: string, queryType?: "comparison" | "general") {
     this.query = query;
     this.seenUrls = new Set();
+    // Use Brain-provided queryType when available; fall back to regex heuristic
+    if (queryType === "comparison") {
+      this.comparisonQuery = true;
+    } else if (queryType === "general") {
+      this.comparisonQuery = false;
+    } else {
+      this.comparisonQuery = isComparisonQuery(query);
+    }
   }
 
   /**
@@ -180,7 +190,7 @@ export class CandidateFilter {
       //    Exception: comparison queries keep third-party sources because
       //    they're the only ones that actually compare the two subjects.
       if (isLowSignal && !isPrimary) {
-        if (isComparisonQuery(this.query)) {
+        if (this.comparisonQuery) {
           // Keep but annotate as a comparison source on a low-signal platform
           candidates.push({
             ...result,
@@ -222,7 +232,8 @@ export class CandidateFilter {
 // ── URL normalization ──────────────────────────────────────────────────────
 
 /** Normalize a URL for deduplication (trailing slash, fragment, www). */
-function normalizeUrl(url: string): string {
+/** Normalize a URL for dedup and comparison (strip fragment, trailing slash, www prefix). */
+export function normalizeUrl(url: string): string {
   try {
     const u = new URL(url);
     // Remove fragment

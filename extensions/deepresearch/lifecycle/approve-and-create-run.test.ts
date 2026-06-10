@@ -273,6 +273,7 @@ function passingBrain(model: string) {
       citation_number: 1,
     }),
     synthesis: "Findings show results [1] and [2] support the conclusion.",
+    "research-simulation": JSON.stringify({ intent: "search", query: "SQLite vs DuckDB" }),
   };
   return {
     model,
