@@ -17,33 +17,6 @@
         },
         {
           "_launch": true,
-          "contextWindow": 1048576,
-          "id": "deepseek-v4-pro:cloud",
-          "input": [
-            "text"
-          ],
-          "reasoning": true
-        },
-        {
-          "_launch": true,
-          "contextWindow": 1048576,
-          "id": "deepseek-v4-flash:cloud",
-          "input": [
-            "text"
-          ],
-          "reasoning": true
-        },
-        {
-          "_launch": true,
-          "contextWindow": 202752,
-          "id": "glm-5.1:cloud",
-          "input": [
-            "text"
-          ],
-          "reasoning": true
-        },
-        {
-          "_launch": true,
           "contextWindow": 262144,
           "id": "qwen3.6:35b",
           "input": [

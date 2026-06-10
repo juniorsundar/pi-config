@@ -3,7 +3,7 @@ name: planner
 description: Creates implementation plans from context and requirements
 tools: read, grep, find, ls, write
 thinking: high
-model: ollama/deepseek-v4-pro:cloud
+model: opencode-go/deepseek-v4-pro
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false

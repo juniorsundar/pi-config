@@ -17,7 +17,7 @@ The specific question a **Research Run** is trying to answer. It should be narro
 _Avoid_: Topic, project, prompt
 
 **Research Brief**:
-The synthesized answer produced by a **Research Run**, written for both the user and the coding agent. A **Research Brief** supports decisions by presenting the bottom line, evidence, interpretation, tradeoffs, caveats, numbered citations with linked source references, and a low/medium/high confidence level with rationale; it includes implications for Pi or the current task only when the run was agent-triggered or task-triggered. The **Research Orchestrator** validates that citations reference existing **Source Notes** and repairs or fails unrecoverable invalid citations rather than silently accepting them.
+The synthesized answer produced by a **Research Run**, written for both the user and the coding agent. A **Research Brief** supports decisions by presenting the bottom line, evidence, interpretation, tradeoffs, caveats, numbered citations with linked source references, and a low/medium/high confidence level with rationale; it includes task implications when the **Research Trigger** or proposal context provides enough information to generate them — typically agent-triggered runs and decision-relevant human-initiated runs. The **Research Orchestrator** validates that citations reference existing **Source Notes** and repairs or fails unrecoverable invalid citations rather than silently accepting them.
 _Avoid_: Final answer, agent-only report, raw summary, numeric certainty score, invented citations
 
 **Research Proposal**:
@@ -49,16 +49,16 @@ A compact user-facing status update emitted by a **Research Run** while it is in
 _Avoid_: Full stream, raw log, hidden progress, model working memory
 
 **Steering Instruction**:
-A user-provided adjustment to an active **Research Run**, such as prioritizing a source type, excluding a source class, adding a constraint, or requesting synthesis after the current step. V1 steering is limited to cancellation, forced synthesis, and adding an instruction. Added instructions may narrow, prioritize, exclude, or clarify within the approved **Research Question**, but may not broaden scope, add a substantially new comparison axis, or require a new **Evidence Mix** without explicit continuation or a new **Research Proposal**.
+A user-provided adjustment to an active **Research Run**, such as prioritizing a source type, excluding a source class, adding a constraint, or requesting synthesis after the current step. V1 steering is limited to cancellation, forced synthesis, and adding an instruction. Added instructions may narrow, prioritize, exclude, or clarify within the approved **Research Question**, but may not broaden scope, add a substantially new comparison axis, or require a new **Evidence Mix** without explicit continuation or a new **Research Proposal**. `add_instruction` is accepted only when the run status is `running` or `queued` — not during synthesis or in terminal/paused states where the instruction cannot take effect.
 _Avoid_: Parallel chat, unlimited replanning, scope expansion
 
 **Research Trigger**:
-An external, decision-relevant uncertainty that justifies proposing a **Research Run**. Common **Research Triggers** include technology feasibility, library or provider comparisons, current API behavior, benchmarks, pricing, recent changes, and alternatives for an architectural choice. Agent-triggered research requires a valid **Research Trigger** and should refuse routine lookup or curiosity-only requests; human-initiated research may warn on weak triggers but can proceed after explicit confirmation.
-_Avoid_: Local codebase exploration, routine lookup, curiosity-only search
+An external, decision-relevant uncertainty that justifies proposing a **Research Run**. Common **Research Triggers** include technology feasibility, library or provider comparisons, current API behavior, benchmarks, pricing, recent changes, and alternatives for an architectural choice. Agent-triggered research requires a valid **Research Trigger** and should refuse routine lookup or curiosity-only requests; human-initiated research may proceed with any trigger. A valid **Research Trigger** must satisfy all three: (1) names a specific decision, (2) requires facts beyond the agent's training data, and (3) cannot be resolved by local codebase exploration. The regex validator in `propose` is a safety net — the agent's own judgment informed by this rubric is the primary filter.
+_Avoid_: Local codebase exploration, routine lookup, curiosity-only search, weak trigger
 
 **Blocking Research Run**:
-A **Research Run** whose answer is needed before the current design or grilling conversation can responsibly continue. A **Blocking Research Run** pauses the current decision path until its **Research Brief** is available.
-_Avoid_: Background lookup, optional evidence
+A **Research Run** whose answer is needed before the current design or grilling conversation can responsibly continue. A **Blocking Research Run** pauses the human's decision path, not the agent's tool loop — the agent proposes research and informs the user; it does not block its own tool call waiting for completion. The agent's lifecycle is stateless: propose → inform user → check status on a later turn → read brief when terminal. A future version may define a blocking tool call or notification mechanism.
+_Avoid_: Background lookup, optional evidence, blocking agent tool call
 
 **Background Research Run**:
 A **Research Run** that can proceed while the main conversation continues. In v1, a **Background Research Run** is an in-process asynchronous run owned by the current Pi session, not a detached process. V1 permits only one active **Research Run** per Pi session/workspace; additional approved runs are queued or require user action. It surfaces **Progress Digests** and its **Research Brief** without blocking non-dependent discussion; on Pi shutdown, active runs stop, are marked interrupted, and may be manually resumed from artifacts later. If in-process concurrency is unavailable, v1 should degrade to explicit polling or step execution rather than detached execution.
@@ -77,11 +77,11 @@ A **Research Brief** copied or transformed from the **Workspace Research Store**
 _Avoid_: Auto-committed research, hidden project documentation, raw diagnostics promotion
 
 **Research Orchestrator**:
-The pi extension component that owns **Research Proposal** approval, **Research Run** lifecycle, artifacts, progress digests, budgets, source access, deterministic analysis helpers, and final brief creation. The **Research Brain** proposes structured research intents, but the **Research Orchestrator** validates those intents and performs side-effecting operations such as search, fetch, local reads, artifact writes, budget accounting, and progress reporting. V1 exposes a `/research` command for human use and one high-level `deepresearch` tool for agent use; subagents may participate in later versions as delegated step workers.
+The pi extension component that owns **Research Proposal** approval, **Research Run** lifecycle, artifacts, progress digests, budgets, source access, deterministic analysis helpers, and final brief creation. The **Research Brain** proposes structured research intents, but the **Research Orchestrator** validates those intents and performs side-effecting operations such as search, fetch, local reads, artifact writes, budget accounting, and progress reporting. V1 exposes a `/research` command for human use and one high-level `deepresearch` tool for agent use; the tool provides `propose`, `status`, `read_brief`, `render_view`, and `recommend_resume` actions. The tool cannot approve, deny, start, resume, cancel, force synthesis, or steer runs — those remain human command actions. The agent research lifecycle is stateless: the agent proposes, informs the user, and checks back on a later turn; there is no notification mechanism or blocking tool call. `render_view` generates a human-readable HTML view — the agent surfaces the file path to the user, not the content. `recommend_resume` returns resumability metadata so the agent can advise the user whether to resume a run. Subagents may participate in later versions as delegated step workers.
 _Avoid_: Subagent wrapper, raw model proxy, many low-level tools
 
 **Research Brain**:
-The model responsible for deciding research direction within a **Research Run**, including query planning, source prioritization, Source Note extraction when invoked by the **Research Orchestrator**, finding synthesis, and deciding whether to continue or produce a **Research Brief**. The **Research Brain** does not receive direct tool access in v1; it proposes a limited set of structured intents, and the **Research Orchestrator** decides whether and how to execute them. V1 intents are search, select sources, update findings, synthesize brief, and stop early. Source Note extraction is a required orchestrator phase after a selected source is read, not an optional Brain-directed action. V1 uses Tongyi DeepResearch as a single **Research Brain**, while the **Research Orchestrator** provides budgets, persistence, execution, and guardrails.
+The model responsible for deciding research direction within a **Research Run**, including query planning, source prioritization, Source Note extraction when invoked by the **Research Orchestrator**, finding synthesis, and deciding whether to continue or produce a **Research Brief**. The **Research Brain** does not receive direct tool access in v1; it proposes a limited set of structured intents, and the **Research Orchestrator** decides whether and how to execute them. V1 intents are search, select sources, update findings, synthesize brief, and stop early. Source Note extraction is a required orchestrator phase after a selected source is read, not an optional Brain-directed action. The `update findings` intent is where the **Research Brain** provides evidence extraction analysis; the orchestrator records the Brain's reasoning as a `brain_analysis` **Claim/Evidence Ledger** event and creates **Source Notes** from fetched content. Structured claim/contradiction/gap extraction from Brain output is a v2 concern; v1 handles this during synthesis. V1 uses Tongyi DeepResearch as a single **Research Brain**, while the **Research Orchestrator** provides budgets, persistence, execution, and guardrails.
 _Avoid_: Generic model, raw responder, subagent, tool-using agent, arbitrary action protocol
 
 **Model Readiness Check**:
@@ -99,6 +99,14 @@ _Avoid_: Proposal, run artifact, shared documentation
 **Run Diagnostics**:
 Local troubleshooting artifacts stored under a **Research Run** directory, such as full readiness-check results, raw model responses, parser failures, and timing data. **Run Diagnostics** are separate from normal research artifacts and are not promoted into project documentation.
 _Avoid_: Source notes, research brief, shared documentation
+
+**Content Quality Gate**:
+A post-fetch validation that rejects pages below a minimum content-quality threshold before creating a **Source Note**. Pages that are captcha challenges, return mostly navigation or UI chrome, have near-empty extracted text, or match common bot-detection patterns are recorded as **Negative Evidence** instead of becoming **Source Notes**. The gate prevents garbage content from entering the research pipeline and being cited in a **Research Brief**.
+_Avoid_: Source note filter, content censoring
+
+**Stale Brief**:
+A prior **Research Brief** version whose **Research Run** has since been continued with a new synthesis attempt. A brief becomes stale through structural supersession — a continuation was attempted after the brief was written — not through time-based expiration. A `failed` run with a `previousBriefAvailable` flag always has a stale previous brief; `completed` and `budget_exhausted` briefs are never stale within their own run. `read_brief` refuses stale briefs by default and directs the caller to `status` or human inspection commands.
+_Avoid_: Expired brief, old brief, outdated brief
 
 **Human Research View**:
 An optional self-contained `index.html` rendering of a **Research Run** for human reading, derived from canonical Markdown and JSON artifacts. The **Research Brief** provides the main content, while status, budget, evidence mix, Source Note metadata, and brief-version metadata drive labels, warnings, source links, budget and coverage summaries, and stale or best-effort banners. A **Human Research View** is auto-generated for human-initiated runs and available on demand for agent-triggered runs; Pi prints the HTML path rather than opening it automatically.
@@ -130,7 +138,11 @@ _Avoid_: Model-written Python, arbitrary code execution, sandbox bypass
 
 ### Flagged ambiguities
 
-None currently.
+- **Run-initiation modes**: The term `task-triggered` appeared in early user stories and the glossary but has no distinct implementation. It is collapsed into `agent-triggered` — when a skill or workflow triggers research, it goes through the same `propose` path as any other agent-triggered research. The only two run-initiation modes are `human-initiated` and `agent-triggered`; `triggerSource` in `domain/types.ts` should be updated from `"human" | "agent" | "task"` to `"human" | "agent"`.
+
+- **Blocking Research Run synchronization**: The glossary said blocking runs "pause the current decision path," which implied the agent's tool loop might block. The resolution is that blocking pauses the *human's* decision path, not the agent's tool call. The agent lifecycle for both blocking and background runs is stateless: propose → inform user → check status on a later turn → read brief when terminal. A future version may define a blocking tool call or notification mechanism.
+
+- **Cross-session agent continuity**: After a Pi restart, the agent has no built-in mechanism to resume awareness of research from a previous session. **Research Runs** persist on disk and can be manually resumed, but the agent does not automatically re-discover them. Use `status` to check for existing runs.
 
 ### Example dialogue
 

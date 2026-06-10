@@ -1,5 +1,5 @@
 {
-  "defaultModel": "glm-5.1",
+  "defaultModel": "deepseek-v4-pro",
   "defaultProvider": "opencode-go",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
@@ -9,9 +9,6 @@
     "openai-codex/gpt-5.4",
     "minimax/MiniMax-M3",
     "minimax/MiniMax-M2.7",
-    "ollama/deepseek-v4-pro:cloud",
-    "ollama/deepseek-v4-flash:cloud",
-    "ollama/glm-5.1:cloud",
     "opencode-go/glm-5.1",
     "opencode-go/kimi-k2.6",
     "opencode-go/qwen3.6-plus",
@@ -26,7 +23,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "0.79.0",
+  "lastChangelogVersion": "0.79.1",
   "packages": [
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",
