@@ -1,6 +1,6 @@
 {
-  "defaultModel": "deepseek-v4-flash-free",
-  "defaultProvider": "opencode",
+  "defaultModel": "deepseek-v4-flash",
+  "defaultProvider": "opencode-go",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
@@ -34,14 +34,8 @@
   "shellCommandPrefix": "export DIRENV_LOG_FORMAT=''; if command -v direnv >/dev/null 2>&1; then eval \"$(direnv export bash 2>/dev/null)\"; fi",
   "theme": "atom-one-dark",
   "deepresearch": {
-    "model": "gemma4:31b",
-    "provider": "ollama",
-    "ollamaHost": "http://100.64.0.5:11434",
-    "systemPrompt": null,
-    "options": {
-      "temperature": 0.1,
-      "num_predict": 4096
-    }
+    "subagentModel": "ollama/gemma4:31b",
+    "orchestratorModel": "opencode-go/deepseek-v4-flash"
   },
   "searxng": {
     "url": "http://127.0.0.1:5340"
