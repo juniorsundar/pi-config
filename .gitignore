@@ -8,3 +8,4 @@
 /sessions
 **/node_modules
 /trust.json
+**/__pycache__

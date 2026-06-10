@@ -36,8 +36,10 @@ const WebSearchParams = Type.Object({
 	maxResults: Type.Optional(
 		Type.Number({ description: "Maximum results (1-20, default 10)", minimum: 1, maximum: 20 }),
 	),
-	region: Type.Optional(
-		Type.String({ description: "Region code (e.g. us-en, de-de, wt-wt). Defaults to wt-wt." }),
+	language: Type.Optional(
+		StringEnum(["all", "en", "de", "fr", "es", "pt", "zh", "ja", "ko", "ar", "ru"] as const, {
+			description: "Language filter. SearXNG uses ISO codes. Default 'all'.",
+		}),
 	),
 	safesearch: Type.Optional(
 		StringEnum(["on", "moderate", "off"] as const, {
@@ -71,18 +73,39 @@ const SEARCH_SCRIPT = path.join(EXTENSION_DIR, "scripts", "search.py");
 const FETCH_SCRIPT = path.join(EXTENSION_DIR, "scripts", "fetch.py");
 
 function getUvBinary(): string {
-	const home = process.env.HOME || "";
-	const candidates = [
-		"uv",
-		home ? path.join(home, ".local/bin/uv") : undefined,
-		home ? path.join(home, ".cargo/bin/uv") : undefined,
-		"/usr/local/bin/uv",
-	].filter(Boolean) as string[];
-
-	for (const candidate of candidates) {
-		if (candidate === "uv" || fs.existsSync(candidate)) return candidate;
-	}
+	// The uv binary should be on PATH in the pi environment.
+	// The session_start handler runs `uv --version` to confirm availability.
 	return "uv";
+}
+
+function getSettingsPath(): string {
+	const home = process.env.HOME || "";
+	return home ? path.join(home, ".pi", "agent", "settings.json") : "";
+}
+
+function getSearxngUrl(): string {
+	const settingsPath = getSettingsPath();
+	if (!settingsPath || !fs.existsSync(settingsPath)) {
+		throw new Error(
+			"searxng.url is not configured. " +
+			"Add \"searxng\": { \"url\": \"http://your-searxng:8080\" } to settings.json.",
+		);
+	}
+	let settings: Record<string, unknown>;
+	try {
+		settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8")) as Record<string, unknown>;
+	} catch {
+		throw new Error("Cannot parse settings.json; check for JSON syntax errors.");
+	}
+	const searxng = settings.searxng as Record<string, unknown> | undefined;
+	const url = searxng?.url;
+	if (!url || typeof url !== "string") {
+		throw new Error(
+			"searxng.url is not configured. " +
+			"Add \"searxng\": { \"url\": \"http://your-searxng:8080\" } to settings.json.",
+		);
+	}
+	return url;
 }
 
 function clampMaxResults(value: number | undefined): number {
@@ -95,13 +118,20 @@ async function runSearch(
 	params: {
 		query: string;
 		maxResults?: number;
-		region?: string;
+		language?: string;
 		safesearch?: "on" | "moderate" | "off";
 		timelimit?: "d" | "w" | "m" | "y";
 	},
 	signal?: AbortSignal,
 	timeoutMs = 20_000,
 ): Promise<SearchResponse> {
+	let searxngUrl: string;
+	try {
+		searxngUrl = getSearxngUrl();
+	} catch (error: any) {
+		return { error: error?.message ?? String(error) };
+	}
+
 	const uv = getUvBinary();
 	const args = [
 		"run",
@@ -109,12 +139,14 @@ async function runSearch(
 		EXTENSION_DIR,
 		"python",
 		SEARCH_SCRIPT,
+		"--searxng-url",
+		searxngUrl,
 		"--query",
 		params.query,
 		"--max-results",
 		String(clampMaxResults(params.maxResults)),
-		"--region",
-		params.region ?? "wt-wt",
+		"--language",
+		params.language ?? "all",
 		"--safesearch",
 		params.safesearch ?? "moderate",
 	];
@@ -247,15 +279,17 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 		name: "web_search",
 		label: "Web Search",
 		description:
-			"Search the web using DuckDuckGo via ddgs. Returns titles, URLs, and snippets. " +
+			"Search the web using SearXNG (local multi-engine aggregator). Returns titles, URLs, and snippets. " +
 			"Use for current facts, documentation, news, package versions, or information not in training data. " +
-			"Supports region, safesearch, and time filters. Output is limited to 20 results.",
-		promptSnippet: "Search the web via DuckDuckGo and return titles, URLs, and snippets",
+			"Supports language, safesearch, and time filters. Output is limited to 20 results.",
+		promptSnippet: "Search the web via SearXNG and return titles, URLs, and snippets",
 		promptGuidelines: [
 			"Use web_search when you need current, factual, or documentation-related information not in your training data.",
 			"Use web_search to find current package versions, official documentation URLs, news, or recent API changes.",
 			"When using web_search results, include source URLs in your answer and prefer official or primary sources.",
 			"Do not use web_search for questions about files in the repository or the current conversation history.",
+			"Use web_fetch when the user provides a URL or after web_search discovers a relevant URL.",
+			"Use web_search first when no URL is known yet.",
 		],
 		parameters: WebSearchParams,
 
@@ -268,7 +302,7 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 			const results = await runSearch(pi, {
 				query: params.query,
 				maxResults: params.maxResults,
-				region: params.region,
+				language: params.language,
 				safesearch: params.safesearch,
 				timelimit: params.timelimit,
 			}, signal);
@@ -336,7 +370,7 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("web-search", {
-		description: "Search the web: /web-search <query>",
+		description: "Search the web via SearXNG: /web-search <query>",
 		handler: async (args, ctx) => {
 			const query = args.trim();
 			if (!query) {
@@ -344,7 +378,7 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 				return;
 			}
 
-			ctx.ui.notify(`Searching: ${query}`, "info");
+			ctx.ui.notify(`Searching via SearXNG: ${query}`, "info");
 			const results = await runSearch(pi, { query }, ctx.signal);
 			const text = formatResults(results);
 
@@ -395,15 +429,54 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 
 	pi.on("session_start", async (_event, ctx) => {
 		const uv = getUvBinary();
+
+		// Check uv is available
 		try {
 			await pi.exec(uv, ["--version"], { timeout: 5_000 });
-			await pi.exec(uv, ["run", "--project", EXTENSION_DIR, "python", "-c", "import ddgs, httpx, bs4, readability, markdownify"], {
+		} catch (error: any) {
+			ctx.ui.notify(
+				`web-search: uv not found: ${error?.message ?? String(error)}`,
+				"error",
+			);
+			return;
+		}
+
+		// Check Python dependencies (httpx + fetch deps; ddgs removed)
+		try {
+			await pi.exec(uv, ["run", "--project", EXTENSION_DIR, "python", "-c", "import httpx, bs4, readability, markdownify"], {
 				timeout: 20_000,
 				cwd: EXTENSION_DIR,
 			});
 		} catch (error: any) {
 			ctx.ui.notify(
-				`web-search: uv/ddgs startup check failed: ${error?.message ?? String(error)}`,
+				`web-search: Python dependency check failed: ${error?.message ?? String(error)}`,
+				"error",
+			);
+			return;
+		}
+
+		// Check SearXNG connectivity
+		let searxngUrl: string;
+		try {
+			searxngUrl = getSearxngUrl();
+		} catch (error: any) {
+			ctx.ui.notify(
+				`web-search: SearXNG not configured: ${error?.message ?? String(error)}`,
+				"warning",
+			);
+			return;
+		}
+
+		try {
+			await pi.exec(uv, [
+				"run", "--project", EXTENSION_DIR, "python", SEARCH_SCRIPT,
+				"--searxng-url", searxngUrl,
+				"--query", "health check",
+				"--max-results", "1",
+			], { timeout: 15_000, cwd: EXTENSION_DIR });
+		} catch (error: any) {
+			ctx.ui.notify(
+				`web-search: SearXNG unreachable at ${searxngUrl}: ${error?.message ?? String(error)}`,
 				"error",
 			);
 		}
