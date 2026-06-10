@@ -1,6 +1,6 @@
 {
-  "defaultModel": "deepseek-v4-flash",
-  "defaultProvider": "opencode-go",
+  "defaultModel": "deepseek-v4-flash-free",
+  "defaultProvider": "opencode",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
@@ -41,5 +41,8 @@
       "temperature": 0.1,
       "num_predict": 4096
     }
+  },
+  "searxng": {
+    "url": "http://127.0.0.1:5340"
   }
 }
