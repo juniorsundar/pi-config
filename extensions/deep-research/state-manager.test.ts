@@ -176,4 +176,108 @@ describe("ResearchStateManager", () => {
       expect(files).toContain("r-synth-42.md");
     });
   });
+
+  describe("appendErrorToState", () => {
+    it("appends an error line to an existing ## Errors section", () => {
+      const mgr = new ResearchStateManager(workDir, "test-topic");
+      mgr.initialize("Test", "Q?");
+
+      const errorRecord = {
+        agentType: "r-search",
+        agentId: "r-search-abc",
+        message: "Subagent timed out after 30s",
+        timestamp: 1700000000000,
+      };
+
+      // Inject a ## Errors section first
+      const stateWithErrors = mgr.read() + "\n## Errors\n*No errors yet.*\n";
+      const updated = mgr.appendErrorToState(stateWithErrors, errorRecord);
+
+      expect(updated).toContain("## Errors");
+      expect(updated).toContain("r-search-abc");
+      expect(updated).toContain("Subagent timed out after 30s");
+      expect(updated).toContain("1700000000000");
+    });
+
+    it("adds an ## Errors section if one does not exist", () => {
+      const mgr = new ResearchStateManager(workDir, "test-topic");
+      mgr.initialize("Test", "Q?");
+
+      const state = mgr.read(); // No ## Errors section
+      const errorRecord = {
+        agentType: "r-search",
+        agentId: "r-search-abc",
+        message: "Subagent timed out",
+        timestamp: 1700000000000,
+      };
+
+      const updated = mgr.appendErrorToState(state, errorRecord);
+
+      expect(updated).toContain("## Errors");
+      expect(updated).toContain("1700000000000 — **r-search** (`r-search-abc`) — Subagent timed out");
+    });
+
+    it("appends multiple errors sequentially", () => {
+      const mgr = new ResearchStateManager(workDir, "test-topic");
+      mgr.initialize("Test", "Q?");
+
+      let state = mgr.read();
+
+      const error1 = {
+        agentType: "r-search",
+        agentId: "r-search-1",
+        message: "Timeout",
+        timestamp: 1000,
+      };
+      const error2 = {
+        agentType: "r-gap",
+        agentId: "r-gap-2",
+        message: "Empty output",
+        timestamp: 2000,
+      };
+
+      state = mgr.appendErrorToState(state, error1);
+      state = mgr.appendErrorToState(state, error2);
+
+      expect(state).toContain("1000 — **r-search** (`r-search-1`) — Timeout");
+      expect(state).toContain("2000 — **r-gap** (`r-gap-2`) — Empty output");
+    });
+  });
+
+  describe("markPartial", () => {
+    it("changes status from active to partial", () => {
+      const mgr = new ResearchStateManager(workDir, "test-topic");
+      mgr.initialize("Test", "Q?");
+
+      const state = mgr.read();
+      const updated = mgr.markPartial(state);
+
+      expect(updated).toContain("## Status\npartial");
+      expect(updated).not.toContain("## Status\nactive");
+    });
+
+    it("does not change status if already complete", () => {
+      const mgr = new ResearchStateManager(workDir, "test-topic");
+      mgr.initialize("Test", "Q?");
+
+      let state = mgr.read();
+      state = mgr.markComplete(state);
+      const updated = mgr.markPartial(state);
+
+      expect(updated).toContain("## Status\ncomplete");
+    });
+
+    it("does not change status if already partial", () => {
+      const mgr = new ResearchStateManager(workDir, "test-topic");
+      mgr.initialize("Test", "Q?");
+
+      const state = mgr.read();
+      const once = mgr.markPartial(state);
+      const twice = mgr.markPartial(once);
+
+      expect(twice).toContain("## Status\npartial");
+      // Should only have one ## Status line
+      expect(twice.match(/## Status/g)).toHaveLength(1);
+    });
+  });
 });

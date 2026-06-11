@@ -1,6 +1,14 @@
 import { mkdirSync, writeFileSync, readFileSync, existsSync, appendFileSync } from "fs";
 import { join, resolve } from "path";
 
+export interface ErrorRecord {
+  agentType: string;
+  agentId?: string;
+  message: string;
+  timestamp: number;
+  isRetry?: boolean;
+}
+
 export interface StepRecord {
   agentType: string;
   agentId: string;
@@ -28,6 +36,9 @@ active
 
 ## Current Gaps
 *Gaps identified will appear here.*
+
+## Errors
+*No errors recorded.*
 
 ## Next Step
 *Awaiting orchestrator decision.*
@@ -108,6 +119,41 @@ export class ResearchStateManager {
         return `${header}\n${lines.join("\n")}`;
       },
     );
+  }
+
+  /** Append an error record to state.md's Errors section. */
+  appendErrorToState(stateContent: string, error: ErrorRecord): string {
+    const errorLine = `${error.timestamp} — **${error.agentType}**${error.agentId ? ` (\`${error.agentId}\`)` : ""} — ${error.message}${error.isRetry ? " (retry)" : ""}`;
+
+    // If ## Errors section exists, append to it
+    if (/## Errors/.test(stateContent)) {
+      return stateContent.replace(
+        /## Errors\n[\s\S]*?(?=\n## |$)/,
+        (match) => {
+          const header = "## Errors";
+          const content = match.slice(header.length).trim();
+          // Replace placeholder or append
+          if (content === "*No errors recorded.*") {
+            return `${header}\n${errorLine}`;
+          }
+          const lines = content.split("\n").filter(Boolean);
+          lines.push(errorLine);
+          return `${header}\n${lines.join("\n")}`;
+        },
+      );
+    }
+
+    // Otherwise, add a new ## Errors section before ## Next Step or at the end
+    const section = `## Errors\n${errorLine}`;
+    if (/## Next Step/.test(stateContent)) {
+      return stateContent.replace(/## Next Step/, `${section}\n\n## Next Step`);
+    }
+    return stateContent + `\n\n${section}`;
+  }
+
+  /** Mark research as partial in state.md (after persistent failures). */
+  markPartial(stateContent: string): string {
+    return stateContent.replace(/^## Status\nactive/m, "## Status\npartial");
   }
 
   /** Mark research as complete in state.md. */

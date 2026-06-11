@@ -38,28 +38,75 @@ export default function deepResearchExtension(pi: ExtensionAPI) {
       // Dynamic import of spawnSubagent from the subagents extension
       const { spawnSubagent } = await import("../subagents/spawner");
 
-      const result = await spawnSubagent({
-        agentType: agent_type,
-        task: prompt,
-        agentsDir: DEEP_RESEARCH_AGENTS_DIR,
-        workDir: ctx.cwd,
-        signal,
-        onProgress: onUpdate
-          ? (feed) => {
-              try {
-                onUpdate({
-                  content: [{ type: "text" as const, text: `[${agent_type}] ${feed.collapsed.text}` }],
-                  details: feed,
-                });
-              } catch {
-                // Best-effort progress
+      let result;
+      let wasRetried = false;
+      try {
+        result = await spawnSubagent({
+          agentType: agent_type,
+          task: prompt,
+          agentsDir: DEEP_RESEARCH_AGENTS_DIR,
+          workDir: ctx.cwd,
+          signal,
+          onProgress: onUpdate
+            ? (feed) => {
+                try {
+                  onUpdate({
+                    content: [{ type: "text" as const, text: `[${agent_type}] ${feed.collapsed.text}` }],
+                    details: feed,
+                  });
+                } catch (e) {
+                  console.warn("spawn_research_subagent onProgress: error sending update", e instanceof Error ? e.message : String(e));
+                }
               }
-            }
-          : undefined,
-        overrides: {
-          ...(config.subagentModel ? { model: config.subagentModel } : {}),
-        },
-      });
+            : undefined,
+          overrides: {
+            ...(config.subagentModel ? { model: config.subagentModel } : {}),
+          },
+        });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.warn("spawn_research_subagent: error spawning subagent, retrying once...", msg);
+
+        // Retry once
+        try {
+          result = await spawnSubagent({
+            agentType: agent_type,
+            task: prompt,
+            agentsDir: DEEP_RESEARCH_AGENTS_DIR,
+            workDir: ctx.cwd,
+            signal,
+            onProgress: onUpdate
+              ? (feed) => {
+                  try {
+                    onUpdate({
+                      content: [{ type: "text" as const, text: `[${agent_type}] ${feed.collapsed.text}` }],
+                      details: feed,
+                    });
+                  } catch (e) {
+                    console.warn("spawn_research_subagent onProgress: error sending update", e instanceof Error ? e.message : String(e));
+                  }
+                }
+              : undefined,
+            overrides: {
+              ...(config.subagentModel ? { model: config.subagentModel } : {}),
+            },
+          });
+          wasRetried = true;
+        } catch (e2) {
+          const msg2 = e2 instanceof Error ? e2.message : String(e2);
+          console.warn("spawn_research_subagent: retry also failed", msg2);
+          const failedAgentId = `${agent_type}-failed-${Date.now().toString(36).slice(-6)}`;
+          return {
+            content: [{ type: "text", text: `[error] ${agent_type} subagent failed after retry: ${msg2}` }],
+            details: {
+              agentType: agent_type,
+              agentId: failedAgentId,
+              error: msg2,
+              retried: true,
+            },
+          };
+        }
+      }
 
       return {
         content: [{ type: "text", text: result.output }],
@@ -69,6 +116,7 @@ export default function deepResearchExtension(pi: ExtensionAPI) {
           duration: result.duration,
           model: result.model,
           usage: result.usage,
+          ...(wasRetried ? { retried: true } : {}),
         },
       };
     },
@@ -166,6 +214,7 @@ export default function deepResearchExtension(pi: ExtensionAPI) {
         );
       }
 
+      let hasSuccessfulArchive = false;
       for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
         // 5a. Notify progress and send iteration prompt
         ctx.ui.notify(`Deep research: iteration ${iteration}/${MAX_ITERATIONS}`, "info");
@@ -177,6 +226,20 @@ export default function deepResearchExtension(pi: ExtensionAPI) {
 
         // 5c. Read current state
         const currentState = stateManager.read();
+
+        // 5c-bis. Detect subagent errors and log them to state.md
+        const subagentError = detectSubagentError(ctx);
+        if (subagentError) {
+          let stateContent = currentState;
+          stateContent = stateManager.appendErrorToState(stateContent, {
+            agentType: subagentError.agentType,
+            agentId: subagentError.agentId,
+            message: subagentError.error,
+            timestamp: Date.now(),
+            isRetry: subagentError.isRetry,
+          });
+          stateManager.write(stateContent);
+        }
 
         // 5d. Check if research is complete (either via status or deep_research_complete tool)
         const isComplete = currentState.includes("## Status\ncomplete") ||
@@ -203,26 +266,88 @@ export default function deepResearchExtension(pi: ExtensionAPI) {
         }
 
         // 5e. Archive the latest subagent output to steps/
-        const archivedType = archiveLatestSubagentOutput(ctx, stateManager);
+        const archiveResult = archiveLatestSubagentOutput(ctx, stateManager);
+
+        // 5e-bis. Log warning if output was empty
+        if (archiveResult.isEmpty) {
+          let stateContent = stateManager.read();
+          stateContent = stateManager.appendErrorToState(stateContent, {
+            agentType: archiveResult.agentType || "unknown",
+            message: "Subagent returned empty output",
+            timestamp: Date.now(),
+          });
+          stateManager.write(stateContent);
+        }
 
         // 5f. Show post-iteration summary and navigate back to anchor
-        if (archivedType) {
-          ctx.ui.notify(`Iteration ${iteration} complete: ${archivedType} archived`, "info");
+        if (archiveResult.archived) {
+          hasSuccessfulArchive = true;
+          // Log retry success to state.md if applicable
+          if (archiveResult.wasRetry) {
+            let stateContent = stateManager.read();
+            stateContent = stateManager.appendErrorToState(stateContent, {
+              agentType: archiveResult.agentType || "unknown",
+              message: "Subagent succeeded on retry after initial failure",
+              timestamp: Date.now(),
+              isRetry: true,
+            });
+            stateManager.write(stateContent);
+          }
+          ctx.ui.notify(`Iteration ${iteration} complete: ${archiveResult.agentType} archived`, "info");
         }
         await ctx.navigateTree(anchorId, { summarize: false });
       }
 
       // Max iterations reached
-      ctx.ui.notify(
-        `Deep research reached ${MAX_ITERATIONS} iterations without completing. ` +
-        `Partial results in .pi/deep-research/${slug}/state.md`,
-        "warning",
-      );
+      if (!hasSuccessfulArchive) {
+        // All iterations had persistent failures — mark as partial
+        let stateContent = stateManager.read();
+        stateContent = stateManager.markPartial(stateContent);
+        stateManager.write(stateContent);
+        ctx.ui.notify(
+          `Deep research reached ${MAX_ITERATIONS} iterations with persistent failures. ` +
+          `Results are partial in .pi/deep-research/${slug}/state.md`,
+          "error",
+        );
+      } else {
+        ctx.ui.notify(
+          `Deep research reached ${MAX_ITERATIONS} iterations without completing. ` +
+          `Partial results in .pi/deep-research/${slug}/state.md`,
+          "warning",
+        );
+      }
     },
   });
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────
+
+/**
+ * Check if the latest spawn_research_subagent tool result contains an error.
+ * Returns { agentType, error } if an error is found, or null if no error.
+ */
+function detectSubagentError(ctx: { sessionManager: { getBranch: () => any[] } }): { agentType: string; agentId?: string; error: string; isRetry?: boolean } | null {
+  try {
+    const entries = ctx.sessionManager.getBranch();
+    for (let i = entries.length - 1; i >= 0; i--) {
+      const entry = entries[i];
+      if (
+        entry.type === "message" &&
+        entry.message?.role === "toolResult" &&
+        entry.message?.toolName === "spawn_research_subagent"
+      ) {
+        const details = entry.message.details;
+        if (details && details.error) {
+          return { agentType: details.agentType || "unknown", agentId: details.agentId, error: details.error, isRetry: details.retried === true };
+        }
+        return null;
+      }
+    }
+  } catch (e) {
+    console.warn("detectSubagentError: error scanning session", e instanceof Error ? e.message : String(e));
+  }
+  return null;
+}
 
 /**
  * Check if the last assistant message contains a deep_research_complete tool call.
@@ -246,8 +371,8 @@ function wasCompleteToolCalled(ctx: { sessionManager: { getBranch: () => any[] }
         break;
       }
     }
-  } catch {
-    // Ignore errors during scanning
+  } catch (e) {
+    console.warn("wasCompleteToolCalled: error scanning session entries", e instanceof Error ? e.message : String(e));
   }
   return false;
 }
@@ -256,7 +381,7 @@ function wasCompleteToolCalled(ctx: { sessionManager: { getBranch: () => any[] }
  * Find the latest spawn_research_subagent tool result in the session
  * and copy its output to the steps archive.
  */
-function archiveLatestSubagentOutput(ctx: { cwd?: string; sessionManager: any }, stateManager: ResearchStateManager): string | null {
+function archiveLatestSubagentOutput(ctx: { cwd?: string; sessionManager: any }, stateManager: ResearchStateManager): { archived: boolean; agentType?: string; error?: string; isEmpty?: boolean; wasRetry?: boolean } {
   try {
     const entries = ctx.sessionManager.getBranch();
     // Scan from newest to oldest
@@ -269,23 +394,29 @@ function archiveLatestSubagentOutput(ctx: { cwd?: string; sessionManager: any },
       ) {
         const agentId = entry.message.details?.agentId;
         const agentType = entry.message.details?.agentType;
+        const wasRetry = entry.message.details?.retried === true;
         if (agentId && agentType) {
           const outputPath = join(ctx.cwd || process.cwd(), ".pi", "subagents", agentId, "output.md");
           if (existsSync(outputPath)) {
             const output = readFileSync(outputPath, "utf-8");
+            if (output.trim().length === 0) {
+              return { archived: false, isEmpty: true, agentType };
+            }
             const stepRecord = stateManager.archiveStep(output, agentType, agentId);
             // Update state.md's Steps Completed section
             const currentState = stateManager.read();
             const updated = stateManager.appendStepToState(currentState, stepRecord);
             stateManager.write(updated);
-            return agentType; // Return agent type on success
+            return { archived: true, agentType, wasRetry };
           }
         }
-        return null; // Nothing archived
+        return { archived: false }; // Nothing archived
       }
     }
-  } catch {
-    // Ignore errors during archive
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.warn("archiveLatestSubagentOutput: error during archive", msg);
+    return { archived: false, error: msg };
   }
-  return null;
+  return { archived: false };
 }

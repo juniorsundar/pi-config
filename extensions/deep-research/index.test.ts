@@ -144,6 +144,11 @@ describe("deep-research command handler", () => {
     });
 
     it("creates research directory, state.md, and loop anchor on valid query", async () => {
+      // Mock read to indicate completion so the loop exits on first iteration
+      vi.spyOn(ResearchStateManager.prototype, "read").mockReturnValue(
+        "## Status\ncomplete\n\n## Steps Completed\n",
+      );
+
       const ctx = createMockCtx({ cwd: tempDir });
 
       await handler("some test query", ctx);
@@ -155,7 +160,7 @@ describe("deep-research command handler", () => {
       const researchDir = join(tempDir, ".pi", "deep-research", slug);
       expect(existsSync(researchDir)).toBe(true);
 
-      // 2. state.md exists with the query
+      // 2. state.md exists with the query (file on disk, not mocked read)
       const stateFile = join(researchDir, "state.md");
       expect(existsSync(stateFile)).toBe(true);
       const stateContent = readFileSync(stateFile, "utf-8");
@@ -488,10 +493,10 @@ describe("deep-research command handler", () => {
       // Completion message was NOT sent
       expect(pi.sendMessage).not.toHaveBeenCalled();
 
-      // Max-iterations warning was sent after 10 iterations
+      // Max-iterations warning was sent after 10 iterations with persistent failures
       expect(ctx.ui.notify).toHaveBeenCalledWith(
-        expect.stringContaining("10 iterations without completing"),
-        "warning",
+        expect.stringContaining("10 iterations with persistent failures"),
+        "error",
       );
     });
   });
@@ -719,6 +724,586 @@ describe("deep-research command handler", () => {
           ],
         }),
       );
+    });
+  });
+
+  // ── Error Recovery Slices (Issue 0003) ──────────────────────────────
+
+  describe("Slice 10: wasCompleteToolCalled error logging (AC4)", () => {
+    it("logs a console.warn when getBranch throws inside wasCompleteToolCalled", async () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const tempDir = createTempDir("dr-ac4-test-");
+
+      vi.spyOn(ResearchStateManager.prototype, "read").mockReturnValue(
+        "## Status\nactive\n\nSome findings\n",
+      );
+
+      // Call 1 (detectSubagentError): return empty array (no error)
+      // Call 2 (wasCompleteToolCalled): throw
+      const getBranch = vi.fn()
+        .mockImplementationOnce(() => [])
+        .mockImplementationOnce(() => { throw new Error("session unavailable"); })
+        .mockReturnValue([]);
+
+      const ctx = createMockCtx({
+        cwd: tempDir,
+        sessionManager: {
+          appendCustomEntry: vi.fn(() => "mock-anchor-id"),
+          getBranch,
+        },
+      });
+
+      await handler("test query", ctx);
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("wasCompleteToolCalled"),
+        expect.stringContaining("session unavailable"),
+      );
+
+      warnSpy.mockRestore();
+      cleanupTempDir(tempDir);
+    });
+  });
+
+  describe("Slice 11: archiveLatestSubagentOutput error logging + structured return (AC5)", () => {
+    it("logs console.warn and does not crash when getBranch throws inside archiveLatestSubagentOutput", async () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const tempDir = createTempDir("dr-ac5-err-test-");
+
+      vi.spyOn(ResearchStateManager.prototype, "read").mockReturnValue(
+        "## Status\nactive\n\nSome findings\n",
+      );
+
+      // Call 1 (wasCompleteToolCalled): return empty array (no complete tool)
+      // Call 2 (detectSubagentError): return empty array (no error)
+      // Call 3 (archiveLatestSubagentOutput): throw
+      const getBranch = vi.fn()
+        .mockImplementationOnce(() => [])
+        .mockImplementationOnce(() => [])
+        .mockImplementationOnce(() => { throw new Error("archive error"); })
+        .mockReturnValue([]);
+
+      const ctx = createMockCtx({
+        cwd: tempDir,
+        sessionManager: {
+          appendCustomEntry: vi.fn(() => "mock-anchor-id"),
+          getBranch,
+        },
+      });
+
+      await handler("test query", ctx);
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("archiveLatestSubagentOutput"),
+        expect.stringContaining("archive error"),
+      );
+
+      warnSpy.mockRestore();
+      cleanupTempDir(tempDir);
+    });
+
+    it("returns structured result with archived:true on successful archive", async () => {
+      const tempDir = createTempDir("dr-ac5-ok-test-");
+      const agentId = "r-search-abc123";
+      const agentType = "r-search";
+
+      // Create subagent output file on disk
+      const subagentDir = join(tempDir, ".pi", "subagents", agentId);
+      mkdirSync(subagentDir, { recursive: true });
+      writeFileSync(join(subagentDir, "output.md"), "Search results: found relevant data");
+
+      vi.spyOn(ResearchStateManager.prototype, "read")
+        .mockReturnValueOnce("## Status\nactive\n\nSome findings\n") // iteration 1
+        .mockReturnValue("## Status\ncomplete\n\n## Steps Completed\n"); // after archive, complete
+
+      vi.mocked(loadDeepresearchConfig).mockReturnValue({
+        config: {},
+        errors: [],
+      });
+
+      const ctx = createMockCtx({
+        cwd: tempDir,
+        sessionManager: {
+          appendCustomEntry: vi.fn(() => "mock-anchor-id"),
+          getBranch: vi.fn(() => [
+            {
+              type: "message",
+              message: {
+                role: "toolResult",
+                toolName: "spawn_research_subagent",
+                details: { agentId, agentType },
+              },
+            },
+          ]),
+        },
+      });
+
+      await handler("test query", ctx);
+
+      // Should show the archived notification
+      expect(ctx.ui.notify).toHaveBeenCalledWith(
+        "Iteration 1 complete: r-search archived",
+        "info",
+      );
+
+      cleanupTempDir(tempDir);
+    });
+  });
+
+  describe("Slice 12: spawnSubagent error handling in execute handler (AC1)", () => {
+    it("catches spawnSubagent errors and returns structured error content instead of throwing", async () => {
+      const spawnToolRegistration = pi.registerTool.mock.calls.find(
+        (call: any) => call[0].name === "spawn_research_subagent",
+      )?.[0];
+      const executeHandler = spawnToolRegistration.execute;
+
+      const { spawnSubagent: mockSpawnSubagent } = await import("../subagents/spawner");
+      mockSpawnSubagent.mockRejectedValue(new Error("Subagent timed out after 30s"));
+
+      const ctx = createMockCtx();
+
+      // RED: handler rejects with error. GREEN: handler resolves with error content.
+      await expect(
+        executeHandler(
+          "test-call-id",
+          { agent_type: "r-search", prompt: "search for X" },
+          undefined,
+          undefined,
+          ctx,
+        ),
+      ).resolves.toMatchObject({
+        content: [{ type: "text" as const, text: expect.stringContaining("error") }],
+      });
+    });
+
+    it("does not modify the successful spawnSubagent return path", async () => {
+      const spawnToolRegistration = pi.registerTool.mock.calls.find(
+        (call: any) => call[0].name === "spawn_research_subagent",
+      )?.[0];
+      const executeHandler = spawnToolRegistration.execute;
+
+      const { spawnSubagent: mockSpawnSubagent } = await import("../subagents/spawner");
+      mockSpawnSubagent.mockResolvedValue({
+        output: "research result",
+        agentId: "r-search-abc123",
+        agentType: "r-search",
+        duration: 5000,
+        model: "test",
+        usage: {},
+      });
+
+      const ctx = createMockCtx();
+
+      const result = await executeHandler(
+        "test-call-id",
+        { agent_type: "r-search", prompt: "search for X" },
+        undefined,
+        undefined,
+        ctx,
+      );
+
+      expect(result.content[0].text).toBe("research result");
+      expect(result.details?.agentType).toBe("r-search");
+    });
+  });
+
+  describe("Slice 13: Subagent error detection in iteration loop (AC1)", () => {
+    it("logs subagent errors to state.md ## Errors section and continues the loop", async () => {
+      const tempDir = createTempDir("dr-loop-err-test-");
+
+      vi.spyOn(ResearchStateManager.prototype, "read").mockReturnValue(
+        "## Status\nactive\n\nSome findings\n",
+      );
+
+      // Mock getBranch to return an errored tool result
+      const ctx = createMockCtx({
+        cwd: tempDir,
+        sessionManager: {
+          appendCustomEntry: vi.fn(() => "mock-anchor-id"),
+          getBranch: vi.fn(() => [
+            {
+              type: "message",
+              message: {
+                role: "toolResult",
+                toolName: "spawn_research_subagent",
+                details: {
+                  agentType: "r-search",
+                  error: "Subagent timed out after 30s",
+                },
+              },
+            },
+          ]),
+        },
+      });
+
+      const writeSpy = vi.spyOn(ResearchStateManager.prototype, "write");
+
+      await handler("test query", ctx);
+
+      // At least one write call should contain the error
+      const errorWrites = writeSpy.mock.calls.filter(
+        ([content]: string[]) =>
+          typeof content === "string" &&
+          content.includes("## Errors") &&
+          content.includes("Subagent timed out after 30s"),
+      );
+      expect(errorWrites.length).toBeGreaterThan(0);
+
+      writeSpy.mockRestore();
+      cleanupTempDir(tempDir);
+    });
+
+    it("continues to next iteration after logging a subagent error", async () => {
+      const tempDir = createTempDir("dr-loop-err2-test-");
+
+      vi.spyOn(ResearchStateManager.prototype, "read").mockReturnValue(
+        "## Status\nactive\n\nSome findings\n",
+      );
+
+      // Return errored result — loop should continue instead of crashing
+      const ctx = createMockCtx({
+        cwd: tempDir,
+        sessionManager: {
+          appendCustomEntry: vi.fn(() => "mock-anchor-id"),
+          getBranch: vi.fn(() => [
+            {
+              type: "message",
+              message: {
+                role: "toolResult",
+                toolName: "spawn_research_subagent",
+                details: {
+                  agentType: "r-search",
+                  error: "Subagent timed out",
+                },
+              },
+            },
+          ]),
+        },
+      });
+
+      await handler("test query", ctx);
+
+      // Loop should complete all 10 iterations (no crash, no early return)
+      expect(pi.sendUserMessage).toHaveBeenCalledTimes(10);
+      expect(ctx.navigateTree).toHaveBeenCalledTimes(10);
+
+      cleanupTempDir(tempDir);
+    });
+  });
+
+  describe("Slice 14: Empty/malformed output detection (AC2)", () => {
+    it("logs a warning to state.md when subagent output is empty", async () => {
+      const tempDir = createTempDir("dr-empty-test-");
+      const agentId = "r-search-empty";
+      const agentType = "r-search";
+
+      // Create an empty subagent output file
+      const subagentDir = join(tempDir, ".pi", "subagents", agentId);
+      mkdirSync(subagentDir, { recursive: true });
+      writeFileSync(join(subagentDir, "output.md"), "");
+
+      vi.spyOn(ResearchStateManager.prototype, "read").mockReturnValue(
+        "## Status\nactive\n\nSome findings\n",
+      );
+
+      const ctx = createMockCtx({
+        cwd: tempDir,
+        sessionManager: {
+          appendCustomEntry: vi.fn(() => "mock-anchor-id"),
+          getBranch: vi.fn(() => [
+            {
+              type: "message",
+              message: {
+                role: "toolResult",
+                toolName: "spawn_research_subagent",
+                details: { agentId, agentType },
+              },
+            },
+          ]),
+        },
+      });
+
+      const writeSpy = vi.spyOn(ResearchStateManager.prototype, "write");
+
+      await handler("test query", ctx);
+
+      const errorWrites = writeSpy.mock.calls.filter(
+        ([content]: string[]) =>
+          typeof content === "string" &&
+          content.includes("## Errors") &&
+          content.includes("empty output") &&
+          content.includes(agentType),
+      );
+      expect(errorWrites.length).toBeGreaterThan(0);
+
+      writeSpy.mockRestore();
+      cleanupTempDir(tempDir);
+    });
+
+    it("does not crash when subagent output is malformed", async () => {
+      const tempDir = createTempDir("dr-malformed-test-");
+      const agentId = "r-search-malformed";
+      const agentType = "r-search";
+
+      // Create a whitespace-only output file
+      const subagentDir = join(tempDir, ".pi", "subagents", agentId);
+      mkdirSync(subagentDir, { recursive: true });
+      writeFileSync(join(subagentDir, "output.md"), "   \n\n  ");
+
+      vi.spyOn(ResearchStateManager.prototype, "read").mockReturnValue(
+        "## Status\nactive\n\nSome findings\n",
+      );
+
+      const ctx = createMockCtx({
+        cwd: tempDir,
+        sessionManager: {
+          appendCustomEntry: vi.fn(() => "mock-anchor-id"),
+          getBranch: vi.fn(() => [
+            {
+              type: "message",
+              message: {
+                role: "toolResult",
+                toolName: "spawn_research_subagent",
+                details: { agentId, agentType },
+              },
+            },
+          ]),
+        },
+      });
+
+      await handler("test query", ctx);
+
+      // Loop should complete all 10 iterations without crashing
+      expect(pi.sendUserMessage).toHaveBeenCalledTimes(10);
+
+      cleanupTempDir(tempDir);
+    });
+  });
+
+  describe("Slice 15: Retry once on subagent failure (AC3)", () => {
+    it("retries once when spawnSubagent fails and returns success on retry", async () => {
+      const spawnToolRegistration = pi.registerTool.mock.calls.find(
+        (call: any) => call[0].name === "spawn_research_subagent",
+      )?.[0];
+      const executeHandler = spawnToolRegistration.execute;
+
+      const { spawnSubagent: mockSpawnSubagent } = await import("../subagents/spawner");
+      // First call rejects, second resolves
+      mockSpawnSubagent
+        .mockRejectedValueOnce(new Error("Timeout"))
+        .mockResolvedValueOnce({
+          output: "retry success",
+          agentId: "r-search-retry",
+          agentType: "r-search",
+          duration: 6000,
+          model: "test",
+          usage: {},
+        });
+
+      const ctx = createMockCtx();
+
+      const result = await executeHandler(
+        "test-call-id",
+        { agent_type: "r-search", prompt: "search for X" },
+        undefined,
+        undefined,
+        ctx,
+      );
+
+      expect(result.content[0].text).toBe("retry success");
+      expect(mockSpawnSubagent).toHaveBeenCalledTimes(2);
+      // Retried flag should be propagated in success details
+      expect(result.details?.retried).toBe(true);
+    });
+
+    it("returns error with agentId and retried flag when both attempts fail", async () => {
+      const spawnToolRegistration = pi.registerTool.mock.calls.find(
+        (call: any) => call[0].name === "spawn_research_subagent",
+      )?.[0];
+      const executeHandler = spawnToolRegistration.execute;
+
+      const { spawnSubagent: mockSpawnSubagent } = await import("../subagents/spawner");
+      // Both calls reject
+      mockSpawnSubagent
+        .mockRejectedValueOnce(new Error("Timeout"))
+        .mockRejectedValueOnce(new Error("Timeout on retry"));
+
+      const ctx = createMockCtx();
+
+      const result = await executeHandler(
+        "test-call-id",
+        { agent_type: "r-search", prompt: "search for X" },
+        undefined,
+        undefined,
+        ctx,
+      );
+
+      expect(result.content[0].text).toContain("error");
+      expect(result.content[0].text).toContain("r-search");
+      expect(result.content[0].text).toContain("after retry");
+      expect(result.details?.retried).toBe(true);
+      expect(result.details?.agentId).toBeDefined();
+      expect(typeof result.details?.agentId).toBe("string");
+      expect(result.details?.agentId).toContain("r-search");
+      expect(mockSpawnSubagent).toHaveBeenCalledTimes(2);
+    });
+
+    it("records retry success in state.md when retry succeeds", async () => {
+      const tempDir = createTempDir("dr-retry-log-test-");
+      const agentId = "r-search-retry-ok";
+      const agentType = "r-search";
+
+      // Create subagent output file
+      const subagentDir = join(tempDir, ".pi", "subagents", agentId);
+      mkdirSync(subagentDir, { recursive: true });
+      writeFileSync(join(subagentDir, "output.md"), "Retry produced results");
+
+      vi.spyOn(ResearchStateManager.prototype, "read").mockReturnValue(
+        "## Status\nactive\n\nSome findings\n",
+      );
+
+      // Tool result with retried: true (successful retry)
+      const ctx = createMockCtx({
+        cwd: tempDir,
+        sessionManager: {
+          appendCustomEntry: vi.fn(() => "mock-anchor-id"),
+          getBranch: vi.fn(() => [
+            {
+              type: "message",
+              message: {
+                role: "toolResult",
+                toolName: "spawn_research_subagent",
+                details: { agentId, agentType, retried: true },
+              },
+            },
+          ]),
+        },
+      });
+
+      const writeSpy = vi.spyOn(ResearchStateManager.prototype, "write");
+
+      await handler("test query", ctx);
+
+      // A write should contain a retry success log
+      const retryWrites = writeSpy.mock.calls.filter(
+        ([content]: string[]) =>
+          typeof content === "string" &&
+          content.includes("## Errors") &&
+          content.includes("Subagent succeeded on retry"),
+      );
+      expect(retryWrites.length).toBeGreaterThan(0);
+
+      writeSpy.mockRestore();
+      cleanupTempDir(tempDir);
+    });
+  });
+
+  describe("Slice 16: Partial status on persistent failures (AC6)", () => {
+    it("marks state.md as partial and notifies user when all iterations have persistent failures", async () => {
+      const tempDir = createTempDir("dr-partial-test-");
+
+      vi.spyOn(ResearchStateManager.prototype, "read").mockReturnValue(
+        "## Status\nactive\n\nSome findings\n",
+      );
+
+      // All iterations return errored tool results (no successful archive)
+      const ctx = createMockCtx({
+        cwd: tempDir,
+        sessionManager: {
+          appendCustomEntry: vi.fn(() => "mock-anchor-id"),
+          getBranch: vi.fn(() => [
+            {
+              type: "message",
+              message: {
+                role: "toolResult",
+                toolName: "spawn_research_subagent",
+                details: {
+                  agentType: "r-search",
+                  error: "Subagent timed out",
+                },
+              },
+            },
+          ]),
+        },
+      });
+
+      const writeSpy = vi.spyOn(ResearchStateManager.prototype, "write");
+
+      await handler("test query", ctx);
+
+      // state.md should have been marked as partial
+      const partialWrites = writeSpy.mock.calls.filter(
+        ([content]: string[]) =>
+          typeof content === "string" &&
+          content.includes("## Status\npartial"),
+      );
+      expect(partialWrites.length).toBeGreaterThan(0);
+
+      // User should be notified about persistent failures
+      const failureNotifies = vi.mocked(ctx.ui.notify).mock.calls.filter(
+        ([msg]: string[]) =>
+          typeof msg === "string" &&
+          msg.includes("persistent failures"),
+      );
+      expect(failureNotifies.length).toBeGreaterThan(0);
+
+      writeSpy.mockRestore();
+      cleanupTempDir(tempDir);
+    });
+
+    it("does not mark partial when at least one iteration had a successful archive", async () => {
+      const tempDir = createTempDir("dr-no-partial-test-");
+      const agentId = "r-search-abc";
+      const agentType = "r-search";
+
+      // Create a successful subagent output file
+      const subagentDir = join(tempDir, ".pi", "subagents", agentId);
+      mkdirSync(subagentDir, { recursive: true });
+      writeFileSync(join(subagentDir, "output.md"), "Some actual research findings");
+
+      vi.spyOn(ResearchStateManager.prototype, "read").mockReturnValue(
+        "## Status\nactive\n\nSome findings\n",
+      );
+
+      const ctx = createMockCtx({
+        cwd: tempDir,
+        sessionManager: {
+          appendCustomEntry: vi.fn(() => "mock-anchor-id"),
+          getBranch: vi.fn(() => [
+            {
+              type: "message",
+              message: {
+                role: "toolResult",
+                toolName: "spawn_research_subagent",
+                details: { agentId, agentType },
+              },
+            },
+          ]),
+        },
+      });
+
+      const writeSpy = vi.spyOn(ResearchStateManager.prototype, "write");
+
+      await handler("test query", ctx);
+
+      // state.md should NOT be marked as partial
+      const partialWrites = writeSpy.mock.calls.filter(
+        ([content]: string[]) =>
+          typeof content === "string" &&
+          content.includes("## Status\npartial"),
+      );
+      expect(partialWrites.length).toBe(0);
+
+      // User should be warned about max iterations, not persistent failures
+      const maxIterNotifies = vi.mocked(ctx.ui.notify).mock.calls.filter(
+        ([msg]: string[]) =>
+          typeof msg === "string" &&
+          msg.includes("iterations without completing"),
+      );
+      expect(maxIterNotifies.length).toBeGreaterThan(0);
+
+      writeSpy.mockRestore();
+      cleanupTempDir(tempDir);
     });
   });
 });
