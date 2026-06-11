@@ -161,6 +161,18 @@ export class ResearchStateManager {
     return stateContent.replace(/^## Status\nactive/m, "## Status\ncomplete");
   }
 
+  /** Mark research as interrupted (user pressed Escape, signal aborted). */
+  markInterrupted(stateContent: string, info: { iteration: number; lastStep?: string }): string {
+    const stepped = stateContent.replace(/^## Status\nactive/m, "## Status\ninterrupted");
+    const lastStepNote = info.lastStep ? `, last completed step: ${info.lastStep}` : "";
+    const interruptRecord: ErrorRecord = {
+      agentType: "interrupted",
+      message: `Research interrupted at iteration ${info.iteration}${lastStepNote}`,
+      timestamp: Date.now(),
+    };
+    return this.appendErrorToState(stepped, interruptRecord);
+  }
+
   /** Extract the slug from a research topic string (simple sanitization). */
   static slugify(topic: string): string {
     return topic

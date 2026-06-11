@@ -214,8 +214,28 @@ export default function deepResearchExtension(pi: ExtensionAPI) {
         );
       }
 
+      // 5. Abort signal tracking
+      let aborted = ctx.signal?.aborted === true;
+      let currentIteration = 0;
+      let lastCompletedStepType: string | undefined;
+
+      if (ctx.signal && !aborted) {
+        ctx.signal.addEventListener("abort", () => {
+          aborted = true;
+        }, { once: true });
+      }
+
       let hasSuccessfulArchive = false;
+      try {
       for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
+        currentIteration = iteration;
+
+        // Check abort at start of iteration
+        if (aborted) {
+          currentIteration = iteration - 1;
+          break;
+        }
+
         // 5a. Notify progress and send iteration prompt
         ctx.ui.notify(`Deep research: iteration ${iteration}/${MAX_ITERATIONS}`, "info");
         const prompt = buildPrompt(iteration);
@@ -223,6 +243,11 @@ export default function deepResearchExtension(pi: ExtensionAPI) {
 
         // 5b. Wait for the agent to process
         await ctx.waitForIdle();
+
+        // Check abort after async wait (e.g., Escape pressed during research turn)
+        if (aborted) {
+          break;
+        }
 
         // 5c. Read current state
         const currentState = stateManager.read();
@@ -282,6 +307,7 @@ export default function deepResearchExtension(pi: ExtensionAPI) {
         // 5f. Show post-iteration summary and navigate back to anchor
         if (archiveResult.archived) {
           hasSuccessfulArchive = true;
+          lastCompletedStepType = archiveResult.agentType;
           // Log retry success to state.md if applicable
           if (archiveResult.wasRetry) {
             let stateContent = stateManager.read();
@@ -296,6 +322,30 @@ export default function deepResearchExtension(pi: ExtensionAPI) {
           ctx.ui.notify(`Iteration ${iteration} complete: ${archiveResult.agentType} archived`, "info");
         }
         await ctx.navigateTree(anchorId, { summarize: false });
+      }
+      } catch (e) {
+        // Catch AbortError from framework APIs (sendUserMessage, waitForIdle)
+        // when the user presses Escape during an async operation
+        if (e instanceof Error && (e.name === "AbortError" || ctx.signal?.aborted)) {
+          aborted = true;
+        } else {
+          throw e;
+        }
+      }
+
+      // Abort handling (unified — covers both pre-loop and mid-loop abort)
+      if (aborted) {
+        let stateContent = stateManager.read();
+        stateContent = stateManager.markInterrupted(stateContent, {
+          iteration: currentIteration,
+          lastStep: lastCompletedStepType,
+        });
+        stateManager.write(stateContent);
+        ctx.ui.notify(
+          `Deep research interrupted at iteration ${currentIteration}. Partial results saved to .pi/deep-research/${slug}/`,
+          "warning",
+        );
+        return;
       }
 
       // Max iterations reached

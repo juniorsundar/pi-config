@@ -10,12 +10,12 @@ Improve the Escape-key cancellation experience for deep research. The `ctx.signa
 
 ### Acceptance criteria
 
-- [ ] When the user presses Escape during a running deep-research session, the current subagent is aborted (already works via `ctx.signal`), and the command handler catches the abort
-- [ ] On abort, `state.md` is updated with "## Status\ninterrupted" and a note about which iteration and step was interrupted
-- [ ] On abort, the user sees a clear notification: "Deep research interrupted at iteration N. Partial results saved to .pi/deep-research/<slug>/"
-- [ ] The research directory (state.md + steps/) is preserved for manual inspection after cancellation
-- [ ] No unhandled promise rejections or dangling processes after cancellation
-- [ ] All existing and new tests pass
+- [x] When the user presses Escape during a running deep-research session, the current subagent is aborted (already works via `ctx.signal`), and the command handler catches the abort
+- [x] On abort, `state.md` is updated with "## Status\ninterrupted" and a note about which iteration and step was interrupted
+- [x] On abort, the user sees a clear notification: "Deep research interrupted at iteration N. Partial results saved to .pi/deep-research/<slug>/"
+- [x] The research directory (state.md + steps/) is preserved for manual inspection after cancellation
+- [x] No unhandled promise rejections or dangling processes after cancellation
+- [x] All existing and new tests pass
 
 ### Blocked by
 

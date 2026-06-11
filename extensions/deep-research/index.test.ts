@@ -1306,4 +1306,170 @@ describe("deep-research command handler", () => {
       cleanupTempDir(tempDir);
     });
   });
+
+  describe("Slice 17: Abort handling — signal already aborted at handler start", () => {
+    let tempDir: string;
+
+    beforeEach(() => {
+      tempDir = createTempDir("dr-abort-test-");
+    });
+
+    afterEach(() => {
+      cleanupTempDir(tempDir);
+    });
+
+    it("updates state.md with interrupted status, notifies user, and exits cleanly when signal is already aborted", async () => {
+      const mockSignal = {
+        aborted: true,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      };
+
+      const ctx = createMockCtx({
+        cwd: tempDir,
+        signal: mockSignal,
+      });
+
+      await handler("test query", ctx);
+
+      // 1. Research directory was created
+      const researchDir = join(tempDir, ".pi", "deep-research", "test-query");
+      expect(existsSync(researchDir)).toBe(true);
+
+      // 2. state.md contains interrupted status
+      const stateContent = readFileSync(join(researchDir, "state.md"), "utf-8");
+      expect(stateContent).toContain("## Status\ninterrupted");
+
+      // 3. User was notified with iteration 0 and the correct path
+      expect(ctx.ui.notify).toHaveBeenCalledWith(
+        "Deep research interrupted at iteration 0. Partial results saved to .pi/deep-research/test-query/",
+        "warning",
+      );
+
+      // 4. Handler returned cleanly — loop did not start
+      expect(pi.sendUserMessage).not.toHaveBeenCalled();
+      expect(ctx.waitForIdle).not.toHaveBeenCalled();
+    });
+
+    it("preserves research directory (state.md + steps/) after cancellation", async () => {
+      const mockSignal = {
+        aborted: true,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      };
+
+      const ctx = createMockCtx({
+        cwd: tempDir,
+        signal: mockSignal,
+      });
+
+      await handler("test query", ctx);
+
+      const researchDir = join(tempDir, ".pi", "deep-research", "test-query");
+
+      // Research directory exists
+      expect(existsSync(researchDir)).toBe(true);
+
+      // state.md exists and is readable
+      const stateFile = join(researchDir, "state.md");
+      expect(existsSync(stateFile)).toBe(true);
+      const stateContent = readFileSync(stateFile, "utf-8");
+      expect(stateContent.length).toBeGreaterThan(0);
+
+      // steps/ subdirectory exists and is empty (no iterations ran)
+      const stepsDir = join(researchDir, "steps");
+      expect(existsSync(stepsDir)).toBe(true);
+      expect(readdirSync(stepsDir)).toHaveLength(0);
+    });
+  });
+
+  describe("Slice 18: Abort handling — signal aborts mid-iteration", () => {
+    let tempDir: string;
+
+    beforeEach(() => {
+      tempDir = createTempDir("dr-abort-mid-test-");
+    });
+
+    afterEach(() => {
+      cleanupTempDir(tempDir);
+    });
+
+    it("records interrupted iteration and last completed step when abort fires during iteration 2", async () => {
+      // Mock signal that is not initially aborted, but becomes aborted on trigger
+      let signalAborted = false;
+      const abortCallbacks: Array<() => void> = [];
+      const mockSignal = {
+        get aborted() { return signalAborted; },
+        addEventListener: vi.fn((event: string, cb: () => void) => {
+          if (event === "abort") abortCallbacks.push(cb);
+        }),
+        removeEventListener: vi.fn(),
+      };
+
+      // Create subagent output file for iteration 1
+      const agentId = "r-search-abc123";
+      const agentType = "r-search";
+      const subagentDir = join(tempDir, ".pi", "subagents", agentId);
+      mkdirSync(subagentDir, { recursive: true });
+      writeFileSync(join(subagentDir, "output.md"), "Search results: found relevant data");
+
+      // Track waitForIdle calls to trigger abort on the second call (iteration 2)
+      let waitCallCount = 0;
+
+      const ctx = createMockCtx({
+        cwd: tempDir,
+        signal: mockSignal,
+        waitForIdle: vi.fn().mockImplementation(async () => {
+          waitCallCount++;
+          if (waitCallCount === 2) {
+            // Trigger abort during iteration 2's waitForIdle
+            signalAborted = true;
+            abortCallbacks.forEach((cb) => cb());
+          }
+        }),
+        sessionManager: {
+          appendCustomEntry: vi.fn(() => "mock-anchor-id"),
+          getBranch: vi.fn(() => [
+            {
+              type: "message",
+              message: {
+                role: "toolResult",
+                toolName: "spawn_research_subagent",
+                details: { agentId, agentType },
+              },
+            },
+          ]),
+        },
+      });
+
+      await handler("test query", ctx);
+
+      // 1. Research directory and steps/ subdirectory exist
+      const researchDir = join(tempDir, ".pi", "deep-research", "test-query");
+      expect(existsSync(researchDir)).toBe(true);
+      const stepsDir = join(researchDir, "steps");
+      expect(existsSync(stepsDir)).toBe(true);
+      // Archived step file from iteration 1 is preserved
+      const stepFiles = readdirSync(stepsDir);
+      expect(stepFiles.length).toBeGreaterThan(0);
+
+      // 2. state.md has interrupted status
+      const stateContent = readFileSync(join(researchDir, "state.md"), "utf-8");
+      expect(stateContent).toContain("## Status\ninterrupted");
+
+      // 3. Interruption note includes iteration 2 and last completed step r-search
+      expect(stateContent).toContain("Research interrupted at iteration 2");
+      expect(stateContent).toContain("last completed step: r-search");
+
+      // 4. Notification mentions iteration 2 and the correct path
+      expect(ctx.ui.notify).toHaveBeenCalledWith(
+        "Deep research interrupted at iteration 2. Partial results saved to .pi/deep-research/test-query/",
+        "warning",
+      );
+
+      // 5. Two iterations started (iteration 1 completed, iteration 2 was in progress)
+      expect(pi.sendUserMessage).toHaveBeenCalledTimes(2);
+      expect(ctx.waitForIdle).toHaveBeenCalledTimes(2);
+    });
+  });
 });

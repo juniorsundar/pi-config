@@ -280,4 +280,53 @@ describe("ResearchStateManager", () => {
       expect(twice.match(/## Status/g)).toHaveLength(1);
     });
   });
+
+  describe("markInterrupted", () => {
+    it("changes status from active to interrupted", () => {
+      const mgr = new ResearchStateManager(workDir, "test-topic");
+      mgr.initialize("Test", "Q?");
+
+      const state = mgr.read();
+      const updated = mgr.markInterrupted(state, { iteration: 3 });
+
+      expect(updated).toContain("## Status\ninterrupted");
+      expect(updated).not.toContain("## Status\nactive");
+    });
+
+    it("adds interruption note with iteration number to ## Errors", () => {
+      const mgr = new ResearchStateManager(workDir, "test-topic");
+      mgr.initialize("Test", "Q?");
+
+      const state = mgr.read();
+      const updated = mgr.markInterrupted(state, { iteration: 5 });
+
+      expect(updated).toContain("## Errors");
+      expect(updated).toContain("Research interrupted at iteration 5");
+      expect(updated).toContain("**interrupted**");
+    });
+
+    it("includes last completed step type when provided", () => {
+      const mgr = new ResearchStateManager(workDir, "test-topic");
+      mgr.initialize("Test", "Q?");
+
+      const state = mgr.read();
+      const updated = mgr.markInterrupted(state, { iteration: 3, lastStep: "r-search" });
+
+      expect(updated).toContain("Research interrupted at iteration 3");
+      expect(updated).toContain("last completed step: r-search");
+    });
+
+    it("preserves other state sections", () => {
+      const mgr = new ResearchStateManager(workDir, "test-topic");
+      mgr.initialize("Test Topic", "What is the question?");
+
+      const state = mgr.read();
+      const updated = mgr.markInterrupted(state, { iteration: 2, lastStep: "r-search" });
+
+      expect(updated).toContain("Test Topic");
+      expect(updated).toContain("What is the question?");
+      expect(updated).toContain("## Original Question");
+      expect(updated).toContain("## Steps Completed");
+    });
+  });
 });
