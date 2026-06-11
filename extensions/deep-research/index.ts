@@ -48,7 +48,7 @@ export default function deepResearchExtension(pi: ExtensionAPI) {
           ? (feed) => {
               try {
                 onUpdate({
-                  content: [{ type: "text" as const, text: feed.collapsed.text }],
+                  content: [{ type: "text" as const, text: `[${agent_type}] ${feed.collapsed.text}` }],
                   details: feed,
                 });
               } catch {
@@ -167,7 +167,8 @@ export default function deepResearchExtension(pi: ExtensionAPI) {
       }
 
       for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
-        // 5a. Send iteration prompt
+        // 5a. Notify progress and send iteration prompt
+        ctx.ui.notify(`Deep research: iteration ${iteration}/${MAX_ITERATIONS}`, "info");
         const prompt = buildPrompt(iteration);
         await pi.sendUserMessage(prompt, { deliverAs: "followUp" });
 
@@ -202,9 +203,12 @@ export default function deepResearchExtension(pi: ExtensionAPI) {
         }
 
         // 5e. Archive the latest subagent output to steps/
-        archiveLatestSubagentOutput(ctx, stateManager);
+        const archivedType = archiveLatestSubagentOutput(ctx, stateManager);
 
-        // 5f. Navigate back to anchor to clear context for next iteration
+        // 5f. Show post-iteration summary and navigate back to anchor
+        if (archivedType) {
+          ctx.ui.notify(`Iteration ${iteration} complete: ${archivedType} archived`, "info");
+        }
         await ctx.navigateTree(anchorId, { summarize: false });
       }
 
@@ -252,7 +256,7 @@ function wasCompleteToolCalled(ctx: { sessionManager: { getBranch: () => any[] }
  * Find the latest spawn_research_subagent tool result in the session
  * and copy its output to the steps archive.
  */
-function archiveLatestSubagentOutput(ctx: { cwd?: string; sessionManager: any }, stateManager: ResearchStateManager): void {
+function archiveLatestSubagentOutput(ctx: { cwd?: string; sessionManager: any }, stateManager: ResearchStateManager): string | null {
   try {
     const entries = ctx.sessionManager.getBranch();
     // Scan from newest to oldest
@@ -274,12 +278,14 @@ function archiveLatestSubagentOutput(ctx: { cwd?: string; sessionManager: any },
             const currentState = stateManager.read();
             const updated = stateManager.appendStepToState(currentState, stepRecord);
             stateManager.write(updated);
+            return agentType; // Return agent type on success
           }
         }
-        return; // Only the latest spawn
+        return null; // Nothing archived
       }
     }
   } catch {
     // Ignore errors during archive
   }
+  return null;
 }

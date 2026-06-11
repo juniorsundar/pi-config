@@ -495,4 +495,230 @@ describe("deep-research command handler", () => {
       );
     });
   });
+
+  describe("Slice 7: Pre-iteration progress notification", () => {
+    let tempDir: string;
+
+    beforeEach(() => {
+      tempDir = createTempDir("dr-prenotify-test-");
+    });
+
+    afterEach(() => {
+      cleanupTempDir(tempDir);
+    });
+
+    it("notifies with iteration number before each iteration", async () => {
+      vi.spyOn(ResearchStateManager.prototype, "read").mockReturnValue(
+        "## Status\ncomplete\n\n## Steps Completed\n",
+      );
+
+      const ctx = createMockCtx({ cwd: tempDir });
+
+      await handler("test query", ctx);
+
+      // Should have shown the pre-iteration notification for iteration 1
+      expect(ctx.ui.notify).toHaveBeenCalledWith(
+        "Deep research: iteration 1/10",
+        "info",
+      );
+    });
+
+    it("notifies with correct iteration number for multiple iterations", async () => {
+      vi.spyOn(ResearchStateManager.prototype, "read").mockReturnValue(
+        "## Status\nactive\n\nSome findings\n",
+      );
+
+      const ctx = createMockCtx({ cwd: tempDir });
+
+      await handler("test query", ctx);
+
+      // All 10 iterations should have pre-iteration notifications
+      const notifyCalls = vi.mocked(ctx.ui.notify).mock.calls.filter(
+        ([_msg, type]: any) => type === "info" && typeof _msg === "string" && (_msg as string).startsWith("Deep research: iteration"),
+      );
+
+      expect(notifyCalls).toHaveLength(10);
+
+      // Verify each iteration number
+      notifyCalls.forEach(([msg]: any, idx: number) => {
+        expect(msg).toBe(`Deep research: iteration ${idx + 1}/10`);
+      });
+    });
+  });
+
+  describe("Slice 8: Post-iteration progress notification", () => {
+    let tempDir: string;
+
+    beforeEach(() => {
+      tempDir = createTempDir("dr-postnotify-test-");
+    });
+
+    afterEach(() => {
+      cleanupTempDir(tempDir);
+    });
+
+    it("notifies with iteration number and agent type after each non-completing iteration", async () => {
+      const agentId = "r-search-abc123";
+      const agentType = "r-search";
+
+      // Create subagent output file on disk so archiveLatestSubagentOutput can read it
+      const subagentDir = join(tempDir, ".pi", "subagents", agentId);
+      mkdirSync(subagentDir, { recursive: true });
+      writeFileSync(join(subagentDir, "output.md"), "Search results: found relevant data");
+
+      vi.spyOn(ResearchStateManager.prototype, "read").mockReturnValue(
+        "## Status\nactive\n\nSome findings\n",
+      );
+
+      vi.mocked(loadDeepresearchConfig).mockReturnValue({
+        config: {},
+        errors: [],
+      });
+
+      const ctx = createMockCtx({
+        cwd: tempDir,
+        sessionManager: {
+          appendCustomEntry: vi.fn(() => "mock-anchor-id"),
+          getBranch: vi.fn(() => [
+            {
+              type: "message",
+              message: {
+                role: "toolResult",
+                toolName: "spawn_research_subagent",
+                details: { agentId, agentType },
+              },
+            },
+          ]),
+        },
+      });
+
+      await handler("test query", ctx);
+
+      // Filter for post-iteration notifications (starts with "Iteration")
+      const postNotifyCalls = vi.mocked(ctx.ui.notify).mock.calls.filter(
+        ([msg, type]: any) => type === "info" && typeof msg === "string" && (msg as string).startsWith("Iteration "),
+      );
+
+      // All 10 iterations should have a post-iteration notification
+      expect(postNotifyCalls).toHaveLength(10);
+
+      // First iteration
+      expect(postNotifyCalls[0][0]).toBe("Iteration 1 complete: r-search archived");
+
+      // Last iteration
+      expect(postNotifyCalls[9][0]).toBe("Iteration 10 complete: r-search archived");
+    });
+
+    it("does not show post-iteration notification when no subagent was spawned", async () => {
+      // No subagent output file and empty getBranch — archiveLatestSubagentOutput finds nothing
+      vi.spyOn(ResearchStateManager.prototype, "read").mockReturnValue(
+        "## Status\nactive\n\nSome findings\n",
+      );
+
+      const ctx = createMockCtx({ cwd: tempDir });
+
+      await handler("test query", ctx);
+
+      // No post-iteration notifications should appear
+      const postNotifyCalls = vi.mocked(ctx.ui.notify).mock.calls.filter(
+        ([msg, type]: any) => type === "info" && typeof msg === "string" && (msg as string).startsWith("Iteration "),
+      );
+
+      expect(postNotifyCalls).toHaveLength(0);
+    });
+  });
+
+  describe("Slice 9: Agent type prefix in onProgress feed", () => {
+    it("prepends agent type to onProgress feed text", async () => {
+      // Find the spawn_research_subagent tool's execute handler
+      const spawnToolRegistration = pi.registerTool.mock.calls.find(
+        (call: any) => call[0].name === "spawn_research_subagent",
+      )?.[0];
+
+      const executeHandler = spawnToolRegistration.execute;
+      const onUpdateMock = vi.fn();
+
+      // Configure spawnSubagent mock to invoke onProgress
+      const { spawnSubagent: mockSpawnSubagent } = await import("../subagents/spawner");
+      mockSpawnSubagent.mockImplementation(async ({ onProgress }: any) => {
+        onProgress?.({
+          collapsed: { text: "searching the web...", hiddenCount: 0, lines: [] },
+          expanded: { text: "searching the web...", hiddenCount: 0, lines: [] },
+        });
+        return {
+          output: "research result",
+          agentId: "r-search-abc123",
+          agentType: "r-search",
+          duration: 5000,
+          model: "test",
+          usage: {},
+        };
+      });
+
+      const ctx = createMockCtx();
+
+      await executeHandler(
+        "test-call-id",
+        { agent_type: "r-search", prompt: "search for X" },
+        undefined,
+        onUpdateMock,
+        ctx,
+      );
+
+      expect(onUpdateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: [
+            expect.objectContaining({
+              text: "[r-search] searching the web...",
+            }),
+          ],
+        }),
+      );
+    });
+
+    it("prepends different agent types correctly", async () => {
+      const spawnToolRegistration = pi.registerTool.mock.calls.find(
+        (call: any) => call[0].name === "spawn_research_subagent",
+      )?.[0];
+
+      const executeHandler = spawnToolRegistration.execute;
+      const onUpdateMock = vi.fn();
+
+      const { spawnSubagent: mockSpawnSubagent } = await import("../subagents/spawner");
+      mockSpawnSubagent.mockImplementation(async ({ onProgress }: any) => {
+        onProgress?.({
+          collapsed: { text: "analyzing gaps...", hiddenCount: 0, lines: [] },
+          expanded: { text: "analyzing gaps...", hiddenCount: 0, lines: [] },
+        });
+        return {
+          output: "gap analysis",
+          agentId: "r-gap-def456",
+          agentType: "r-gap",
+          duration: 3000,
+          model: "test",
+          usage: {},
+        };
+      });
+
+      const ctx = createMockCtx();
+
+      await executeHandler(
+        "test-call-id-2",
+        { agent_type: "r-gap", prompt: "find gaps" },
+        undefined,
+        onUpdateMock,
+        ctx,
+      );
+
+      expect(onUpdateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: [
+            expect.objectContaining({
+              text: "[r-gap] analyzing gaps...",
+            }),
+          ],
+        }),
+      );
+    });
+  });
 });
