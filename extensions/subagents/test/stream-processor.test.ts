@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { processStream, type StreamResult } from "./stream-processor";
+import { processStream, type StreamResult } from "../src/stream-processor";
 
 // Helper: create an async iterable from an array of lines/chunks
 async function* linesFrom(lines: string[]): AsyncIterable<string> {

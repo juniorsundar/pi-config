@@ -2,8 +2,8 @@ import { describe, it, expect, afterEach, vi } from "vitest";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, chmodSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
-import { spawnSubagent } from "./spawner";
-import subagentEntryPoint from "./index";
+import { spawnSubagent } from "../src/spawner";
+import subagentEntryPoint from "../src/index";
 
 // ── Mock @earendil-works/pi-tui ──
 

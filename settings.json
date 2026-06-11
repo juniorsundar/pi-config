@@ -1,6 +1,6 @@
 {
-  "defaultModel": "minimax/minimax-m3",
-  "defaultProvider": "kilo",
+  "defaultModel": "deepseek-v4-flash-free",
+  "defaultProvider": "opencode",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,

@@ -75,21 +75,21 @@ export function parseAgentDefinition(markdownContent: string): AgentDefinition {
 
   return {
     name: frontmatter.name ?? "",
-    description: frontmatter.description,
-    model: frontmatter.model,
+    description: frontmatter.description as string | undefined,
+    model: frontmatter.model as string | undefined,
     tools,
-    thinking: frontmatter.thinking,
+    thinking: frontmatter.thinking as string | undefined,
     systemPromptMode:
       String(frontmatter.systemPromptMode ?? "").toLowerCase() === "append"
         ? "append"
         : "replace",
     systemPromptBody: body,
-    inheritProjectContext: frontmatter.inheritProjectContext ?? true,
-    inheritSkills: frontmatter.inheritSkills ?? true,
-    inheritExtensions: frontmatter.inheritExtensions ?? true,
+    inheritProjectContext: (frontmatter.inheritProjectContext ?? true) as boolean,
+    inheritSkills: (frontmatter.inheritSkills ?? true) as boolean,
+    inheritExtensions: (frontmatter.inheritExtensions ?? true) as boolean,
     timeout: typeof frontmatter.timeout === "number" ? frontmatter.timeout : undefined,
-    output: frontmatter.output,
-    defaultProgress: frontmatter.defaultProgress,
+    output: frontmatter.output as string | undefined,
+    defaultProgress: frontmatter.defaultProgress as boolean | undefined,
     ...(Object.keys(extra).length > 0 ? { extra } : {}),
   };
 }

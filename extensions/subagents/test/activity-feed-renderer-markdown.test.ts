@@ -20,7 +20,7 @@ vi.mock("@earendil-works/pi-tui", async () => {
   return await import(piTuiModuleUrl);
 });
 
-import { renderActivityFeed } from "./activity-feed-renderer";
+import { renderActivityFeed } from "../src/activity-feed-renderer";
 
 describe("renderActivityFeed — real markdown rendering", () => {
   it("renders markdown constructs in expanded thinking blocks", () => {

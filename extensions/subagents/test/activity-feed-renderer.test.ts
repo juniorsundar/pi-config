@@ -43,7 +43,7 @@ vi.mock("@earendil-works/pi-tui", () => {
   return { Text, Markdown, Container };
 });
 
-import { renderActivityFeed } from "./activity-feed-renderer";
+import { renderActivityFeed } from "../src/activity-feed-renderer";
 
 describe("renderActivityFeed", () => {
   it("renders a completed tool block as nested Container components", () => {

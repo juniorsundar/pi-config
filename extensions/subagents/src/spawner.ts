@@ -215,7 +215,7 @@ export async function spawnSubagent(
     try {
       let result: IteratorResult<ProgressEvent, StreamResult>;
       while (!(result = await stream.next()).done) {
-        const event = result.value;
+        const event = result.value as ProgressEvent;
         // Append every event to progress.jsonl
         appendFileSync(
           join(taskDir, "progress.jsonl"),
@@ -324,15 +324,16 @@ export async function spawnSubagent(
   // 11. Write output.md from stream result if not already written (e.g. by timeout)
   if (!timedOut && streamResult) {
     if (streamResult.done) {
-      writeFileSync(join(taskDir, "output.md"), streamResult.finalText, "utf-8");
+      writeFileSync(join(taskDir, "output.md"), (streamResult as { done: true; finalText: string }).finalText, "utf-8");
       appendFileSync(logPath, "completed\n", "utf-8");
     } else {
+      const errorResult = streamResult as { done: false; error: string; partialText: string };
       writeFileSync(
         join(taskDir, "output.md"),
-        `[ERROR] ${streamResult.error}`,
+        `[ERROR] ${errorResult.error}`,
         "utf-8",
       );
-      appendFileSync(logPath, `error: ${streamResult.error}\n`, "utf-8");
+      appendFileSync(logPath, `error: ${errorResult.error}\n`, "utf-8");
     }
   }
 

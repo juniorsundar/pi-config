@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { mkdtempSync, mkdirSync, writeFileSync, appendFileSync, rmSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
-import { tailProgress } from "./tail-progress";
+import { tailProgress } from "../src/tail-progress";
 
 // ── Test helpers ──
 

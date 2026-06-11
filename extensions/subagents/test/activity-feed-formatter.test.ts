@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatActivityFeed } from "./activity-feed-formatter";
+import { formatActivityFeed } from "../src/activity-feed-formatter";
 
 function makeEvent(
   overrides: Partial<{

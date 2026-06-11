@@ -2,8 +2,8 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
-import * as spawnerModule from "./spawner";
-import * as agentDefParserModule from "./agent-definition-parser";
+import * as spawnerModule from "../src/spawner";
+import * as agentDefParserModule from "../src/agent-definition-parser";
 
 // ── Mock @earendil-works/pi-tui so we can test renderCall without the real package ──
 //
@@ -55,7 +55,7 @@ vi.mock("@earendil-works/pi-tui", () => {
 
 // ── Module import ──
 
-import subagentEntryPoint, { resolveModel, formatCallHeader } from "./index";
+import subagentEntryPoint, { resolveModel, formatCallHeader } from "../src/index";
 
 // ── Test helpers ──
 

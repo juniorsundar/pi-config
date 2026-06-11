@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildCommand } from "./command-builder";
-import type { AgentDefinition } from "./agent-definition-parser";
+import { buildCommand } from "../src/command-builder";
+import type { AgentDefinition } from "../src/agent-definition-parser";
 
 const MANIFEST_PATH = "/tmp/manifest.json";
 

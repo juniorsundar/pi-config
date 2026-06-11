@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, existsSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
-import { register, deregister, get, reapOrphans, _resetRegistry } from "./process-registry";
+import { register, deregister, get, reapOrphans, _resetRegistry } from "../src/process-registry";
 import type { ChildProcess } from "child_process";
 
 let workDirs: string[] = [];

@@ -1,5 +1,5 @@
 import { describe, it, expect, afterAll } from "vitest";
-import { parseAgentDefinition, parseAgentDefinitionFile } from "./agent-definition-parser";
+import { parseAgentDefinition, parseAgentDefinitionFile } from "../src/agent-definition-parser";
 import { mkdtempSync, writeFileSync, rmSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";

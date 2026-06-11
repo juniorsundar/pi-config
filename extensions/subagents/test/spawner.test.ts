@@ -5,8 +5,8 @@ import { tmpdir } from "os";
 import {
   spawnSubagent,
   UnknownAgentError,
-} from "./spawner";
-import type { ActivityFeedOutput } from "./activity-feed-formatter";
+} from "../src/spawner";
+import type { ActivityFeedOutput } from "../src/activity-feed-formatter";
 
 // ── Test helpers ──
 
