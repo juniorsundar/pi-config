@@ -4,10 +4,13 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import ipaddress
 import json
+import mimetypes
 import socket
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
@@ -69,6 +72,37 @@ SUPPORTED_DATA_TYPES = {
 
 SUPPORTED_TYPES = SUPPORTED_HTML_TYPES | SUPPORTED_TEXT_TYPES | SUPPORTED_DATA_TYPES
 
+# Binary types accepted only in --download mode.
+# Keep this list small and intentional: images + PDFs. Add more only with
+# matching test coverage in test_fetch.py.
+SUPPORTED_DOWNLOAD_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "image/svg+xml",
+    "image/bmp",
+    "image/tiff",
+    "image/x-icon",
+    "image/vnd.microsoft.icon",
+    "application/pdf",
+}
+
+# Map media types → canonical file extensions used for the temp file.
+# Falls back to mimetypes.guess_extension or ".bin" if not listed.
+_DOWNLOAD_EXTENSIONS: Dict[str, str] = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/gif": ".gif",
+    "image/webp": ".webp",
+    "image/svg+xml": ".svg",
+    "image/bmp": ".bmp",
+    "image/tiff": ".tiff",
+    "image/x-icon": ".ico",
+    "image/vnd.microsoft.icon": ".ico",
+    "application/pdf": ".pdf",
+}
+
 PRIVATE_HOST_CACHE: Dict[str, bool] = {}
 
 USER_AGENT = (
@@ -127,6 +161,15 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         type=int,
         default=5_242_880,
         help="Max fetch bytes (default 5 MiB)",
+    )
+    parser.add_argument(
+        "--download",
+        action="store_true",
+        help=(
+            "Download the response body to a local temp file and return its path "
+            "instead of extracting readable text. Accepts image/* and application/pdf. "
+            "Ignores --max-chars and --format."
+        ),
     )
     return parser.parse_args(argv)
 
@@ -226,8 +269,15 @@ def fetch_response(
     url: str,
     timeout: float,
     max_bytes: int,
+    mode: Literal["text", "download"] = "text",
 ) -> Dict[str, Any]:
-    """Fetch URL and return response metadata + body bytes."""
+    """Fetch URL and return response metadata + body bytes.
+
+    mode="text" (default): reject responses whose Content-Type is not
+        HTML or text-like. Used by the text extraction path.
+    mode="download": reject responses whose Content-Type is not in the
+        binary download allowlist (image/*, application/pdf).
+    """
     parsed = validate_url(url)
     url_str = str(parsed)
 
@@ -251,11 +301,21 @@ def fetch_response(
             validate_url(final_url)
 
         content_type = response.headers.get("content-type")
-        category = categorize_content(content_type)
 
-        if category == "unsupported":
+        if mode == "download":
+            allowed = is_download_supported(content_type)
+            unsupported_msg = (
+                f"Content type '{content_type or 'unknown'}' is not supported in --download mode. "
+                f"Allowed: {sorted(SUPPORTED_DOWNLOAD_TYPES)}"
+            )
+        else:
+            category = categorize_content(content_type)
+            allowed = category != "unsupported"
+            unsupported_msg = f"Unsupported content type: {content_type or 'unknown'}"
+
+        if not allowed:
             raise FetchError(
-                f"Unsupported content type: {content_type or 'unknown'}",
+                unsupported_msg,
                 {
                     "url": url_str,
                     "finalUrl": final_url,
@@ -312,6 +372,53 @@ def categorize_content(content_type: Optional[str]) -> ContentCategory:
         return "text_like"
 
     return "unsupported"
+
+
+def is_download_supported(content_type: Optional[str]) -> bool:
+    """Return True if the content type is in the binary download allowlist."""
+    if not content_type:
+        return False
+    media_type = content_type.split(";")[0].strip().lower()
+    return media_type in SUPPORTED_DOWNLOAD_TYPES
+
+
+def media_type_of(content_type: Optional[str]) -> Optional[str]:
+    """Return the lowercased media type without parameters, or None."""
+    if not content_type:
+        return None
+    return content_type.split(";")[0].strip().lower() or None
+
+
+def extension_for(content_type: Optional[str], url: str) -> str:
+    """Pick a sensible file extension for a downloaded binary.
+
+    Order of preference:
+      1. Explicit mapping in _DOWNLOAD_EXTENSIONS for the Content-Type.
+      2. Extension already present in the URL path (lower-cased).
+      3. mimetypes.guess_extension() on the media type.
+      4. ".bin" fallback.
+    """
+    media_type = media_type_of(content_type)
+
+    if media_type and media_type in _DOWNLOAD_EXTENSIONS:
+        return _DOWNLOAD_EXTENSIONS[media_type]
+
+    # Try the URL path before falling back.
+    try:
+        url_path = httpx.URL(url).path
+    except Exception:
+        url_path = ""
+
+    url_ext = Path(url_path).suffix.lower()
+    if url_ext and len(url_ext) <= 6 and url_ext.isascii():
+        return url_ext
+
+    if media_type:
+        guessed = mimetypes.guess_extension(media_type)
+        if guessed:
+            return guessed
+
+    return ".bin"
 
 
 def is_supported_content_type(content_type: Optional[str]) -> bool:
@@ -496,6 +603,31 @@ def truncate_content(text: str, max_chars: int) -> Tuple[str, bool]:
 # ---------------------------------------------------------------------------
 
 
+def download_json(
+    url: str,
+    final_url: str,
+    status_code: int,
+    content_type: Optional[str],
+    path: str,
+    file_name: str,
+    byte_size: int,
+    sha1: str,
+    warnings: List[str],
+) -> Dict[str, Any]:
+    """Build success JSON response for --download mode."""
+    return {
+        "url": url,
+        "finalUrl": final_url,
+        "statusCode": status_code,
+        "contentType": content_type,
+        "path": path,
+        "fileName": file_name,
+        "byteSize": byte_size,
+        "sha1": sha1,
+        "warnings": warnings,
+    }
+
+
 def success_json(
     url: str,
     final_url: str,
@@ -544,11 +676,90 @@ def error_json(
 # ---------------------------------------------------------------------------
 
 
+def run_download(
+    url: str,
+    timeout: float,
+    max_bytes: int,
+) -> Dict[str, Any]:
+    """Download a binary response to a temp file and return its metadata.
+
+    Raises FetchError on validation/HTTP/MIME/size failures using the same
+    error envelope as the text path; never returns a partial file.
+    """
+    fetch_result = fetch_response(
+        url=url,
+        timeout=timeout,
+        max_bytes=max_bytes,
+        mode="download",
+    )
+
+    final_url = fetch_result["finalUrl"]
+    status_code = fetch_result["statusCode"]
+    content_type = fetch_result.get("contentType")
+    body: bytes = fetch_result["body"]
+    fetched_bytes = fetch_result["fetchedBytes"]
+
+    if not body:
+        raise FetchError(
+            "Response body was empty; nothing to download.",
+            {
+                "url": url,
+                "finalUrl": final_url,
+                "statusCode": status_code,
+                "contentType": content_type,
+            },
+        )
+
+    # SHA-1 is used purely as a content address for the temp file name;
+    # not for security.
+    sha1 = hashlib.sha1(body).hexdigest()  # noqa: S324
+    extension = extension_for(content_type, final_url)
+    file_name = f"web-fetch-{sha1[:12]}{extension}"
+    # Use the process-shared temp dir; cleanup is delegated to the OS.
+    target_dir = tempfile.gettempdir()
+    target_path = str(Path(target_dir) / file_name)
+
+    # Refuse to clobber an unrelated file at the same path.
+    target = Path(target_path)
+    if target.exists() and target.stat().st_size != len(body):
+        raise FetchError(
+            f"Refusing to overwrite existing file at {target_path} with different content.",
+            {"url": url, "path": target_path},
+        )
+
+    target.write_bytes(body)
+
+    warnings: List[str] = []
+    if status_code and status_code >= 400:
+        warnings.append(f"HTTP {status_code} — saved body anyway, but the response is an error page.")
+
+    return download_json(
+        url=url,
+        final_url=final_url,
+        status_code=status_code,
+        content_type=content_type,
+        path=target_path,
+        file_name=file_name,
+        byte_size=len(body),
+        sha1=sha1,
+        warnings=warnings,
+    )
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     """Validate, fetch, extract, print JSON. Return 0 on success, 1 on error."""
     args = parse_args(argv)
 
     try:
+        if args.download:
+            result = run_download(
+                url=args.url,
+                timeout=float(args.timeout),
+                max_bytes=args.max_bytes,
+            )
+            print(json.dumps(result, ensure_ascii=False))
+            return 0
+
         # Fetch
         fetch_result = fetch_response(
             url=args.url,

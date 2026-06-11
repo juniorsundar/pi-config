@@ -8,7 +8,9 @@ The main pi agent is the coordinator: it owns user intent, judgment, planning, s
 
 The user is experienced and wants control. Do not silently take over architecture or product decisions.
 
-**IMPORTANT**: Do not conduct web_search or web_fetch on the main pi agent. Only use subagents for web_search or web_fetch.
+**IMPORTANT**: 
+- Use `researcher` or any alternative subagent for general web_search or web_fetch. Avoid conducting web_search or web_fetch on the main pi agent.
+- Use `image-reader` subagent to read/parse images. Avoid parsing it on the main pi agent.
 
 ## Delegate When Useful
 

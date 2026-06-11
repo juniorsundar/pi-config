@@ -247,11 +247,14 @@ async function runFetch(
 		url: string;
 		maxChars?: number;
 		format?: "markdown" | "text";
+		download?: boolean;
 	},
 	signal?: AbortSignal,
-	timeoutMs = 30_000,
+	timeoutMs?: number,
 ): Promise<FetchResponse> {
 	const uv = getUvBinary();
+	const download = params.download === true;
+	const effectiveTimeout = timeoutMs ?? (download ? 60_000 : 30_000);
 	const args = [
 		"run",
 		"--project",
@@ -260,14 +263,20 @@ async function runFetch(
 		FETCH_SCRIPT,
 		"--url",
 		params.url,
-		"--max-chars",
-		String(clampMaxChars(params.maxChars)),
-		"--format",
-		normalFetchedFormat(params.format ?? "markdown"),
 	];
+	if (download) {
+		args.push("--download");
+	} else {
+		args.push(
+			"--max-chars",
+			String(clampMaxChars(params.maxChars)),
+			"--format",
+			normalFetchedFormat(params.format ?? "markdown"),
+		);
+	}
 
 	try {
-		const result = await pi.exec(uv, args, { signal, timeout: timeoutMs, cwd: EXTENSION_DIR });
+		const result = await pi.exec(uv, args, { signal, timeout: effectiveTimeout, cwd: EXTENSION_DIR });
 		const output = result.stdout.trim();
 		if (!output) {
 			return {
@@ -288,6 +297,34 @@ async function runFetch(
 
 function formatFetchResult(response: FetchResponse, prompt?: string): string {
 	if (response.error) return `Fetch failed: ${response.error}`;
+
+	// Download mode: emit a short "saved to" notice instead of the full
+	// "# Fetched document" preamble. The path is what the caller needs to act on.
+	if (response.path) {
+		const parts: string[] = [];
+		parts.push("# Downloaded file\n");
+		parts.push(`**Source:** ${response.url || "unknown"}`);
+		if (response.finalUrl && response.finalUrl !== response.url) {
+			parts.push(`**Final URL:** ${response.finalUrl}`);
+		}
+		parts.push(`**Status:** ${response.statusCode ?? "?"}`);
+		if (response.contentType) parts.push(`**Content-Type:** ${response.contentType}`);
+		parts.push(`**Saved to:** \`${response.path}\``);
+		if (response.fileName) parts.push(`**File name:** \`${response.fileName}\``);
+		if (typeof response.byteSize === "number") {
+			parts.push(`**Size:** ${response.byteSize} bytes`);
+		}
+		if (response.sha1) parts.push(`**SHA-1:** \`${response.sha1}\``);
+		if (response.warnings?.length) {
+			parts.push("**Warnings:**");
+			for (const w of response.warnings) parts.push(`- ${w}`);
+		}
+		if (prompt) {
+			parts.push("");
+			parts.push(`**Prompt for this file:** ${prompt}`);
+		}
+		return parts.join("\n");
+	}
 
 	const parts: string[] = [];
 
@@ -383,8 +420,10 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 			" Returns source metadata (title, status, content-type), the extracted text," +
 			" and a flag if the content was truncated." +
 			" Accepts an optional prompt for the agent to answer about the document." +
-			" Does not execute JavaScript; pages requiring JS may be incomplete.",
-		promptSnippet: "Fetch a URL and return readable document content with source metadata",
+			" Pass download=true to save a binary file (image, PDF) to a local temp path" +
+			" instead of extracting text; the returned path can then be passed to the read tool." +
+			" Does not execute JavaScript; pages requiring JS may have incomplete content.",
+		promptSnippet: "Fetch a URL and return readable document content with source metadata, or download a binary file to a local path",
 		promptGuidelines: [
 			"Use web_fetch when the user provides a URL or after web_search discovers a relevant URL.",
 			"Use web_search first when no URL is known yet.",
@@ -392,6 +431,7 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 			"Note when content was truncated (truncated: true).",
 			"Do not use web_fetch for files in the repository or the current conversation.",
 			"Static fetch only; pages requiring JavaScript may have incomplete content.",
+			"Use download=true for image and PDF URLs; the returned path can be passed to the read tool to view the file with a multimodal model.",
 		],
 		parameters: WebFetchParams,
 
@@ -405,6 +445,7 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 				url: params.url,
 				maxChars: params.maxChars,
 				format: params.format,
+				download: params.download,
 			}, signal);
 
 			return {
@@ -419,6 +460,11 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 					truncated: result.truncated,
 					contentLength: result.contentLength,
 					fetchedBytes: result.fetchedBytes,
+					// Download-mode fields (only populated when download=true).
+					path: result.path,
+					fileName: result.fileName,
+					byteSize: result.byteSize,
+					sha1: result.sha1,
 					raw: result,
 				},
 			};
@@ -451,11 +497,11 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("web-fetch", {
-		description: "Fetch a URL: /web-fetch <url> [--max-chars N] [--format markdown|text]",
+		description: "Fetch a URL: /web-fetch <url> [--max-chars N] [--format markdown|text] [--download]",
 		handler: async (args, ctx) => {
 			const trimmed = args.trim();
 			if (!trimmed) {
-				ctx.ui.notify("Usage: /web-fetch <url> [--max-chars N] [--format markdown|text]", "warning");
+				ctx.ui.notify("Usage: /web-fetch <url> [--max-chars N] [--format markdown|text] [--download]", "warning");
 				return;
 			}
 
@@ -466,9 +512,10 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 			const maxChars = maxIdx >= 0 ? parseInt(parts[maxIdx + 1], 10) || undefined : undefined;
 			const fmtIdx = parts.indexOf("--format");
 			const format = fmtIdx >= 0 && parts[fmtIdx + 1] === "text" ? "text" as const : undefined;
+			const download = parts.indexOf("--download") >= 0;
 
 			ctx.ui.notify(`Fetching: ${url}`, "info");
-			const result = await runFetch(pi, { url, maxChars, format }, ctx.signal);
+			const result = await runFetch(pi, { url, maxChars, format, download }, ctx.signal);
 			const text = formatFetchResult(result);
 
 			pi.sendMessage(
@@ -476,7 +523,7 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 					customType: "web-fetch-result",
 					content: text,
 					display: true,
-					details: { url, finalUrl: result.finalUrl, statusCode: result.statusCode, raw: result },
+					details: { url, finalUrl: result.finalUrl, statusCode: result.statusCode, path: result.path, fileName: result.fileName, byteSize: result.byteSize, sha1: result.sha1, raw: result },
 				},
 				{ triggerTurn: true },
 			);
