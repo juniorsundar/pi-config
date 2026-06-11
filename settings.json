@@ -31,7 +31,8 @@
     "npm:@juicesharp/rpiv-todo",
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@sherif-fanous/pi-atom-one",
-    "git:github.com/juniorsundar/kilo-pi-provider"
+    "git:github.com/juniorsundar/kilo-pi-provider",
+    "git:github.com/juniorsundar/pi-subagents"
   ],
   "shellCommandPrefix": "export DIRENV_LOG_FORMAT=''; if command -v direnv >/dev/null 2>&1; then eval \"$(direnv export bash 2>/dev/null)\"; fi",
   "theme": "atom-one-dark",
