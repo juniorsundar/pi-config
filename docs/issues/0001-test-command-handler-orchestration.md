@@ -10,13 +10,13 @@ Add Vitest tests for the deep-research command handler's orchestration logic in 
 
 ### Acceptance criteria
 
-- [ ] Unit tests cover the command handler's initialization path (slug creation, directory setup, state.md creation, loop anchor creation)
-- [ ] Unit tests cover the iteration loop: prompt sending via `sendUserMessage`, `waitForIdle`, state reading, completion detection (both "Status: complete" in state.md and `deep_research_complete` tool call), step archival, and `navigateTree` context clearing
-- [ ] Unit tests cover the max-iterations guard (10 iterations without completion → warning notification)
-- [ ] Unit tests cover config validation: missing `deepresearch` key in settings → clear error notification
-- [ ] `spawnSubagent` is mocked; no real child processes are spawned
-- [ ] Mock pattern follows the convention established in `extensions/subagents/index.test.ts`
-- [ ] All existing tests (`config.test.ts`, `state-manager.test.ts`) continue to pass
+- [x] Unit tests cover the command handler's initialization path (slug creation, directory setup, state.md creation, loop anchor creation)
+- [x] Unit tests cover the iteration loop: prompt sending via `sendUserMessage`, `waitForIdle`, state reading, completion detection (both "Status: complete" in state.md and `deep_research_complete` tool call), step archival, and `navigateTree` context clearing
+- [x] Unit tests cover the max-iterations guard (10 iterations without completion → warning notification)
+- [x] Unit tests cover config validation: missing `deepresearch` key in settings → clear error notification
+- [x] `spawnSubagent` is mocked; no real child processes are spawned
+- [x] Mock pattern follows the convention established in `extensions/subagents/index.test.ts`
+- [x] All existing tests (`config.test.ts`, `state-manager.test.ts`) continue to pass
 
 ### Blocked by
 
