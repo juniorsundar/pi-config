@@ -62,6 +62,21 @@ describe("ResearchStateManager", () => {
       expect(content).toContain("What is the answer?");
       expect(content).toContain("## Status\nactive");
     });
+
+    it("includes a Research Plan section in initial state", () => {
+      const mgr = new ResearchStateManager(workDir, "test-topic");
+      mgr.initialize("Test", "Q?");
+
+      const content = readFileSync(mgr.stateFile, "utf-8");
+      expect(content).toContain("## Research Plan");
+      expect(content).toContain("No plan yet — awaiting r-plan");
+      // Research Plan is positioned between Original Question and Summary
+      const originalQIndex = content.indexOf("## Original Question");
+      const planIndex = content.indexOf("## Research Plan");
+      const summaryIndex = content.indexOf("## Summary");
+      expect(planIndex).toBeGreaterThan(originalQIndex);
+      expect(summaryIndex).toBeGreaterThan(planIndex);
+    });
   });
 
   describe("read and write", () => {

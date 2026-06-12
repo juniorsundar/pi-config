@@ -79,11 +79,11 @@ _Avoid_: Research turn, research step (those are the components within an iterat
 _Avoid_: Research workspace, output dir
 
 **Research State File** (`state.md`):
-The accumulated research state: original question, running summary of findings, known gaps, and the suggested next step. Updated after each subagent completes. The orchestrator reads only this file each iteration.
+The accumulated research state: original question, research plan, running summary of findings, known gaps, and the suggested next step. Updated after each subagent completes. The orchestrator reads only this file each iteration.
 _Avoid_: Research journal, research notes, scratchpad
 
 **Research Subagent**:
-A specialized agent type (`r-search`, `r-learn`, `r-gap`, `r-verify`, `r-synth`) that performs one discrete step in the research iteration. Each has a narrow system prompt and limited tools.
+A specialized agent type (`r-plan`, `r-search`, `r-learn`, `r-gap`, `r-verify`, `r-synth`) that performs one discrete step in the research iteration. Each has a narrow system prompt and limited tools.
 _Avoid_: Deep-research agent, research worker
 
 **Research Orchestrator**:
@@ -98,9 +98,14 @@ _Avoid_: Reset point, context boundary
 The `deepresearch` key in `settings.json` specifying `orchestratorModel` and `subagentModel` (flat for v1).
 _Avoid_: Research config, DR config
 
+**Research Plan**:
+An immutable decomposition of the research question into areas, initial search angles, and likely hard parts — written by r-plan on iteration 1 and never modified. Gaps and adaptations discovered mid-research go to `## Current Gaps` and `## Next Step` instead.
+_Avoid_: Research roadmap, research strategy, research blueprint
+
 ### Flagged ambiguities
 
 - **Researcher vs Deep Research**: The existing `researcher` agent type does a single-shot search-and-synthesize. Deep Research is a multi-iteration workflow driven by the main agent. The two coexist; `researcher` is not renamed or deprecated.
+- **Research Plan vs Research State**: The Research Plan is the initial scope written once by r-plan. The Research State File (state.md) is the full living document that contains the plan plus findings, gaps, errors, and next steps. The plan is a section within the state, not a separate file.
 
 ### Example dialogue
 

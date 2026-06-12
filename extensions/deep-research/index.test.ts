@@ -74,6 +74,34 @@ function createMockCtx(overrides = {}) {
 
 // ── Tests ────────────────────────────────────────────────────────────
 
+describe("tool registration", () => {
+  it("registers spawn_research_subagent with r-plan in description and promptGuidelines", () => {
+    const pi = createMockPi();
+    deepResearchExtension(pi);
+
+    const toolRegistration = pi.registerTool.mock.calls.find(
+      (call: any) => call[0].name === "spawn_research_subagent",
+    )?.[0];
+
+    expect(toolRegistration).toBeDefined();
+    expect(toolRegistration.description).toContain("r-plan");
+    expect(toolRegistration.promptGuidelines.some(
+      (g: string) => g.includes("r-plan"),
+    )).toBe(true);
+  });
+
+  it("registers deep_research_complete tool", () => {
+    const pi = createMockPi();
+    deepResearchExtension(pi);
+
+    const toolRegistration = pi.registerTool.mock.calls.find(
+      (call: any) => call[0].name === "deep_research_complete",
+    )?.[0];
+
+    expect(toolRegistration).toBeDefined();
+  });
+});
+
 describe("deep-research command handler", () => {
   let pi: ReturnType<typeof createMockPi>;
   let handler: (args: string, ctx: any) => Promise<void>;
@@ -481,14 +509,16 @@ describe("deep-research command handler", () => {
         expect(call[1]).toEqual({ deliverAs: "followUp" });
       }
 
-      // First-iteration prompt mentions "First step:" and "r-search"
+      // First-iteration prompt tells the orchestrator to spawn r-plan first
       const firstPrompt = vi.mocked(pi.sendUserMessage).mock.calls[0][0];
       expect(firstPrompt).toContain("First step:");
-      expect(firstPrompt).toContain("r-search");
+      expect(firstPrompt).toContain("r-plan");
+      expect(firstPrompt).toContain("r-search"); // still listed as an available agent
 
-      // Subsequent prompts are shorter — they don't contain the first-step instructions
+      // Subsequent prompts reference the Research Plan but don't contain first-step instructions
       const secondPrompt = vi.mocked(pi.sendUserMessage).mock.calls[1][0];
       expect(secondPrompt).not.toContain("First step:");
+      expect(secondPrompt).toContain("Research Plan");
 
       // Completion message was NOT sent
       expect(pi.sendMessage).not.toHaveBeenCalled();

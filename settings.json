@@ -1,6 +1,6 @@
 {
-  "defaultModel": "byteplus-coding/glm-5.1",
-  "defaultProvider": "kilo",
+  "defaultModel": "deepseek-v4-flash-free",
+  "defaultProvider": "opencode",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,

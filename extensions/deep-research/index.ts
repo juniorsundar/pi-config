@@ -17,18 +17,19 @@ export default function deepResearchExtension(pi: ExtensionAPI) {
     name: "spawn_research_subagent",
     label: "Spawn Research Subagent",
     description:
-      "Spawn a deep-research subagent (r-search, r-learn, r-gap, r-verify, r-synth). " +
+      "Spawn a deep-research subagent (r-plan, r-search, r-learn, r-gap, r-verify, r-synth). " +
       "Use only during the deep-research workflow — not for normal subagent tasks.",
     parameters: Type.Object({
       agent_type: Type.String({
         description:
-          "Type of research subagent: r-search (web search), r-learn (fetch/learn from URLs), " +
+          "Type of research subagent: r-plan (research planning), r-search (web search), r-learn (fetch/learn from URLs), " +
           "r-gap (gap analysis), r-verify (verify claims), r-synth (final synthesis)",
       }),
       prompt: Type.String({ description: "Task prompt for the research subagent" }),
     }),
     promptGuidelines: [
-      "Use spawn_research_subagent ONLY during deep-research workflow to spawn r-search, r-learn, r-gap, r-verify, or r-synth subagents.",
+      "Use spawn_research_subagent ONLY during deep-research workflow to spawn r-plan, r-search, r-learn, r-gap, r-verify, or r-synth subagents.",
+      "r-plan is spawned automatically on iteration 1; do not spawn it again.",
       "Do not use spawn_research_subagent for general subagent tasks — use the regular subagent tool instead.",
     ],
     async execute(toolCallId, params, signal, onUpdate, ctx) {
@@ -195,7 +196,7 @@ export default function deepResearchExtension(pi: ExtensionAPI) {
             `**How deep research works:**\n` +
             `1. Read the research state file using the \`read\` tool.\n` +
             `2. Decide which research subagent to spawn next using the \`spawn_research_subagent\` tool.\n` +
-            `   Available agents: r-search (search web), r-learn (fetch/learn URLs), r-gap (gap analysis), r-verify (verify claims), r-synth (final synthesis).\n` +
+            `   Available agents: r-plan (research planning), r-search (search web), r-learn (fetch/learn URLs), r-gap (gap analysis), r-verify (verify claims), r-synth (final synthesis).\n` +
             `3. After the subagent returns, read the updated research state file.\n` +
             `4. Update the research state file with:\n` +
             `   - New findings from the subagent\n` +
@@ -203,11 +204,12 @@ export default function deepResearchExtension(pi: ExtensionAPI) {
             `   - The completed step in the Steps Completed section\n` +
             `5. If research is complete, update state.md to set "Status" to "complete" and call the \`deep_research_complete\` tool.\n\n` +
             `**Important:** Each iteration starts with a fresh context. Always read the state file — do not rely on conversation history.\n\n` +
-            `**First step:** Read the state file and spawn the first research subagent (r-search is usually the right starting point).`
+            `**First step:** Read the state file and spawn **r-plan** to create a research plan. After r-plan writes the Research Plan section to state.md, read it and follow it as a guide for the next steps.`
           );
         }
         return (
           `Continue deep research. Read \`.pi/deep-research/${slug}/state.md\` and advance the research.\n\n` +
+          `Refer to the **Research Plan** section in state.md — it decomposed the question into areas and suggested search angles. Use it as a guide.\n\n` +
           `Spawn the next appropriate research subagent with \`spawn_research_subagent\`.\n` +
           `After the subagent returns, update state.md with the findings.\n` +
           `When fully complete, set Status to "complete" in state.md and call \`deep_research_complete\`.`

@@ -25,6 +25,9 @@ active
 ## Original Question
 {question}
 
+## Research Plan
+*No plan yet — awaiting r-plan.*
+
 ## Summary
 *Research in progress.*
 
