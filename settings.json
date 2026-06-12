@@ -1,6 +1,6 @@
 {
-  "defaultModel": "glm-5.1",
-  "defaultProvider": "opencode-go",
+  "defaultModel": "byteplus-coding/glm-5.1",
+  "defaultProvider": "kilo",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
@@ -21,7 +21,7 @@
     "kilo/byteplus-coding/glm-5.1",
     "kilo/byteplus-coding/dola-seed-2.0-code"
   ],
-  "hideThinkingBlock": true,
+  "hideThinkingBlock": false,
   "images": {
     "blockImages": false
   },
