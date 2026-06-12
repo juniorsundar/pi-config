@@ -21,7 +21,7 @@
     "kilo/byteplus-coding/glm-5.1",
     "kilo/byteplus-coding/dola-seed-2.0-code"
   ],
-  "hideThinkingBlock": false,
+  "hideThinkingBlock": true,
   "images": {
     "blockImages": false
   },
