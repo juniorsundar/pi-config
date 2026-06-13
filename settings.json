@@ -1,6 +1,6 @@
 {
-  "defaultModel": "deepseek-v4-flash-free",
-  "defaultProvider": "opencode",
+  "defaultModel": "byteplus-coding/glm-5.1",
+  "defaultProvider": "kilo",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
@@ -25,7 +25,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "0.79.1",
+  "lastChangelogVersion": "0.79.3",
   "packages": [
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",

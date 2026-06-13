@@ -1,0 +1,12 @@
+{
+  "name": "pi-commandcode-pi-provider",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Pi extension that registers Command Code (commandcode.ai) as a model provider. Routes Claude models to the Anthropic Messages endpoint and all other models to the OpenAI Chat Completions endpoint.",
+  "keywords": ["pi-package", "pi-extension", "commandcode", "commandcode-pi-provider", "ai-provider"],
+  "license": "MIT",
+  "pi": {
+    "extensions": ["./index.ts"]
+  }
+}
