@@ -4,7 +4,6 @@ description: Prepare commit messages, PR summaries, changelogs, and reviewer not
 model: kilo/minimax/minimax-m3
 inheritProjectContext: true
 inheritSkills: false
-inheritExtensions: false
 tools: read, bash
 thinking: medium
 ---
