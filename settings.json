@@ -1,6 +1,6 @@
 {
-  "defaultModel": "mimo-v2.5-pro",
-  "defaultProvider": "opencode-go-2",
+  "defaultModel": "minimax/minimax-m2.7",
+  "defaultProvider": "kilo",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
@@ -17,8 +17,8 @@
     "opencode-go/qwen3.7-plus",
     "ollama/gemma4:31b",
     "ollama/qwen3.6:35b",
-    "kilo/minimax/minimax-m3",
-    "kilo/minimax/minimax-m2.7",
+    "minimax/MiniMax-M3",
+    "minimax/MiniMax-M2.7",
     "kilo/byteplus-coding/glm-5.1",
     "kilo/byteplus-coding/dola-seed-2.0-code"
   ],
