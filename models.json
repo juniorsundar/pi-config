@@ -28,6 +28,16 @@
         {
           "_launch": true,
           "contextWindow": 131072,
+          "id": "qwable-v1-q5:latest",
+          "input": [
+            "text",
+          ],
+          "reasoning": true
+
+        },
+        {
+          "_launch": true,
+          "contextWindow": 131072,
           "id": "tongyi-deepresearch:30b",
           "input": [
             "text",
