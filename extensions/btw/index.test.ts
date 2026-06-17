@@ -191,15 +191,15 @@ describe("btw extension", () => {
       expect(pi.registerTool).not.toHaveBeenCalled();
     });
 
-    it("registers command when PI_BTW_CHILD is 'true' (not '1')", async () => {
+    it("does not register /btw when PI_BTW_CHILD is 'true'", async () => {
       process.env.PI_BTW_CHILD = "true";
       const { default: btwExtension } = await import("./index");
       const pi = createMockPi();
 
       btwExtension(pi);
 
-      // Guard uses strict equality === '1', so 'true' should NOT activate it
-      expect(pi.registerCommand).toHaveBeenCalledTimes(1);
+      // Guard checks for any truthy value, so 'true' should activate it
+      expect(pi.registerCommand).not.toHaveBeenCalled();
     });
   });
 

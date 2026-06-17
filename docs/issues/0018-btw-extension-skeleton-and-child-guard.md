@@ -11,13 +11,13 @@ Introduce the BTW extension as an inert, safely loadable command surface. A user
 
 ### Acceptance criteria
 
-- [ ] The BTW extension loads without changing existing pi behavior when unused
-- [ ] `/btw` is registered in normal sessions
-- [ ] `/btw` accepts quoted and unquoted question text without crashing
-- [ ] `/btw` with no arguments is recognized separately from `/btw <question>`
-- [ ] The extension returns a clear placeholder for unimplemented query and review paths
-- [ ] The BTW Child Guard disables BTW registration when the child-process environment flag is present
-- [ ] Tests cover normal registration, guarded registration, no-argument invocation, quoted question text, and unquoted question text
+- [x] The BTW extension loads without changing existing pi behavior when unused
+- [x] `/btw` is registered in normal sessions
+- [x] `/btw` accepts quoted and unquoted question text without crashing
+- [x] `/btw` with no arguments is recognized separately from `/btw <question>`
+- [x] The extension returns a clear placeholder for unimplemented query and review paths
+- [x] The BTW Child Guard disables BTW registration when the child-process environment flag is present
+- [x] Tests cover normal registration, guarded registration, no-argument invocation, quoted question text, and unquoted question text
 
 ### Blocked by
 

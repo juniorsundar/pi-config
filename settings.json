@@ -1,5 +1,5 @@
 {
-  "defaultModel": "mimo-v2.5",
+  "defaultModel": "mimo-v2.5-pro",
   "defaultProvider": "opencode-go-2",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",

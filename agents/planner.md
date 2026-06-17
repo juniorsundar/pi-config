@@ -3,7 +3,7 @@ name: planner
 description: Creates implementation plans from context and requirements
 tools: read, grep, find, ls, write
 thinking: high
-model: opencode-go/qwen3.7-max
+model: opencode-go-2/qwen3.7-max
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false

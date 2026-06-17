@@ -10,12 +10,12 @@ Allow BTW to read its timeout setting from pi settings while preserving a safe d
 
 ### Acceptance criteria
 
-- [ ] BTW has a default timeout of five minutes
-- [ ] A configured timeout value overrides the default
-- [ ] Missing BTW settings fall back to the default without error
-- [ ] Invalid timeout values fall back safely or produce a clear configuration error consistent with existing extension conventions
-- [ ] The parsed timeout is available to the BTW command path
-- [ ] Tests cover default, configured, missing, and invalid timeout settings
+- [x] BTW has a default timeout of five minutes
+- [x] A configured timeout value overrides the default
+- [x] Missing BTW settings fall back to the default without error
+- [x] Invalid timeout values fall back safely or produce a clear configuration error consistent with existing extension conventions
+- [x] The parsed timeout is available to the BTW command path
+- [x] Tests cover default, configured, missing, and invalid timeout settings
 
 ### Blocked by
 
