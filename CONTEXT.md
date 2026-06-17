@@ -107,6 +107,37 @@ _Avoid_: Research roadmap, research strategy, research blueprint
 - **Researcher vs Deep Research**: The existing `researcher` agent type does a single-shot search-and-synthesize. Deep Research is a multi-iteration workflow driven by the main agent. The two coexist; `researcher` is not renamed or deprecated.
 - **Research Plan vs Research State**: The Research Plan is the initial scope written once by r-plan. The Research State File (state.md) is the full living document that contains the plan plus findings, gaps, errors, and next steps. The plan is a section within the state, not a separate file.
 
+## BTW
+
+An asynchronous side-question command that spawns a child `pi` process with the full conversation history, resolves the question independently, and displays the result outside the current session's context.
+
+### Language
+
+**BTW**:
+A side-question spawned via `/btw "question"` that runs asynchronously in a forked child process. The result is displayed to the user but never enters the current session's LLM context or conversation history.
+_Avoid_: Side query, background question, parallel question
+
+**BTW Process**:
+The child `pi` process spawned to resolve a BTW. Runs `pi --fork <session> --mode json -p "question"` with `--exclude-tools edit,write` and the `PI_BTW_CHILD=1` environment variable. Inherits the parent's model and thinking level but cannot mutate files.
+_Avoid_: BTW agent, BTW subagent (it is not a subagent — it has no agent type or task directory)
+
+**Spinning List**:
+The widget above the editor showing running BTW processes. Displays a header `● btw (N/M)` with indented spinner lines for each active query. Items are removed when their process completes.
+_Avoid_: BTW status, running list, progress widget
+
+**BTW Review**:
+The full-screen `ctx.ui.custom()` view opened by `/btw` (no args) showing completed BTW results in reverse chronological order. Most recent result is expanded by default; older results are collapsed.
+_Avoid_: BTW results panel, BTW history
+
+**BTW Child Guard**:
+The `PI_BTW_CHILD=1` environment variable set on BTW processes. The BTW extension checks for this at registration time and skips registering the `/btw` command if present, preventing recursive BTW invocations.
+_Avoid_: BTW recursion flag, BTW lock
+
+### Flagged ambiguities
+
+- **BTW vs Subagent**: A BTW is not a subagent. Subagents have agent types, task directories, manifests, and stream processors. A BTW is a lightweight fork — it inherits the full conversation history and runs the same model, but has no agent definition, no task directory, and no structured output pipeline. It is closer to `ctx.fork()` than to `spawnSubagent()`.
+- **BTW Result vs Session Entry**: BTW results are intentionally excluded from the session. They live only in extension memory and the BTW Review view. They do not appear in the conversation stream, the session file, or the LLM context. This is the defining difference from a normal tool result.
+
 ### Example dialogue
 
 > **Dev**: I want to deep-research a topic. What happens?
