@@ -9,8 +9,24 @@ export interface RunningEntry {
   startedAt: Date;
 }
 
-export type CompletedSuccessResult = { type: "success"; text: string };
-export type CompletedErrorResult = { type: "error"; error: string };
+export interface CompletedSuccessResult {
+  type: "success";
+  text: string;
+  toolTrace: Array<{ toolName: string; args: Record<string, unknown> }>;
+  usage: { input: number; output: number; cacheRead: number; cacheWrite: number; cost?: number };
+  model?: string;
+  stopReason?: string;
+}
+
+export interface CompletedErrorResult {
+  type: "error";
+  error: string;
+  exitCode?: number;
+  stderr?: string;
+  toolTrace: Array<{ toolName: string; args: Record<string, unknown> }>;
+  partialText?: string;
+}
+
 export type CompletedResult = CompletedSuccessResult | CompletedErrorResult;
 
 export interface CompletedEntry {
@@ -25,7 +41,7 @@ export interface CompletedEntry {
 export interface BtwRegistry {
   addRunning(id: string, query: string, childProcess: ChildProcess): void;
   complete(id: string, result: CompletedSuccessResult): void;
-  fail(id: string, error: string): void;
+  fail(id: string, error: string, details?: { exitCode?: number; stderr?: string; toolTrace?: Array<{ toolName: string; args: Record<string, unknown> }>; partialText?: string }): void;
   getRunning(): readonly RunningEntry[];
   getCompleted(): readonly CompletedEntry[];
   killAll(): void;
@@ -50,14 +66,21 @@ export function createRegistry(): BtwRegistry {
       completed.push({ id, query: entry.query, result, completedAt: new Date() });
     },
 
-    fail(id: string, error: string): void {
+    fail(id: string, error: string, details?: { exitCode?: number; stderr?: string; toolTrace?: Array<{ toolName: string; args: Record<string, unknown> }>; partialText?: string }): void {
       const entry = running.get(id);
       if (!entry) return;
       running.delete(id);
       completed.push({
         id,
         query: entry.query,
-        result: { type: "error", error },
+        result: {
+          type: "error",
+          error,
+          toolTrace: details?.toolTrace ?? [],
+          exitCode: details?.exitCode,
+          stderr: details?.stderr,
+          partialText: details?.partialText,
+        },
         completedAt: new Date(),
       });
     },

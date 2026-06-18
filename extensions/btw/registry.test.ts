@@ -41,7 +41,7 @@ describe("BTW Registry", () => {
       const registry = createRegistry();
       registry.addRunning("btw-1", "What is pi?", { pid: 1 } as any);
 
-      registry.complete("btw-1", { type: "success", text: "3.14159" });
+      registry.complete("btw-1", { type: "success", text: "3.14159", toolTrace: [], usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } });
 
       expect(registry.getRunning()).toHaveLength(0);
     });
@@ -50,13 +50,17 @@ describe("BTW Registry", () => {
       const registry = createRegistry();
       registry.addRunning("btw-1", "What is pi?", { pid: 1 } as any);
 
-      registry.complete("btw-1", { type: "success", text: "3.14159" });
+      registry.complete("btw-1", { type: "success", text: "3.14159", toolTrace: [], usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } });
 
       const completed = registry.getCompleted();
       expect(completed).toHaveLength(1);
       expect(completed[0].id).toBe("btw-1");
       expect(completed[0].query).toBe("What is pi?");
-      expect(completed[0].result).toEqual({ type: "success", text: "3.14159" });
+      expect(completed[0].result.type).toBe("success");
+      if (completed[0].result.type === "success") {
+        expect(completed[0].result.text).toBe("3.14159");
+        expect(completed[0].result.toolTrace).toEqual([]);
+      }
       expect(completed[0].completedAt).toBeInstanceOf(Date);
     });
 
@@ -64,7 +68,7 @@ describe("BTW Registry", () => {
       const registry = createRegistry();
       registry.addRunning("btw-1", "Q1", { pid: 1 } as any);
 
-      registry.complete("btw-999", { type: "success", text: "irrelevant" });
+      registry.complete("btw-999", { type: "success", text: "irrelevant", toolTrace: [], usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } });
 
       // Original entry still running
       expect(registry.getRunning()).toHaveLength(1);
@@ -91,7 +95,11 @@ describe("BTW Registry", () => {
       const completed = registry.getCompleted();
       expect(completed).toHaveLength(1);
       expect(completed[0].id).toBe("btw-1");
-      expect(completed[0].result).toEqual({ type: "error", error: "Process timed out" });
+      expect(completed[0].result.type).toBe("error");
+      if (completed[0].result.type === "error") {
+        expect(completed[0].result.error).toBe("Process timed out");
+        expect(completed[0].result.toolTrace).toEqual([]);
+      }
     });
 
     it("fail() on unknown id is a no-op", () => {
@@ -102,6 +110,44 @@ describe("BTW Registry", () => {
 
       expect(registry.getRunning()).toHaveLength(1);
       expect(registry.getCompleted()).toHaveLength(0);
+    });
+
+    it("fail() with full error details preserves exitCode, stderr, toolTrace, partialText", () => {
+      const registry = createRegistry();
+      registry.addRunning("btw-1", "Question?", { pid: 1 } as any);
+
+      registry.fail("btw-1", "exited with code 1", {
+        exitCode: 1,
+        stderr: "Error: model not found",
+        toolTrace: [{ toolName: "read", args: { path: "/foo" } }],
+        partialText: "partial answer",
+      });
+
+      const completed = registry.getCompleted();
+      expect(completed).toHaveLength(1);
+      if (completed[0].result.type === "error") {
+        expect(completed[0].result.error).toBe("exited with code 1");
+        expect(completed[0].result.exitCode).toBe(1);
+        expect(completed[0].result.stderr).toBe("Error: model not found");
+        expect(completed[0].result.toolTrace).toHaveLength(1);
+        expect(completed[0].result.toolTrace[0].toolName).toBe("read");
+        expect(completed[0].result.partialText).toBe("partial answer");
+      }
+    });
+
+    it("fail() without details defaults to empty toolTrace and undefined optional fields", () => {
+      const registry = createRegistry();
+      registry.addRunning("btw-1", "Question?", { pid: 1 } as any);
+
+      registry.fail("btw-1", "timeout");
+
+      const completed = registry.getCompleted();
+      if (completed[0].result.type === "error") {
+        expect(completed[0].result.toolTrace).toEqual([]);
+        expect(completed[0].result.exitCode).toBeUndefined();
+        expect(completed[0].result.stderr).toBeUndefined();
+        expect(completed[0].result.partialText).toBeUndefined();
+      }
     });
   });
 
@@ -123,7 +169,7 @@ describe("BTW Registry", () => {
       registry.addRunning("btw-1", "Q1", { pid: 1 } as any);
       registry.addRunning("btw-2", "Q2", { pid: 2 } as any);
 
-      registry.complete("btw-1", { type: "success", text: "Answer 1" });
+      registry.complete("btw-1", { type: "success", text: "Answer 1", toolTrace: [], usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } });
 
       expect(registry.getRunning()).toHaveLength(1);
       expect(registry.getRunning()[0].id).toBe("btw-2");
@@ -139,9 +185,9 @@ describe("BTW Registry", () => {
       registry.addRunning("btw-2", "Middle", { pid: 2 } as any);
       registry.addRunning("btw-3", "New", { pid: 3 } as any);
 
-      registry.complete("btw-1", { type: "success", text: "A" });
-      registry.complete("btw-2", { type: "success", text: "B" });
-      registry.complete("btw-3", { type: "success", text: "C" });
+      registry.complete("btw-1", { type: "success", text: "A", toolTrace: [], usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } });
+      registry.complete("btw-2", { type: "success", text: "B", toolTrace: [], usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } });
+      registry.complete("btw-3", { type: "success", text: "C", toolTrace: [], usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } });
 
       const completed = registry.getCompleted();
       expect(completed).toHaveLength(3);
@@ -155,7 +201,7 @@ describe("BTW Registry", () => {
       registry.addRunning("btw-1", "First", { pid: 1 } as any);
       registry.addRunning("btw-2", "Second", { pid: 2 } as any);
 
-      registry.complete("btw-1", { type: "success", text: "OK" });
+      registry.complete("btw-1", { type: "success", text: "OK", toolTrace: [], usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } });
       registry.fail("btw-2", "Error");
 
       const completed = registry.getCompleted();
@@ -207,7 +253,7 @@ describe("BTW Registry", () => {
     it("clear() removes completed entries", () => {
       const registry = createRegistry();
       registry.addRunning("btw-1", "Q1", { pid: 1 } as any);
-      registry.complete("btw-1", { type: "success", text: "OK" });
+      registry.complete("btw-1", { type: "success", text: "OK", toolTrace: [], usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } });
 
       registry.clear();
 
@@ -218,7 +264,7 @@ describe("BTW Registry", () => {
       const registry = createRegistry();
       registry.addRunning("btw-1", "Q1", { pid: 1, kill: () => {} } as any);
       registry.addRunning("btw-2", "Q2", { pid: 2 } as any);
-      registry.complete("btw-2", { type: "success", text: "OK" });
+      registry.complete("btw-2", { type: "success", text: "OK", toolTrace: [], usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } });
 
       registry.clear();
 

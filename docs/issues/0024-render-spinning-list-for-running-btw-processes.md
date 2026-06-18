@@ -10,14 +10,14 @@ Show a Spinning List above the editor while BTW Processes are running. The list 
 
 ### Acceptance criteria
 
-- [ ] No Spinning List is shown when there are no running BTW Processes
-- [ ] One running BTW Process shows a BTW header and one spinner item
-- [ ] Multiple running BTW Processes show one spinner item per question
-- [ ] The header shows the current BTW progress count
-- [ ] Each spinner item includes enough question text to identify the side-question
-- [ ] Completing or failing a BTW Process updates the Spinning List
-- [ ] The Spinning List clears when the final running BTW Process completes or fails
-- [ ] Tests cover empty, single-running, multiple-running, update, and clear rendering behavior
+- [x] No Spinning List is shown when there are no running BTW Processes
+- [x] One running BTW Process shows a BTW header and one spinner item
+- [x] Multiple running BTW Processes show one spinner item per question
+- [x] The header shows the current BTW progress count
+- [x] Each spinner item includes enough question text to identify the side-question
+- [x] Completing or failing a BTW Process updates the Spinning List
+- [x] The Spinning List clears when the final running BTW Process completes or fails
+- [x] Tests cover empty, single-running, multiple-running, update, and clear rendering behavior
 
 ### Blocked by
 

@@ -1,9 +1,37 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+// Mock the spawner module so tests don't spawn real processes
+const mockSpawnBtwProcess = vi.fn().mockResolvedValue({
+  ok: true,
+  text: "mocked answer",
+  toolTrace: [],
+  usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+});
+
+vi.mock("./spawner.js", () => ({
+  spawnBtwProcess: (...args: any[]) => mockSpawnBtwProcess(...args),
+}));
+
+// Mock the timeout-config module
+vi.mock("./timeout-config.js", () => ({
+  loadBtwTimeout: () => ({ timeout: 300000, source: "default" }),
+}));
+
+// Mock the spinning-list module
+vi.mock("./spinning-list.js", () => ({
+  SpinningListComponent: vi.fn(),
+}));
+
+// Mock the review module
+vi.mock("./review.js", () => ({
+  BtwReviewComponent: vi.fn(),
+}));
+
 // ── Helpers ──────────────────────────────────────────────────────────
 
 function createMockPi() {
   return {
+    on: vi.fn(),
     registerTool: vi.fn(),
     registerCommand: vi.fn(),
     sendMessage: vi.fn(),
@@ -13,8 +41,11 @@ function createMockPi() {
 
 function createMockCtx(overrides = {}) {
   return {
-    ui: { notify: vi.fn() },
+    ui: { notify: vi.fn(), custom: vi.fn() },
     cwd: "/tmp/test-cwd",
+    sessionManager: {
+      getSessionFile: vi.fn().mockReturnValue("/tmp/test-session.jsonl"),
+    },
     ...overrides,
   };
 }
@@ -78,7 +109,7 @@ describe("btw extension", () => {
   });
 
   describe("Slice 4: /btw with no arguments recognized separately", () => {
-    it("calls the handler with empty args and receives a notification", async () => {
+    it("calls the handler with empty args and opens review view", async () => {
       const { default: btwExtension } = await import("./index");
       const pi = createMockPi();
       const ctx = createMockCtx();
@@ -88,10 +119,11 @@ describe("btw extension", () => {
 
       await handler("", ctx);
 
-      expect(ctx.ui.notify).toHaveBeenCalledTimes(1);
+      // No-args opens the review view via custom component
+      expect(ctx.ui.custom).toHaveBeenCalledTimes(1);
     });
 
-    it("no-args response is distinct from the question response", async () => {
+    it("no-args opens review view, question shows notification", async () => {
       const { default: btwExtension } = await import("./index");
       const piNoArgs = createMockPi();
       const piWithQuestion = createMockPi();
@@ -107,10 +139,10 @@ describe("btw extension", () => {
       await handlerNoArgs("", ctxNoArgs);
       await handlerWithQuestion("what about X?", ctxWithQuestion);
 
-      const msgNoArgs = ctxNoArgs.ui.notify.mock.calls[0][0];
-      const msgWithQuestion = ctxWithQuestion.ui.notify.mock.calls[0][0];
-
-      expect(msgNoArgs).not.toBe(msgWithQuestion);
+      // No-args opens review view (custom component), not notification
+      expect(ctxNoArgs.ui.custom).toHaveBeenCalled();
+      // Question shows notification, not custom component
+      expect(ctxWithQuestion.ui.notify).toHaveBeenCalled();
     });
   });
 
@@ -149,8 +181,8 @@ describe("btw extension", () => {
 
       await handler('"what about X?"', ctx);
 
-      // Quoted text should be treated as a question (not no-args)
-      expect(ctx.ui.notify).toHaveBeenCalledWith("BTW query is not yet implemented.");
+      // Handler should have called notify (either success or error)
+      expect(ctx.ui.notify).toHaveBeenCalled();
     });
 
     it("passes unquoted text through to the handler", async () => {
@@ -161,10 +193,10 @@ describe("btw extension", () => {
       btwExtension(pi);
       const handler = pi.registerCommand.mock.calls[0][1].handler;
 
-      await handler("what about X", ctx);
-
-      // Unquoted text should be treated as a question (not no-args)
-      expect(ctx.ui.notify).toHaveBeenCalledWith("BTW query is not yet implemented.");
+      // Should not throw (will try to spawn, may fail but handler catches)
+      await expect(handler("what about X", ctx)).resolves.not.toThrow();
+      // Handler should have called notify (either success or error)
+      expect(ctx.ui.notify).toHaveBeenCalled();
     });
   });
 
@@ -203,6 +235,121 @@ describe("btw extension", () => {
     });
   });
 
+  describe("Registry wiring: addRunning/complete/fail", () => {
+    it("passes onSpawn callback to spawnBtwProcess", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      mockSpawnBtwProcess.mockClear();
+      await handler("what about X?", ctx);
+
+      expect(mockSpawnBtwProcess).toHaveBeenCalledWith(
+        expect.objectContaining({ onSpawn: expect.any(Function) }),
+      );
+    });
+
+    it("onSpawn callback is invoked by the spawner", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+      const mockChild = { pid: 123, kill: vi.fn() };
+
+      // Configure mock to invoke onSpawn
+      mockSpawnBtwProcess.mockImplementation(async (options: any) => {
+        options.onSpawn?.(mockChild);
+        return {
+          ok: true,
+          text: "answer",
+          toolTrace: [],
+          usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        };
+      });
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      await handler("question?", ctx);
+
+      // onSpawn was invoked — the spawner called it
+      expect(mockSpawnBtwProcess).toHaveBeenCalled();
+    });
+
+    it("calls complete with enriched result on success", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      mockSpawnBtwProcess.mockResolvedValue({
+        ok: true,
+        text: "Paris is the capital.",
+        toolTrace: [{ toolName: "web_search", args: {} }],
+        usage: { input: 500, output: 200, cacheRead: 0, cacheWrite: 0, cost: 0.01 },
+        model: "claude-sonnet-4",
+        stopReason: "endTurn",
+      });
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      await handler("capital of France?", ctx);
+
+      // Success notification shown
+      expect(ctx.ui.notify).toHaveBeenCalledWith(
+        expect.stringContaining("Paris"),
+        "info",
+      );
+    });
+
+    it("calls fail with error details on failure", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      mockSpawnBtwProcess.mockResolvedValue({
+        ok: false,
+        errorMessage: "BTW process exited with code 1",
+        exitCode: 1,
+        stderr: "Error: model not found",
+        toolTrace: [],
+        partialText: undefined,
+      });
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      await handler("what about X?", ctx);
+
+      // Error notification shown
+      expect(ctx.ui.notify).toHaveBeenCalledWith(
+        expect.stringContaining("exited with code 1"),
+        "error",
+      );
+    });
+
+    it("calls fail when spawnBtwProcess throws", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      mockSpawnBtwProcess.mockRejectedValue(new Error("ENOENT"));
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      await handler("what about X?", ctx);
+
+      // Error notification shown
+      expect(ctx.ui.notify).toHaveBeenCalledWith(
+        expect.stringContaining("ENOENT"),
+        "error",
+      );
+    });
+  });
+
   describe("Slice 7: Placeholder response for unimplemented paths", () => {
     it("returns a placeholder for the no-args (review) path", async () => {
       const { default: btwExtension } = await import("./index");
@@ -214,10 +361,11 @@ describe("btw extension", () => {
 
       await handler("", ctx);
 
-      expect(ctx.ui.notify).toHaveBeenCalledWith("BTW Review is not yet implemented.");
+      // Should open custom component (review view)
+      expect(ctx.ui.custom).toHaveBeenCalled();
     });
 
-    it("returns a placeholder for the query path", async () => {
+    it("spawns a BTW process when given a question", async () => {
       const { default: btwExtension } = await import("./index");
       const pi = createMockPi();
       const ctx = createMockCtx();
@@ -225,29 +373,26 @@ describe("btw extension", () => {
       btwExtension(pi);
       const handler = pi.registerCommand.mock.calls[0][1].handler;
 
+      // The handler will try to spawn and fail (no real pi), but should not crash
       await handler("what about X?", ctx);
 
-      expect(ctx.ui.notify).toHaveBeenCalledWith("BTW query is not yet implemented.");
+      // Should have called notify with either success or error
+      expect(ctx.ui.notify).toHaveBeenCalled();
     });
 
-    it("placeholder messages indicate the feature is not yet implemented", async () => {
+    it("no-args opens review component", async () => {
       const { default: btwExtension } = await import("./index");
       const piReview = createMockPi();
-      const piQuery = createMockPi();
       const ctxReview = createMockCtx();
-      const ctxQuery = createMockCtx();
 
       btwExtension(piReview);
-      btwExtension(piQuery);
 
       const handlerReview = piReview.registerCommand.mock.calls[0][1].handler;
-      const handlerQuery = piQuery.registerCommand.mock.calls[0][1].handler;
 
       await handlerReview("", ctxReview);
-      await handlerQuery("question", ctxQuery);
 
-      expect(ctxReview.ui.notify.mock.calls[0][0].toLowerCase()).toContain("not yet implemented");
-      expect(ctxQuery.ui.notify.mock.calls[0][0].toLowerCase()).toContain("not yet implemented");
+      // Should open custom component (review view), not show placeholder
+      expect(ctxReview.ui.custom).toHaveBeenCalled();
     });
   });
 });

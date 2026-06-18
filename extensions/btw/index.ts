@@ -1,23 +1,98 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { loadBtwTimeout } from "./timeout-config.js";
+import { createRegistry } from "./registry.js";
+import { SpinningListComponent } from "./spinning-list.js";
+import { BtwReviewComponent } from "./review.js";
+import { spawnBtwProcess } from "./spawner.js";
+
+// Module-level BTW registry shared across the extension lifetime.
+// Persists across /new, /fork, /reload within the same process.
+const btwRegistry = createRegistry();
 
 export default function btwExtension(pi: ExtensionAPI) {
   // BTW Child Guard: skip registration when running as a BTW child process
   if (process.env.PI_BTW_CHILD) return;
 
+  // Set up the Spinning List widget above the editor once on startup.
+  // The widget reads fresh state from the registry on each render.
+  pi.on("session_start", async (_event, ctx) => {
+    btwRegistry.clear(); // fresh slate for new session
+
+    ctx.ui.setWidget(
+      "btw-spinning-list",
+      (tui) => new SpinningListComponent(btwRegistry, tui),
+      { placement: "aboveEditor" },
+    );
+  });
+
+  // Clean up running BTW processes on session shutdown
+  pi.on("session_shutdown", async () => {
+    btwRegistry.killAll();
+    btwRegistry.clear();
+  });
+
   pi.registerCommand("btw", {
     description: "Ask a side-question or review BTW results",
     handler: async (args: string, ctx) => {
-      // Load timeout from settings (available for future BTW Process spawn)
-      const timeoutResult = loadBtwTimeout();
-      
       if (!args.trim()) {
-        // No-args: placeholder for BTW Review (issue 0025/0028)
-        await ctx.ui.notify("BTW Review is not yet implemented.");
+        // No-args: open BTW Review with completed results
+        await ctx.ui.custom((tui, theme, keybindings, done) =>
+          new BtwReviewComponent(btwRegistry.getCompleted(), tui, theme, done, keybindings),
+        );
         return;
       }
-      // With question: placeholder for async query (issue 0027)
-      await ctx.ui.notify("BTW query is not yet implemented.");
+
+      // Strip surrounding quotes from query
+      const query = args.trim().replace(/^["']|["']$/g, "");
+      if (!query) {
+        await ctx.ui.notify("BTW: empty question.", "warning");
+        return;
+      }
+
+      // Load timeout from settings
+      const { timeout } = loadBtwTimeout();
+
+      // Get session file for fork (null = ephemeral)
+      const sessionFile = ctx.sessionManager.getSessionFile() ?? null;
+
+      // Generate unique ID for this BTW process
+      const btwId = `btw-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+
+      try {
+        const result = await spawnBtwProcess({
+          sessionFile,
+          query,
+          cwd: ctx.cwd,
+          timeoutMs: timeout,
+          onSpawn: (child) => {
+            btwRegistry.addRunning(btwId, query, child as any);
+          },
+        });
+
+        if (result.ok) {
+          btwRegistry.complete(btwId, {
+            type: "success",
+            text: result.text,
+            toolTrace: result.toolTrace,
+            usage: result.usage,
+            model: result.model,
+            stopReason: result.stopReason,
+          });
+          await ctx.ui.notify(`BTW: ${result.text.slice(0, 200)}${result.text.length > 200 ? "..." : ""}`, "info");
+        } else {
+          btwRegistry.fail(btwId, result.errorMessage, {
+            exitCode: result.exitCode,
+            stderr: result.stderr,
+            toolTrace: result.toolTrace,
+            partialText: result.partialText,
+          });
+          await ctx.ui.notify(`BTW error: ${result.errorMessage}`, "error");
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        btwRegistry.fail(btwId, message);
+        await ctx.ui.notify(`BTW failed: ${message}`, "error");
+      }
     },
   });
 }

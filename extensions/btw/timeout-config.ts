@@ -1,5 +1,5 @@
 /**
- * @juicesharp/rpiv-btw — timeout configuration for BTW processes.
+ * btw — timeout configuration for BTW processes.
  *
  * Reads the BTW timeout setting from pi settings while preserving a safe default.
  * A user who does nothing gets the default five-minute timeout, and a user who
