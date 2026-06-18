@@ -14,13 +14,13 @@ The spawning module continues to own process lifecycle: args/env construction, s
 
 ### Acceptance criteria
 
-- [ ] A dedicated parser module exports a function that accepts NDJSON lines and returns assistant text, tool trace, usage, model, and stop reason
-- [ ] The spawning module calls the parser instead of containing parsing logic inline
-- [ ] The parser module has no imports from the spawning module or from `node:child_process`
-- [ ] The types module remains the source of truth for `BtwToolTraceEntry` and `BtwUsage`
-- [ ] The parser module re-exports shared types for backward compatibility
-- [ ] All existing spawning tests pass without modification to expected behavior
-- [ ] `npm test` passes with all tests green
+- [x] A dedicated parser module exports a function that accepts NDJSON lines and returns assistant text, tool trace, usage, model, and stop reason
+- [x] The spawning module calls the parser instead of containing parsing logic inline
+- [x] The parser module has no imports from the spawning module or from `node:child_process`
+- [x] The types module remains the source of truth for `BtwToolTraceEntry` and `BtwUsage`
+- [x] The parser module re-exports shared types for backward compatibility
+- [x] All existing spawning tests pass without modification to expected behavior
+- [x] `npm test` passes with all tests green
 
 ### Blocked by
 

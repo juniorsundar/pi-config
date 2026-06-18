@@ -133,6 +133,10 @@ _Avoid_: BTW results panel, BTW history
 The `PI_BTW_CHILD=1` environment variable set on BTW processes. The BTW extension checks for this at registration time and skips registering the `/btw` command if present, preventing recursive BTW invocations.
 _Avoid_: BTW recursion flag, BTW lock
 
+**BTW Stream Parser**:
+The module that turns raw NDJSON lines from a BTW Process stdout into structured result data (assistant text, tool trace, usage, model, stop reason). Consumes the `pi --mode json` output stream and extracts the final answer. Distinct from BTW Process spawning, which owns args, env, timeout, abort, stderr, and exit-code mapping.
+_Avoid_: BTW output parser, BTW result parser
+
 ### Flagged ambiguities
 
 - **BTW vs Subagent**: A BTW is not a subagent. Subagents have agent types, task directories, manifests, and stream processors. A BTW is a lightweight fork — it inherits the full conversation history and runs the same model, but has no agent definition, no task directory, and no structured output pipeline. It is closer to `ctx.fork()` than to `spawnSubagent()`.

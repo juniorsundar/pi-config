@@ -1,7 +1,7 @@
 {
-  "defaultModel": "mimo-v2.5",
-  "defaultProvider": "opencode-go-2",
-  "defaultThinkingLevel": "medium",
+  "defaultModel": "deepseek-v4-pro",
+  "defaultProvider": "opencode-go",
+  "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
   "enabledModels": [
@@ -26,7 +26,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "0.79.6",
+  "lastChangelogVersion": "0.79.7",
   "packages": [
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",

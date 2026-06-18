@@ -12,10 +12,10 @@ Spawning tests that currently carry large NDJSON fixtures to verify parsing rule
 
 ### Acceptance criteria
 
-- [ ] Spawning tests focus on args/env, spawn failure, timeout, force-kill, abort, stderr, exit-code, and no-output error
-- [ ] Spawning tests do not duplicate parser edge-case coverage
-- [ ] NDJSON fixtures in spawning tests are minimal (verify integration, not parsing rules)
-- [ ] `npm test` passes with all tests green
+- [x] Spawning tests focus on args/env, spawn failure, timeout, force-kill, abort, stderr, exit-code, and no-output error
+- [x] Spawning tests do not duplicate parser edge-case coverage
+- [x] NDJSON fixtures in spawning tests are minimal (verify integration, not parsing rules)
+- [x] `npm test` passes with all tests green
 
 ### Blocked by
 

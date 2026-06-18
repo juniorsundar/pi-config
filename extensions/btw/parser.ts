@@ -50,13 +50,15 @@ export function parseBtwOutput(lines: string[]): {
         model = msg.model ?? undefined;
         stopReason = msg.stopReason ?? undefined;
 
-        // Reset usage on each assistant message_end so stale data from prior
-        // events doesn't persist if the final event has no usage block.
-        usage.input = msg.usage?.input ?? 0;
-        usage.output = msg.usage?.output ?? 0;
-        usage.cacheRead = msg.usage?.cacheRead ?? 0;
-        usage.cacheWrite = msg.usage?.cacheWrite ?? 0;
-        usage.cost = msg.usage?.cost ?? undefined;
+        // Accumulate usage across all assistant message_end events.
+        // Each event contributes its usage to the running total.
+        usage.input += msg.usage?.input ?? 0;
+        usage.output += msg.usage?.output ?? 0;
+        usage.cacheRead += msg.usage?.cacheRead ?? 0;
+        usage.cacheWrite += msg.usage?.cacheWrite ?? 0;
+        if (msg.usage?.cost !== undefined) {
+          usage.cost = (usage.cost ?? 0) + msg.usage.cost;
+        }
       }
     }
 

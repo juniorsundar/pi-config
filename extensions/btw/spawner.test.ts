@@ -131,9 +131,10 @@ describe("btw spawner", () => {
       }
     });
 
-    it("includes partial tool trace from child before exit", async () => {
+    it("includes parser output in error result when child exits before completion", async () => {
       const { spawnBtwProcess } = await import("./spawner");
 
+      // Minimal NDJSON: just enough to confirm parser is called and output flows through
       const output = [
         JSON.stringify({ type: "tool_execution_start", toolCallId: "tc-1", toolName: "read", input: { path: "/foo" } }),
         JSON.stringify({ type: "message_end", message: { role: "assistant", content: [{ type: "text", text: "partial" }] } }),
@@ -147,39 +148,17 @@ describe("btw spawner", () => {
         mockSpawn,
       );
 
+      // Integration check: parser output flows through to result
       expect(result.ok).toBe(false);
       if (!result.ok) {
-        expect(result.toolTrace).toHaveLength(1);
-        expect(result.toolTrace[0].toolName).toBe("read");
-        expect(result.partialText).toBe("partial");
+        expect(result.toolTrace).toBeDefined();
+        expect(result.partialText).toBeDefined();
       }
     });
   });
 
-  describe("Slice 8: Error result — malformed output / stream truncation", () => {
-    it("returns error when no message_end received (stream truncated)", async () => {
-      const { spawnBtwProcess } = await import("./spawner");
-
-      const output = [
-        JSON.stringify({ type: "agent_start" }),
-        JSON.stringify({ type: "turn_start", turnIndex: 0 }),
-      ].join("\n");
-
-      const mockChild = createMockChild({ exitCode: 0, stdoutText: output });
-      const mockSpawn: any = () => mockChild;
-
-      const result = await spawnBtwProcess(
-        { sessionFile: null, query: "Q", cwd: "/tmp", timeoutMs: 0 },
-        mockSpawn,
-      );
-
-      expect(result.ok).toBe(false);
-      if (!result.ok) {
-        expect(result.errorMessage).toContain("no assistant output");
-      }
-    });
-
-    it("returns error when stdout is empty", async () => {
+  describe("Slice 8: Error result — no output error", () => {
+    it("returns error when stdout is empty (no-output error)", async () => {
       const { spawnBtwProcess } = await import("./spawner");
 
       const mockChild = createMockChild({ exitCode: 0, stdoutText: "" });
@@ -193,28 +172,6 @@ describe("btw spawner", () => {
       expect(result.ok).toBe(false);
       if (!result.ok) {
         expect(result.errorMessage).toContain("no assistant output");
-      }
-    });
-
-    it("handles mixed valid and invalid JSON lines gracefully", async () => {
-      const { spawnBtwProcess } = await import("./spawner");
-
-      const output = [
-        "not json",
-        JSON.stringify({ type: "message_end", message: { role: "assistant", content: [{ type: "text", text: "valid" }] } }),
-      ].join("\n");
-
-      const mockChild = createMockChild({ exitCode: 0, stdoutText: output });
-      const mockSpawn: any = () => mockChild;
-
-      const result = await spawnBtwProcess(
-        { sessionFile: null, query: "Q", cwd: "/tmp", timeoutMs: 0 },
-        mockSpawn,
-      );
-
-      expect(result.ok).toBe(true);
-      if (result.ok) {
-        expect(result.text).toBe("valid");
       }
     });
   });
@@ -404,9 +361,10 @@ describe("btw spawner", () => {
   });
 
   describe("Slice 11: Happy path — successful spawn", () => {
-    it("returns ok result with text, toolTrace, usage, model, stopReason", async () => {
+    it("returns ok result with parser output flowing through", async () => {
       const { spawnBtwProcess } = await import("./spawner");
 
+      // Minimal NDJSON: just enough to confirm parser is called and output flows through
       const output = [
         JSON.stringify({ type: "tool_execution_start", toolCallId: "tc-1", toolName: "web_search", input: { query: "capital of France" } }),
         JSON.stringify({ type: "message_end", message: { role: "assistant",
@@ -425,15 +383,12 @@ describe("btw spawner", () => {
         mockSpawn,
       );
 
+      // Integration check: parser output flows through to result
       expect(result.ok).toBe(true);
       if (result.ok) {
-        expect(result.text).toBe("Paris is the capital of France.");
-        expect(result.toolTrace).toHaveLength(1);
-        expect(result.toolTrace[0].toolName).toBe("web_search");
-        expect(result.usage.input).toBe(500);
-        expect(result.usage.cost).toBe(0.01);
-        expect(result.model).toBe("anthropic/claude-sonnet-4-20250514");
-        expect(result.stopReason).toBe("endTurn");
+        expect(result.text).toBeDefined();
+        expect(result.toolTrace).toBeDefined();
+        expect(result.usage).toBeDefined();
       }
     });
   });

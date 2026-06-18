@@ -14,10 +14,10 @@ Existing spawning test slices that exercise parser output through `spawnBtwProce
 
 ### Acceptance criteria
 
-- [ ] Parser tests exercise: text extraction, tool trace extraction, tool trace dedup, usage accumulation, model extraction, stop-reason extraction, malformed JSON, empty input
-- [ ] Parser tests call the parser function directly, not through `spawnBtwProcess`
-- [ ] Spawning tests continue to pass without changes to expected behavior
-- [ ] `npm test` passes with all tests green
+- [x] Parser tests exercise: text extraction, tool trace extraction, tool trace dedup, usage accumulation, model extraction, stop-reason extraction, malformed JSON, empty input
+- [x] Parser tests call the parser function directly, not through `spawnBtwProcess`
+- [x] Spawning tests continue to pass without changes to expected behavior
+- [x] `npm test` passes with all tests green
 
 ### Blocked by
 

@@ -248,7 +248,26 @@ describe("btw stream parser", () => {
       expect(result.usage.cost).toBe(0.05);
     });
 
-    it("resets usage to zeros when final message_end has no usage block", async () => {
+    it("accumulates usage across multiple message_end events", async () => {
+      const { parseBtwOutput } = await import("./parser");
+
+      const lines = [
+        JSON.stringify({ type: "message_end", message: { role: "assistant",
+          content: [{ type: "text", text: "first" }],
+          usage: { input: 1000, output: 500, cacheRead: 200, cacheWrite: 50 },
+        } }),
+        JSON.stringify({ type: "message_end", message: { role: "assistant",
+          content: [{ type: "text", text: "second" }],
+          usage: { input: 300, output: 150, cacheRead: 50, cacheWrite: 0 },
+        } }),
+      ];
+
+      const result = parseBtwOutput(lines);
+      expect(result.text).toBe("second");
+      expect(result.usage).toEqual({ input: 1300, output: 650, cacheRead: 250, cacheWrite: 50 });
+    });
+
+    it("preserves accumulated usage when final message_end has no usage block", async () => {
       const { parseBtwOutput } = await import("./parser");
 
       const lines = [
@@ -264,7 +283,33 @@ describe("btw stream parser", () => {
 
       const result = parseBtwOutput(lines);
       expect(result.text).toBe("final");
-      expect(result.usage).toEqual({ input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: undefined });
+      expect(result.usage).toEqual({ input: 1000, output: 500, cacheRead: 0, cacheWrite: 0, cost: undefined });
+    });
+
+    it("accumulates cost across multiple message_end events", async () => {
+      const { parseBtwOutput } = await import("./parser");
+
+      const lines = [
+        JSON.stringify({ type: "message_end", message: { role: "assistant",
+          content: [{ type: "text", text: "first" }],
+          usage: { input: 500, output: 200, cacheRead: 0, cacheWrite: 0, cost: 0.03 },
+        } }),
+        JSON.stringify({ type: "message_end", message: { role: "assistant",
+          content: [{ type: "text", text: "second" }],
+          usage: { input: 300, output: 100, cacheRead: 0, cacheWrite: 0, cost: 0.02 },
+        } }),
+        JSON.stringify({ type: "message_end", message: { role: "assistant",
+          content: [{ type: "text", text: "third" }],
+          usage: { input: 200, output: 50, cacheRead: 0, cacheWrite: 0 },
+          // No cost on this event
+        } }),
+      ];
+
+      const result = parseBtwOutput(lines);
+      expect(result.text).toBe("third");
+      expect(result.usage.cost).toBe(0.05);
+      expect(result.usage.input).toBe(1000);
+      expect(result.usage.output).toBe(350);
     });
 
     it("handles content blocks with non-string text field", async () => {

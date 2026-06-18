@@ -12,9 +12,9 @@ Proposed term: **BTW Stream Parser** — the module that turns raw NDJSON lines 
 
 ### Acceptance criteria
 
-- [ ] `CONTEXT.md` contains a BTW Stream Parser term under the BTW section
-- [ ] The term describes what the parser owns and how it relates to BTW Process spawning
-- [ ] The term follows the existing glossary format in `CONTEXT.md`
+- [x] `CONTEXT.md` contains a BTW Stream Parser term under the BTW section
+- [x] The term describes what the parser owns and how it relates to BTW Process spawning
+- [x] The term follows the existing glossary format in `CONTEXT.md`
 
 ### Blocked by
 
