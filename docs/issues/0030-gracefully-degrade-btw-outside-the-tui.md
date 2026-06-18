@@ -10,13 +10,13 @@ Make BTW safe and understandable in non-TUI contexts where editor widgets or cus
 
 ### Acceptance criteria
 
-- [ ] Starting a BTW side-question outside the TUI does not crash because the Spinning List is unavailable
-- [ ] Opening BTW Review outside the TUI does not crash because the custom view is unavailable
-- [ ] Non-TUI query completion has a clear fallback behavior for success results
-- [ ] Non-TUI query completion has a clear fallback behavior for error results
-- [ ] The fallback behavior does not append BTW results to the current session context
-- [ ] TUI behavior remains unchanged when TUI APIs are available
-- [ ] Tests cover non-TUI query start, non-TUI query success, non-TUI query failure, non-TUI review invocation, and normal TUI behavior
+- [x] Starting a BTW side-question outside the TUI does not crash because the Spinning List is unavailable
+- [x] Opening BTW Review outside the TUI does not crash because the custom view is unavailable
+- [x] Non-TUI query completion has a clear fallback behavior for success results
+- [x] Non-TUI query completion has a clear fallback behavior for error results
+- [x] The fallback behavior does not append BTW results to the current session context
+- [x] TUI behavior remains unchanged when TUI APIs are available
+- [x] Tests cover non-TUI query start, non-TUI query success, non-TUI query failure, non-TUI review invocation, and normal TUI behavior
 
 ### Blocked by
 

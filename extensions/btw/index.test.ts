@@ -46,6 +46,7 @@ function createMockPi() {
 
 function createMockCtx(overrides = {}) {
   return {
+    hasUI: true,
     ui: { notify: vi.fn(), custom: vi.fn(), setWidget: vi.fn() },
     cwd: "/tmp/test-cwd",
     sessionManager: {
@@ -53,6 +54,7 @@ function createMockCtx(overrides = {}) {
     },
     sendMessage: vi.fn(),
     sendUserMessage: vi.fn(),
+    ...overrides,
   };
 }
 
@@ -420,8 +422,9 @@ describe("btw extension", () => {
     it("passes sessionFile: null to spawnBtwProcess when getSessionFile returns null", async () => {
       const { default: btwExtension } = await import("./index");
       const pi = createMockPi();
-      // Build context manually to ensure sessionFile is null
+      // Build context manually to ensure sessionFile is null and hasUI is true
       const ctx = {
+        hasUI: true,
         ui: { notify: vi.fn(), custom: vi.fn() },
         cwd: "/tmp/test-cwd",
         sessionManager: { getSessionFile: vi.fn().mockReturnValue(null) },
@@ -443,6 +446,7 @@ describe("btw extension", () => {
       const { default: btwExtension } = await import("./index");
       const pi = createMockPi();
       const ctx = {
+        hasUI: true,
         ui: { notify: vi.fn(), custom: vi.fn() },
         cwd: "/tmp/test-cwd",
         sessionManager: { getSessionFile: vi.fn().mockReturnValue(null) },
@@ -472,6 +476,202 @@ describe("btw extension", () => {
     });
 
 
+  });
+
+  describe("Slice 4: Non-TUI review invocation", () => {
+    it("logs unavailable message when hasUI=false and no args", async () => {
+      vi.spyOn(console, "log").mockImplementation(() => {});
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx({ hasUI: false });
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      await handler("", ctx);
+
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining("BTW Review requires interactive mode"));
+      expect(ctx.ui.custom).not.toHaveBeenCalled();
+    });
+
+    it("logs unavailable message when hasUI=false and no args, even with completed entries", async () => {
+      vi.spyOn(console, "log").mockImplementation(() => {});
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx({ hasUI: false });
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      // First, complete a BTW to populate the registry
+      mockSpawnBtwProcess.mockResolvedValueOnce({
+        ok: true,
+        text: "completed answer",
+        toolTrace: [],
+        usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      });
+      await handler("test question", ctx);
+
+      // Now try to open review in non-TUI mode
+      await handler("", ctx);
+
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining("BTW Review requires interactive mode"));
+      expect(ctx.ui.custom).not.toHaveBeenCalled();
+      // Verify no session mutation in review path
+      expect(ctx.sendMessage).not.toHaveBeenCalled();
+      expect(ctx.sendUserMessage).not.toHaveBeenCalled();
+    });
+
+    it("logs unavailable message when hasUI=false and empty args", async () => {
+      vi.spyOn(console, "log").mockImplementation(() => {});
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx({ hasUI: false });
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      await handler("", ctx);
+
+      // Empty args triggers the review guard, not the empty question guard
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining("BTW Review requires interactive mode"));
+      expect(mockSpawnBtwProcess).not.toHaveBeenCalled();
+    });
+
+    it("logs unavailable message when hasUI=false and whitespace-only args", async () => {
+      vi.spyOn(console, "log").mockImplementation(() => {});
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx({ hasUI: false });
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      await handler("   ", ctx);
+
+      // Whitespace-only args triggers the review guard (trim makes it empty)
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining("BTW Review requires interactive mode"));
+      expect(mockSpawnBtwProcess).not.toHaveBeenCalled();
+    });
+
+    it("logs empty question warning when hasUI=false and empty quotes", async () => {
+      vi.spyOn(console, "log").mockImplementation(() => {});
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx({ hasUI: false });
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      await handler('""', ctx);
+
+      // Empty quotes after stripping triggers the empty question guard
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining("BTW: empty question."));
+      expect(mockSpawnBtwProcess).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Slice 5: Fallback does not append to session context", () => {
+    it("does not call sendMessage or sendUserMessage in non-TUI query path", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx({ hasUI: false });
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      mockSpawnBtwProcess.mockResolvedValueOnce({
+        ok: true,
+        text: "answer",
+        toolTrace: [],
+        usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      });
+      await handler("question?", ctx);
+
+      expect(ctx.sendMessage).not.toHaveBeenCalled();
+      expect(ctx.sendUserMessage).not.toHaveBeenCalled();
+    });
+
+    it("does not call sendMessage or sendUserMessage in non-TUI error path", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx({ hasUI: false });
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      mockSpawnBtwProcess.mockResolvedValueOnce({
+        ok: false,
+        errorMessage: "spawn failed",
+        exitCode: 1,
+        stderr: "error output",
+        toolTrace: [],
+      });
+      await handler("question?", ctx);
+
+      expect(ctx.sendMessage).not.toHaveBeenCalled();
+      expect(ctx.sendUserMessage).not.toHaveBeenCalled();
+    });
+
+    it("does not call sendMessage or sendUserMessage in non-TUI catch path", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx({ hasUI: false });
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      mockSpawnBtwProcess.mockRejectedValueOnce(new Error("ENOENT"));
+      await handler("question?", ctx);
+
+      expect(ctx.sendMessage).not.toHaveBeenCalled();
+      expect(ctx.sendUserMessage).not.toHaveBeenCalled();
+    });
+
+    it("logs success result to console.log in non-TUI path", async () => {
+      vi.spyOn(console, "log").mockImplementation(() => {});
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx({ hasUI: false });
+
+      mockSpawnBtwProcess.mockResolvedValueOnce({
+        ok: true,
+        text: "Paris is the capital of France.",
+        toolTrace: [],
+        usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+      });
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      await handler("capital of France?", ctx);
+
+      expect(console.log).toHaveBeenCalledWith("Paris is the capital of France.");
+      expect(ctx.ui.custom).not.toHaveBeenCalled();
+    });
+
+    it("logs error result to console.log in non-TUI path", async () => {
+      vi.spyOn(console, "log").mockImplementation(() => {});
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx({ hasUI: false });
+
+      mockSpawnBtwProcess.mockResolvedValueOnce({
+        ok: false,
+        errorMessage: "BTW process exited with code 1",
+        exitCode: 1,
+        stderr: "error output",
+        toolTrace: [],
+      });
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      await handler("failing query", ctx);
+
+      expect(console.log).toHaveBeenCalledWith("BTW process exited with code 1");
+      expect(ctx.ui.custom).not.toHaveBeenCalled();
+    });
   });
 
   describe("Issue 0029 & session_start: lifecycle event handlers", () => {
@@ -509,6 +709,27 @@ describe("btw extension", () => {
 
         // No handlers should be registered at all in child mode
         expect(pi.on).not.toHaveBeenCalled();
+      });
+
+      it("does not call setWidget when hasUI is false during session_start", async () => {
+        const { default: btwExtension } = await import("./index");
+        const pi = createMockPi();
+        const ctx = createMockCtx({ hasUI: false });
+
+        btwExtension(pi);
+
+        // Get session_start handler
+        const sessionStartCall = pi.on.mock.calls.find(
+          (c: unknown[]) => c[0] === "session_start",
+        );
+        expect(sessionStartCall).toBeDefined();
+        const sessionStartHandler = sessionStartCall![1] as (event: unknown, ctx: unknown) => Promise<void>;
+
+        // Simulate session_start with hasUI=false
+        await sessionStartHandler({}, ctx);
+
+        // Verify setWidget was NOT called
+        expect(ctx.ui.setWidget).not.toHaveBeenCalled();
       });
     });
 
