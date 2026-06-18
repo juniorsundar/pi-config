@@ -13,8 +13,6 @@ import { parseBtwOutput } from "./parser.js";
 
 // Re-export shared types for backward compatibility
 export type { BtwToolTraceEntry, BtwUsage } from "./types.js";
-// Re-export parser for consumers that import from spawner
-export { parseBtwOutput } from "./parser.js";
 
 export interface BtwSpawnOptions {
   /** Session file path to fork. Null for ephemeral (no history). */
