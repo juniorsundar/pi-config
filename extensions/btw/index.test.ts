@@ -166,6 +166,21 @@ describe("btw extension", () => {
       // Question shows notification, not custom component
       expect(ctxWithQuestion.ui.notify).toHaveBeenCalled();
     });
+
+    it("no-args review path does not append to conversation stream", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      await handler("", ctx);
+
+      // Opening the review view must not insert anything into the conversation
+      expect(ctx.sendMessage).not.toHaveBeenCalled();
+      expect(ctx.sendUserMessage).not.toHaveBeenCalled();
+    });
   });
 
   describe("Slice 5+6: /btw accepts quoted and unquoted question text", () => {
