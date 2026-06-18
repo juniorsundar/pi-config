@@ -14,55 +14,10 @@
  */
 
 import type { CompletedEntry } from "./registry.js";
+import { truncateToWidth } from "./text-utils.js";
 
 // ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Strip ANSI SGR escape sequences from a string.
- */
-function stripAnsi(str: string): string {
-  return str.replace(/\x1b\[[0-9;]*m/g, "");
-}
-
-/**
- * Return the visible (ANSI-stripped) width of a string.
- */
-function visibleWidth(str: string): number {
-  return stripAnsi(str).length;
-}
-
-/**
- * Truncate a string so that its visible width does not exceed `maxWidth`.
- * Strips ANSI codes first, truncates plain text, then appends ellipsis.
- * This avoids corrupting partial escape sequences.
- */
-function truncateToWidth(str: string, maxWidth: number, ellipsis = "…"): string {
-  const plain = stripAnsi(str);
-  if (plain.length <= maxWidth) return str;
-  // Truncate the plain text, then find where that truncation corresponds
-  // in the original string by matching prefix character by character
-  const keepLen = maxWidth - ellipsis.length;
-  let visibleCount = 0;
-  let resultEnd = 0;
-  for (let i = 0; i < str.length && visibleCount < keepLen; i++) {
-    const ch = str[i];
-    // Skip ANSI escape sequences without counting them
-    if (ch === "\x1b") {
-      // Consume the escape sequence: \x1b [ 0-9;... m
-      while (i < str.length && str[i] !== "m") i++;
-      resultEnd = i + 1; // include the 'm'
-      continue;
-    }
-    visibleCount++;
-    resultEnd = i + 1;
-  }
-  return str.slice(0, resultEnd) + ellipsis;
-}
-
-// ---------------------------------------------------------------------------
-// Minimal interfaces for testability
+// Component
 // ---------------------------------------------------------------------------
 
 export interface BtwReviewTuiLike {
@@ -135,7 +90,7 @@ export class BtwReviewComponent {
       if (isExpanded) {
         const contentIndent = 2;
         const contentWidth = Math.max(1, width - contentIndent);
-        const resultLines = this.renderExpandedContent(entry, contentWidth);
+        const resultLines = this.renderExpandedContent(entry, i, contentWidth);
         for (const rl of resultLines) {
           lines.push(`  ${truncateToWidth(rl, contentWidth)}`);
         }
@@ -144,7 +99,7 @@ export class BtwReviewComponent {
     return lines;
   }
 
-  private renderExpandedContent(entry: CompletedEntry, contentWidth: number): string[] {
+  private renderExpandedContent(entry: CompletedEntry, entryIndex: number, contentWidth: number): string[] {
     const lines: string[] = [];
     const result = entry.result;
 
@@ -171,9 +126,7 @@ export class BtwReviewComponent {
     // Tool trace — collapsed by default
     if (result.toolTrace.length > 0) {
       const traceCount = result.toolTrace.length;
-      const isTraceExpanded = this.toolTraceExpandedIndices.has(
-        this.entries.indexOf(entry),
-      );
+      const isTraceExpanded = this.toolTraceExpandedIndices.has(entryIndex);
       if (isTraceExpanded) {
         lines.push(this.theme.fg("muted", "▾ Tool trace"));
         for (const tool of result.toolTrace) {

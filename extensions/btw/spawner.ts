@@ -8,6 +8,11 @@
 
 // ── Types ───────────────────────────────────────────────────────────
 
+import type { BtwToolTraceEntry, BtwUsage } from "./types.js";
+
+// Re-export shared types for backward compatibility
+export type { BtwToolTraceEntry, BtwUsage } from "./types.js";
+
 export interface BtwSpawnOptions {
   /** Session file path to fork. Null for ephemeral (no history). */
   sessionFile: string | null;
@@ -23,19 +28,6 @@ export interface BtwSpawnOptions {
   piPath?: string;
   /** Called immediately after spawn with the child process handle. */
   onSpawn?: (child: ChildProcessLike) => void;
-}
-
-export interface BtwToolTraceEntry {
-  toolName: string;
-  args: Record<string, unknown>;
-}
-
-export interface BtwUsage {
-  input: number;
-  output: number;
-  cacheRead: number;
-  cacheWrite: number;
-  cost?: number;
 }
 
 export type BtwResult =

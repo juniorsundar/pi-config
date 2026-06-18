@@ -1,5 +1,10 @@
 // ── Types ───────────────────────────────────────────────────────────
 
+import type { BtwToolTraceEntry, BtwUsage } from "./types.js";
+
+// Re-export shared types for backward compatibility
+export type { BtwToolTraceEntry, BtwUsage } from "./types.js";
+
 /**
  * Minimal child process interface that both Node's ChildProcess and
  * the spawner's ChildProcessLike satisfy.  Keeps the registry decoupled
@@ -21,8 +26,8 @@ export interface RunningEntry {
 export interface CompletedSuccessResult {
   type: "success";
   text: string;
-  toolTrace: Array<{ toolName: string; args: Record<string, unknown> }>;
-  usage: { input: number; output: number; cacheRead: number; cacheWrite: number; cost?: number };
+  toolTrace: BtwToolTraceEntry[];
+  usage: BtwUsage;
   model?: string;
   stopReason?: string;
 }
@@ -32,7 +37,7 @@ export interface CompletedErrorResult {
   error: string;
   exitCode?: number;
   stderr?: string;
-  toolTrace: Array<{ toolName: string; args: Record<string, unknown> }>;
+  toolTrace: BtwToolTraceEntry[];
   partialText?: string;
 }
 
@@ -50,10 +55,11 @@ export interface CompletedEntry {
 export interface BtwRegistry {
   addRunning(id: string, query: string, childProcess: BtwChildProcess, abortController?: AbortController): void;
   complete(id: string, result: CompletedSuccessResult): void;
-  fail(id: string, error: string, details?: { exitCode?: number; stderr?: string; toolTrace?: Array<{ toolName: string; args: Record<string, unknown> }>; partialText?: string }): void;
+  fail(id: string, error: string, details?: { exitCode?: number; stderr?: string; toolTrace?: BtwToolTraceEntry[]; partialText?: string }): void;
   abort(id: string): void;
   getRunning(): readonly RunningEntry[];
   getCompleted(): readonly CompletedEntry[];
+  getCompletedCount(): number;
   killAll(): void;
   clear(): void;
 }
@@ -109,6 +115,10 @@ export function createRegistry(): BtwRegistry {
     getCompleted(): readonly CompletedEntry[] {
       // Newest-first (reverse chronological)
       return [...completed].reverse();
+    },
+
+    getCompletedCount(): number {
+      return completed.length;
     },
 
     killAll(): void {

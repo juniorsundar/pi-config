@@ -36,7 +36,6 @@ export const SPINNER_INTERVAL_MS = 160;
  */
 export interface TuiLike {
   requestRender(): void;
-  terminal: { rows: number };
 }
 
 export class SpinningListComponent {
@@ -47,20 +46,24 @@ export class SpinningListComponent {
     private readonly registry: BtwRegistry,
     private readonly tui: TuiLike,
   ) {
-    this.startAnimation();
+    // Timer starts lazily on first render with running entries
   }
 
   // ── Component interface ───────────────────────────────────────────
 
   render(width: number): string[] {
     const running = this.registry.getRunning();
-    if (running.length === 0) return [];
+    if (running.length === 0) {
+      this.stopAnimation();
+      return [];
+    }
+    this.ensureAnimation();
 
-    const completed = this.registry.getCompleted();
-    const total = running.length + completed.length;
+    const completedCount = this.registry.getCompletedCount();
+    const total = running.length + completedCount;
     const spinner = SPINNER_FRAMES[this.frame % SPINNER_FRAMES.length];
 
-    const lines: string[] = [`● btw (${completed.length}/${total})`];
+    const lines: string[] = [`● btw (${completedCount}/${total})`];
 
     for (let i = 0; i < running.length; i++) {
       const prefix = i === running.length - 1 ? " └─ " : " ├─ ";
@@ -87,9 +90,13 @@ export class SpinningListComponent {
     // No state to invalidate; render() reads fresh from registry each call.
   }
 
+  dispose(): void {
+    this.stopAnimation();
+  }
+
   // ── Animation ─────────────────────────────────────────────────────
 
-  private startAnimation(): void {
+  private ensureAnimation(): void {
     if (this.timer) return;
     this.timer = setInterval(() => {
       this.frame++;
@@ -100,7 +107,7 @@ export class SpinningListComponent {
     }
   }
 
-  dispose(): void {
+  private stopAnimation(): void {
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = null;

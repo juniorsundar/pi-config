@@ -33,13 +33,13 @@ export interface BtwTimeoutResult {
 
 /**
  * Get the paths to search for settings.json files.
- * Searches global (~/.pi/agent/settings.json) first, then project-local (.pi/settings.json).
+ * Searches project-local (.pi/settings.json) first, then global (~/.pi/agent/settings.json).
  */
 function getSettingsPaths(): string[] {
   const home = homedir();
   return [
-    join(home, ".pi", "agent", "settings.json"),
     join(process.cwd(), ".pi", "settings.json"),
+    join(home, ".pi", "agent", "settings.json"),
   ];
 }
 
@@ -70,7 +70,7 @@ export function parseBtwTimeout(raw: Record<string, unknown> | null | undefined)
 /**
  * Load the BTW timeout from pi settings.
  *
- * Searches global (~/.pi/agent/settings.json) first, then project-local (.pi/settings.json).
+ * Searches project-local (.pi/settings.json) first, then global (~/.pi/agent/settings.json).
  * The first file found with a `btw.timeoutMs` key wins.
  *
  * @returns Parsed timeout result with source attribution

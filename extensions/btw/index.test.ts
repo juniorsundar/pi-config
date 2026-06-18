@@ -22,8 +22,9 @@ vi.mock("./timeout-config.js", () => ({
 }));
 
 // Mock the spinning-list module
+const mockSpinningListComponent = vi.fn();
 vi.mock("./spinning-list.js", () => ({
-  SpinningListComponent: vi.fn(),
+  SpinningListComponent: mockSpinningListComponent,
 }));
 
 // Mock the review module
@@ -67,6 +68,14 @@ function getShutdownHandler(pi: ReturnType<typeof createMockPi>): () => Promise<
 
 describe("btw extension", () => {
   afterEach(() => {
+    mockSpawnBtwProcess.mockReset();
+    mockSpawnBtwProcess.mockResolvedValue({
+      ok: true,
+      text: "mocked answer",
+      toolTrace: [],
+      usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+    });
+    mockSpinningListComponent.mockReset();
     vi.restoreAllMocks();
     // Reset PI_BTW_CHILD between tests
     delete process.env.PI_BTW_CHILD;

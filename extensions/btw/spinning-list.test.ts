@@ -23,6 +23,7 @@ function createMockRegistry(
     fail: vi.fn(),
     getRunning: () => running,
     getCompleted: () => completed,
+    getCompletedCount: () => completed.length,
     killAll: vi.fn(),
     clear: vi.fn(),
   };
