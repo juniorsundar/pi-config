@@ -63,10 +63,10 @@ export class SpinningListComponent {
     const total = running.length + completedCount;
     const spinner = SPINNER_FRAMES[this.frame % SPINNER_FRAMES.length];
 
-    const lines: string[] = [`● btw (${completedCount}/${total})`];
+    const lines: string[] = [`○ btw (${completedCount}/${total})`];
 
     for (let i = 0; i < running.length; i++) {
-      const prefix = i === running.length - 1 ? " └─ " : " ├─ ";
+      const prefix = i === running.length - 1 ? "└─ " : "├─ ";
 
       // Compute available width for the question text.
       // prefix = 4 chars (e.g. " └─ "), spinner = 2 chars, space = 1 char

@@ -187,7 +187,7 @@ describe("Slice 4: Header shows BTW progress count", () => {
     const component = new SpinningListComponent(registry, tui);
 
     const lines = component.render(80);
-    expect(lines[0]).toBe("● btw (0/1)");
+    expect(lines[0]).toBe("○ btw (0/1)");
   });
 
   it("header shows completed/total ratio when some have finished", () => {
@@ -207,7 +207,7 @@ describe("Slice 4: Header shows BTW progress count", () => {
 
     const lines = component.render(80);
     // 3 completed + 2 running = 5 total
-    expect(lines[0]).toBe("● btw (3/5)");
+    expect(lines[0]).toBe("○ btw (3/5)");
     // Only running entries are shown as items
     expect(lines).toHaveLength(3); // header + 2 running items
   });
@@ -226,7 +226,7 @@ describe("Slice 4: Header shows BTW progress count", () => {
 
     const lines = component.render(80);
     // .length works regardless of order
-    expect(lines[0]).toBe("● btw (2/3)");
+    expect(lines[0]).toBe("○ btw (2/3)");
   });
 });
 
@@ -248,7 +248,7 @@ describe("Slice 3: Multiple running BTW entries", () => {
 
     // Header + 3 items = 4 lines
     expect(lines).toHaveLength(4);
-    expect(lines[0]).toContain("● btw");
+    expect(lines[0]).toContain("○ btw");
     expect(lines[1]).toContain("First query");
     expect(lines[2]).toContain("Second query");
     expect(lines[3]).toContain("Third query");
@@ -294,7 +294,7 @@ describe("Slice 1: Tracer bullet — one running BTW entry", () => {
     const lines = component.render(80);
 
     expect(lines.length).toBeGreaterThanOrEqual(2);
-    expect(lines[0]).toContain("● btw");
+    expect(lines[0]).toContain("○ btw");
     expect(lines[0]).toContain("(0/1)");
   });
 

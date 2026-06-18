@@ -1,7 +1,7 @@
 {
-  "defaultModel": "gpt-5.5",
-  "defaultProvider": "openai-codex",
-  "defaultThinkingLevel": "high",
+  "defaultModel": "mimo-v2.5",
+  "defaultProvider": "opencode-go-2",
+  "defaultThinkingLevel": "medium",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
   "enabledModels": [

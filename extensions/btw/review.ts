@@ -49,6 +49,7 @@ export class BtwReviewComponent {
   private scrollOffset = 0;
   private viewportHeight = 40; // default estimate, updated by TUI
   private entryLineRanges: Array<{ start: number; end: number }> = [];
+  private shouldEnsureSelectedVisible = false;
 
   constructor(
     private readonly entries: readonly CompletedEntry[],
@@ -77,17 +78,23 @@ export class BtwReviewComponent {
     // Track line ranges for each entry
     this.computeEntryLineRanges(allLines, width);
 
-    // Ensure selected entry is in the visible viewport
-    this.ensureSelectedVisible();
+    // Auto-scroll only after selection movement. Do not do this after arrow-key
+    // viewport scrolling, or the render pass will snap back to the selected item.
+    if (this.shouldEnsureSelectedVisible) {
+      this.ensureSelectedVisible();
+      this.shouldEnsureSelectedVisible = false;
+    }
+
+    const maxScroll = Math.max(0, allLines.length - this.viewportHeight);
+    this.scrollOffset = Math.min(Math.max(0, this.scrollOffset), maxScroll);
 
     // Slice to viewport
     const visible = allLines.slice(this.scrollOffset, this.scrollOffset + this.viewportHeight);
 
     // Add scroll indicator if content overflows
     if (allLines.length > this.viewportHeight && visible.length > 0) {
-      const maxScroll = allLines.length - this.viewportHeight;
       const scrollPct = maxScroll > 0 ? Math.round((this.scrollOffset / maxScroll) * 100) : 0;
-      const indicator = this.theme.fg("dim", `── ${scrollPct}% · ↑↓ scroll · Enter expand · Esc close ──`);
+      const indicator = this.theme.fg("dim", `── ${scrollPct}% · ↑↓ select · j/k scroll · Enter expand · Esc close ──`);
       if (this.scrollOffset + this.viewportHeight < allLines.length) {
         visible[visible.length - 1] = indicator;
       }
@@ -278,27 +285,29 @@ export class BtwReviewComponent {
 
     if (this.entries.length === 0) return;
 
-    // ── Selection movement (vim-style j/k) ──
-    if (data === "k") {
-      // k — move selection up
+    // ── Selection movement (arrow keys) ──
+    if (data === "\x1b[A") {
+      // Up arrow — move selection up
       if (this.selectedIndex > 0) {
         this.selectedIndex--;
+        this.shouldEnsureSelectedVisible = true;
         this.tui.requestRender();
       }
-    } else if (data === "j") {
-      // j — move selection down
+    } else if (data === "\x1b[B") {
+      // Down arrow — move selection down
       if (this.selectedIndex < this.entries.length - 1) {
         this.selectedIndex++;
+        this.shouldEnsureSelectedVisible = true;
         this.tui.requestRender();
       }
     }
-    // ── Viewport scroll (arrow keys, Page Up/Down, Ctrl+D/U) ──
-    else if (data === "\x1b[A") {
-      // Up arrow — scroll viewport up
+    // ── Viewport scroll (j/k, Page Up/Down, Ctrl+D/U) ──
+    else if (data === "k") {
+      // k — scroll viewport up
       this.scrollOffset = Math.max(0, this.scrollOffset - 1);
       this.tui.requestRender();
-    } else if (data === "\x1b[B") {
-      // Down arrow — scroll viewport down
+    } else if (data === "j") {
+      // j — scroll viewport down
       this.scrollOffset++;
       this.tui.requestRender();
     } else if (data === "\x1b[5~") {
@@ -325,14 +334,24 @@ export class BtwReviewComponent {
     } else if (data === "G") {
       // G — go to bottom
       this.selectedIndex = this.entries.length - 1;
+      this.shouldEnsureSelectedVisible = true;
       this.tui.requestRender();
     }
-    // ── Toggle expand/collapse ──
+    // ── Space: always toggle entry expand/collapse ──
+    else if (data === " ") {
+      if (this.expandedIndices.has(this.selectedIndex)) {
+        this.expandedIndices.delete(this.selectedIndex);
+      } else {
+        this.expandedIndices.add(this.selectedIndex);
+      }
+      this.scrollOffset = 0;
+      this.tui.requestRender();
+    }
+    // ── Enter: toggle expand/collapse, or toggle tool trace if entry has tools ──
     else if (
-      data === "\r" || data === "\x0f" ||
+      data === "\r" ||
       (this.keybindings?.matches(data, "tui.select.confirm") ?? false)
     ) {
-      // Enter, Ctrl+O, or configured confirm key
       const entry = this.entries[this.selectedIndex];
       const isExpanded = this.expandedIndices.has(this.selectedIndex);
       const hasToolTrace = isExpanded && entry?.result.toolTrace.length > 0;
@@ -352,7 +371,6 @@ export class BtwReviewComponent {
           this.expandedIndices.add(this.selectedIndex);
         }
       }
-      // Reset scroll when expanding so content is visible
       this.scrollOffset = 0;
       this.tui.requestRender();
     }
