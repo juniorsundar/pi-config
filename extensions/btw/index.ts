@@ -1,6 +1,6 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { loadBtwTimeout } from "./timeout-config.js";
-import { createRegistry } from "./registry.js";
+import { createRegistry, type BtwChildProcess } from "./registry.js";
 import { SpinningListComponent } from "./spinning-list.js";
 import { BtwReviewComponent } from "./review.js";
 import { spawnBtwProcess } from "./spawner.js";
@@ -25,10 +25,11 @@ export default function btwExtension(pi: ExtensionAPI) {
     );
   });
 
-  // Clean up running BTW processes on session shutdown
+  // Clean up running BTW processes on session shutdown.
+  // Completed results are preserved so the BTW Review remains available
+  // within the session. A fresh clear() happens on the next session_start.
   pi.on("session_shutdown", async () => {
     btwRegistry.killAll();
-    btwRegistry.clear();
   });
 
   pi.registerCommand("btw", {
@@ -43,7 +44,7 @@ export default function btwExtension(pi: ExtensionAPI) {
       }
 
       // Strip surrounding quotes from query
-      const query = args.trim().replace(/^["']|["']$/g, "");
+      const query = args.trim().replace(/^["']|["']$/g, "").trim();
       if (!query) {
         await ctx.ui.notify("BTW: empty question.", "warning");
         return;
@@ -56,7 +57,7 @@ export default function btwExtension(pi: ExtensionAPI) {
       const sessionFile = ctx.sessionManager.getSessionFile() ?? null;
 
       // Generate unique ID for this BTW process
-      const btwId = `btw-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+      const btwId = generateBtwId();
 
       try {
         const abortController = new AbortController();
@@ -67,7 +68,7 @@ export default function btwExtension(pi: ExtensionAPI) {
           timeoutMs: timeout,
           signal: abortController.signal,
           onSpawn: (child) => {
-            btwRegistry.addRunning(btwId, query, child as any, abortController);
+            btwRegistry.addRunning(btwId, query, child as BtwChildProcess, abortController);
           },
         });
 
@@ -80,7 +81,7 @@ export default function btwExtension(pi: ExtensionAPI) {
             model: result.model,
             stopReason: result.stopReason,
           });
-          await ctx.ui.notify(`BTW: ${result.text.slice(0, 200)}${result.text.length > 200 ? "..." : ""}`, "info");
+          await ctx.ui.notify(`BTW: ${truncate(result.text, 200)}`, "info");
         } else {
           btwRegistry.fail(btwId, result.errorMessage, {
             exitCode: result.exitCode,
@@ -97,4 +98,15 @@ export default function btwExtension(pi: ExtensionAPI) {
       }
     },
   });
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────
+
+function generateBtwId(): string {
+  return `btw-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+}
+
+function truncate(text: string, maxLen: number): string {
+  if (text.length <= maxLen) return text;
+  return `${text.slice(0, maxLen)}...`;
 }

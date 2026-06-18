@@ -238,6 +238,27 @@ describe("BTW Registry", () => {
       const registry = createRegistry();
       expect(() => registry.killAll()).not.toThrow();
     });
+
+    it("killAll() preserves completed entries", () => {
+      const registry = createRegistry();
+      registry.addRunning("btw-1", "Q1", { pid: 1, kill: () => {} } as any);
+      registry.complete("btw-1", { type: "success", text: "OK", toolTrace: [], usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } });
+
+      // After completion, running is empty, completed has the entry
+      expect(registry.getRunning()).toHaveLength(0);
+      expect(registry.getCompleted()).toHaveLength(1);
+
+      // killAll should not affect completed entries
+      registry.killAll();
+
+      expect(registry.getCompleted()).toHaveLength(1);
+      const entry = registry.getCompleted()[0];
+      expect(entry.id).toBe("btw-1");
+      expect(entry.result.type).toBe("success");
+      if (entry.result.type === "success") {
+        expect(entry.result.text).toBe("OK");
+      }
+    });
   });
 
   describe("Slice 7: clear — resets all state", () => {

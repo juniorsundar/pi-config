@@ -10,13 +10,13 @@ Ensure BTW Processes do not outlive the pi session that spawned them. When the s
 
 ### Acceptance criteria
 
-- [ ] The BTW extension registers a session-shutdown lifecycle handler when supported by the extension API
-- [ ] Session shutdown requests termination of all running BTW Processes
-- [ ] Shutdown termination uses the registry kill-all behavior
-- [ ] Terminated BTW Processes do not remain in the running state
-- [ ] Repeated shutdown handling is safe and idempotent
-- [ ] Shutdown handling does not terminate already-completed BTW results
-- [ ] Tests cover shutdown with no running processes, one running process, multiple running processes, repeated shutdown, and completed-result preservation
+- [x] The BTW extension registers a session-shutdown lifecycle handler when supported by the extension API
+- [x] Session shutdown requests termination of all running BTW Processes
+- [x] Shutdown termination uses the registry kill-all behavior
+- [x] Terminated BTW Processes do not remain in the running state
+- [x] Repeated shutdown handling is safe and idempotent
+- [x] Shutdown handling does not terminate already-completed BTW results
+- [x] Tests cover shutdown with no running processes, one running process, multiple running processes, repeated shutdown, and completed-result preservation
 
 ### Blocked by
 

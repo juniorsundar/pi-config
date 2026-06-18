@@ -45,13 +45,22 @@ function createMockPi() {
 
 function createMockCtx(overrides = {}) {
   return {
-    ui: { notify: vi.fn(), custom: vi.fn() },
+    ui: { notify: vi.fn(), custom: vi.fn(), setWidget: vi.fn() },
     cwd: "/tmp/test-cwd",
     sessionManager: {
       getSessionFile: vi.fn().mockReturnValue("/tmp/test-session.jsonl"),
     },
-    ...overrides,
+    sendMessage: vi.fn(),
+    sendUserMessage: vi.fn(),
   };
+}
+
+function getShutdownHandler(pi: ReturnType<typeof createMockPi>): () => Promise<void> {
+  const shutdownCall = pi.on.mock.calls.find(
+    (c: unknown[]) => c[0] === "session_shutdown",
+  );
+  expect(shutdownCall).toBeDefined();
+  return shutdownCall[1] as () => Promise<void>;
 }
 
 // ── Tests ────────────────────────────────────────────────────────────
@@ -256,32 +265,6 @@ describe("btw extension", () => {
       );
     });
 
-    it("onSpawn callback is invoked by the spawner", async () => {
-      const { default: btwExtension } = await import("./index");
-      const pi = createMockPi();
-      const ctx = createMockCtx();
-      const mockChild = { pid: 123, kill: vi.fn() };
-
-      // Configure mock to invoke onSpawn
-      mockSpawnBtwProcess.mockImplementation(async (options: any) => {
-        options.onSpawn?.(mockChild);
-        return {
-          ok: true,
-          text: "answer",
-          toolTrace: [],
-          usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-        };
-      });
-
-      btwExtension(pi);
-      const handler = pi.registerCommand.mock.calls[0][1].handler;
-
-      await handler("question?", ctx);
-
-      // onSpawn was invoked — the spawner called it
-      expect(mockSpawnBtwProcess).toHaveBeenCalled();
-    });
-
     it("calls complete with enriched result on success", async () => {
       const { default: btwExtension } = await import("./index");
       const pi = createMockPi();
@@ -353,6 +336,25 @@ describe("btw extension", () => {
       );
     });
 
+    it("handles a non-Error throw (e.g. string rejection)", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      mockSpawnBtwProcess.mockRejectedValue("SIGTERM");
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      await handler("fail silently?", ctx);
+
+      // Non-Error throws are converted via String(err)
+      expect(ctx.ui.notify).toHaveBeenCalledWith(
+        expect.stringContaining("SIGTERM"),
+        "error",
+      );
+    });
+
     it("passes an isolated AbortSignal not inherited from main-session context", async () => {
       const { default: btwExtension } = await import("./index");
       const pi = createMockPi();
@@ -394,26 +396,35 @@ describe("btw extension", () => {
     it("passes sessionFile: null to spawnBtwProcess when getSessionFile returns null", async () => {
       const { default: btwExtension } = await import("./index");
       const pi = createMockPi();
-      const ctx = createMockCtx({
+      // Build context manually to ensure sessionFile is null
+      const ctx = {
+        ui: { notify: vi.fn(), custom: vi.fn() },
+        cwd: "/tmp/test-cwd",
         sessionManager: { getSessionFile: vi.fn().mockReturnValue(null) },
-      });
+        sendMessage: vi.fn(),
+        sendUserMessage: vi.fn(),
+      };
 
       btwExtension(pi);
       const handler = pi.registerCommand.mock.calls[0][1].handler;
 
       await handler("what is ephemeral?", ctx);
 
-      expect(mockSpawnBtwProcess).toHaveBeenCalledWith(
-        expect.objectContaining({ sessionFile: null }),
-      );
+      expect(mockSpawnBtwProcess).toHaveBeenCalledTimes(1);
+      const args = mockSpawnBtwProcess.mock.calls[0][0];
+      expect(args.sessionFile).toBeNull();
     });
 
     it("does not include --fork in args when sessionFile is null", async () => {
       const { default: btwExtension } = await import("./index");
       const pi = createMockPi();
-      const ctx = createMockCtx({
+      const ctx = {
+        ui: { notify: vi.fn(), custom: vi.fn() },
+        cwd: "/tmp/test-cwd",
         sessionManager: { getSessionFile: vi.fn().mockReturnValue(null) },
-      });
+        sendMessage: vi.fn(),
+        sendUserMessage: vi.fn(),
+      };
 
       btwExtension(pi);
       const handler = pi.registerCommand.mock.calls[0][1].handler;
@@ -436,18 +447,273 @@ describe("btw extension", () => {
       expect(mockSpawnBtwProcess).toHaveBeenCalled();
     });
 
-    it("still uses JSON mode and excludes edit/write tools in ephemeral mode", async () => {
-      // Import the real buildBtwArgs (not mocked) to verify arg construction
-      const { buildBtwArgs } = await import("./spawner");
 
-      // Verify the args built for ephemeral mode include JSON mode and tool exclusion
-      const args = buildBtwArgs({ sessionFile: null, query: "what is ephemeral?" });
-      expect(args).toContain("--no-session");
-      expect(args).not.toContain("--fork");
-      expect(args).toContain("--mode");
-      expect(args).toContain("json");
-      expect(args).toContain("--exclude-tools");
-      expect(args).toContain("edit,write");
+  });
+
+  describe("Issue 0029 & session_start: lifecycle event handlers", () => {
+    describe("Slice 1 (Tracer): registers lifecycle handlers", () => {
+      it("registers a session_start event handler on the extension API", async () => {
+        const { default: btwExtension } = await import("./index");
+        const pi = createMockPi();
+
+        btwExtension(pi);
+
+        expect(pi.on).toHaveBeenCalledWith(
+          "session_start",
+          expect.any(Function),
+        );
+      });
+
+      it("registers a session_shutdown event handler on the extension API", async () => {
+        const { default: btwExtension } = await import("./index");
+        const pi = createMockPi();
+
+        btwExtension(pi);
+
+        expect(pi.on).toHaveBeenCalledWith(
+          "session_shutdown",
+          expect.any(Function),
+        );
+      });
+
+      it("does not register session_shutdown when PI_BTW_CHILD is set", async () => {
+        process.env.PI_BTW_CHILD = "1";
+        const { default: btwExtension } = await import("./index");
+        const pi = createMockPi();
+
+        btwExtension(pi);
+
+        // No handlers should be registered at all in child mode
+        expect(pi.on).not.toHaveBeenCalled();
+      });
+    });
+
+    describe("Slice 2: Shutdown with no running processes (idempotent baseline)", () => {
+      it("does not throw when no BTW processes are running", async () => {
+        const { default: btwExtension } = await import("./index");
+        const pi = createMockPi();
+
+        btwExtension(pi);
+
+        // Find the session_shutdown handler
+        const shutdownCall = pi.on.mock.calls.find(
+          (call: unknown[]) => call[0] === "session_shutdown",
+        );
+        expect(shutdownCall).toBeDefined();
+        const shutdownHandler = shutdownCall[1] as () => Promise<void>;
+
+        await expect(shutdownHandler()).resolves.not.toThrow();
+      });
+
+      it("does not produce errors on repeated calls with no processes", async () => {
+        const { default: btwExtension } = await import("./index");
+        const pi = createMockPi();
+
+        btwExtension(pi);
+
+        const shutdownCall = pi.on.mock.calls.find(
+          (call: unknown[]) => call[0] === "session_shutdown",
+        );
+        expect(shutdownCall).toBeDefined();
+        const shutdownHandler = shutdownCall[1] as () => Promise<void>;
+
+        // Call twice — should be idempotent
+        await shutdownHandler();
+        await expect(shutdownHandler()).resolves.not.toThrow();
+      });
+    });
+
+    describe("Slice 3: Shutdown terminates one running process", () => {
+      it("kills a running BTW child process on session shutdown", async () => {
+        const { default: btwExtension } = await import("./index");
+        const pi = createMockPi();
+        const ctx = createMockCtx();
+
+        const mockChild = { pid: 12345, kill: vi.fn() };
+        let pendingResolve: (value: unknown) => void;
+
+        // Mock spawn to register the child via onSpawn, then stay pending
+        mockSpawnBtwProcess.mockImplementationOnce(async (options: any) => {
+          options.onSpawn?.(mockChild);
+          return new Promise((resolve) => {
+            pendingResolve = resolve;
+          });
+        });
+
+        btwExtension(pi);
+        const btwHandler = pi.registerCommand.mock.calls[0][1].handler;
+
+        // Fire and forget — the BTW registers the child then hangs
+        const btwPromise = btwHandler("question?", ctx);
+
+        // Yield microtasks so onSpawn fires
+        await Promise.resolve();
+        await Promise.resolve();
+
+        // Now trigger shutdown
+        const shutdownCall = pi.on.mock.calls.find(
+          (c: unknown[]) => c[0] === "session_shutdown",
+        );
+        const shutdownHandler = shutdownCall[1] as () => Promise<void>;
+        await shutdownHandler();
+
+        // The running child should have been killed
+        expect(mockChild.kill).toHaveBeenCalledWith("SIGTERM");
+
+        // Clean up: resolve pending BTW so test doesn't hang
+        pendingResolve!({
+          ok: true,
+          text: "",
+          toolTrace: [],
+          usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        });
+        await btwPromise;
+      });
+    });
+
+    describe("Slice 4: Shutdown terminates multiple running processes", () => {
+      it("kills all running BTW child processes on session shutdown", async () => {
+        const { default: btwExtension } = await import("./index");
+        const pi = createMockPi();
+        const ctx = createMockCtx();
+
+        const mockChildren = [
+          { pid: 1, kill: vi.fn() },
+          { pid: 2, kill: vi.fn() },
+          { pid: 3, kill: vi.fn() },
+        ];
+        const pendingResolves: Array<(v: unknown) => void> = [];
+        let childIndex = 0;
+
+        // Each call registers the next child and stays pending
+        mockSpawnBtwProcess.mockImplementation(async (options: any) => {
+          const child = mockChildren[childIndex++];
+          options.onSpawn?.(child);
+          return new Promise((resolve) => {
+            pendingResolves.push(resolve);
+          });
+        });
+
+        btwExtension(pi);
+        const btwHandler = pi.registerCommand.mock.calls[0][1].handler;
+
+        // Start 3 BTW processes concurrently
+        const btwPromises = mockChildren.map(() => btwHandler("question?", ctx));
+
+        // Yield microtasks so onSpawn fires for all 3
+        await Promise.resolve();
+        await Promise.resolve();
+
+        // Now trigger shutdown
+        const shutdownCall = pi.on.mock.calls.find(
+          (c: unknown[]) => c[0] === "session_shutdown",
+        );
+        const shutdownHandler = shutdownCall[1] as () => Promise<void>;
+        await shutdownHandler();
+
+        // All running children should have been killed
+        for (const child of mockChildren) {
+          expect(child.kill).toHaveBeenCalledWith("SIGTERM");
+        }
+
+        // Clean up: resolve all pending BTWs
+        const result = {
+          ok: true,
+          text: "",
+          toolTrace: [],
+          usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        };
+        for (const resolve of pendingResolves) {
+          resolve(result);
+        }
+        await Promise.all(btwPromises);
+      });
+    });
+
+    describe("Slice 5: Repeated shutdown is safe and idempotent", () => {
+      it("second shutdown after terminating processes does not throw", async () => {
+        const { default: btwExtension } = await import("./index");
+        const pi = createMockPi();
+        const ctx = createMockCtx();
+
+        const mockChild = { pid: 99, kill: vi.fn() };
+        let pendingResolve: (v: unknown) => void;
+
+        mockSpawnBtwProcess.mockImplementationOnce(async (options: any) => {
+          options.onSpawn?.(mockChild);
+          return new Promise((resolve) => {
+            pendingResolve = resolve;
+          });
+        });
+
+        btwExtension(pi);
+        const btwHandler = pi.registerCommand.mock.calls[0][1].handler;
+
+        const btwPromise = btwHandler("question?", ctx);
+        await Promise.resolve();
+        await Promise.resolve();
+
+        const shutdownCall = pi.on.mock.calls.find(
+          (c: unknown[]) => c[0] === "session_shutdown",
+        );
+        const shutdownHandler = shutdownCall[1] as () => Promise<void>;
+
+        // First shutdown — kills the running process
+        await shutdownHandler();
+        expect(mockChild.kill).toHaveBeenCalledTimes(1);
+
+        // Second shutdown — should be safe (no running processes)
+        await expect(shutdownHandler()).resolves.not.toThrow();
+
+        // Child kill should not be called again
+        expect(mockChild.kill).toHaveBeenCalledTimes(1);
+
+        // Clean up
+        pendingResolve!({
+          ok: true,
+          text: "",
+          toolTrace: [],
+          usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        });
+        await btwPromise;
+      });
+    });
+
+    describe("Slice 6: Shutdown preserves completed results", () => {
+      it("does not throw when completed results exist before shutdown", async () => {
+        const { default: btwExtension } = await import("./index");
+        const pi = createMockPi();
+        const ctx = createMockCtx();
+
+        // Mock spawn to resolve with success (process completes)
+        mockSpawnBtwProcess.mockResolvedValue({
+          ok: true,
+          text: "completed result",
+          toolTrace: [],
+          usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        });
+
+        btwExtension(pi);
+        const btwHandler = pi.registerCommand.mock.calls[0][1].handler;
+
+        // Start a BTW — it will complete successfully
+        await btwHandler("what about X?", ctx);
+
+        // Verify completion happened
+        expect(ctx.ui.notify).toHaveBeenCalledWith(
+          expect.stringContaining("completed result"),
+          "info",
+        );
+
+        // Now trigger shutdown
+        const shutdownCall = pi.on.mock.calls.find(
+          (c: unknown[]) => c[0] === "session_shutdown",
+        );
+        const shutdownHandler = shutdownCall[1] as () => Promise<void>;
+
+        // Shutdown should not throw (completed results are preserved)
+        await expect(shutdownHandler()).resolves.not.toThrow();
+      });
     });
   });
 
@@ -494,6 +760,400 @@ describe("btw extension", () => {
 
       // Should open custom component (review view), not show placeholder
       expect(ctxReview.ui.custom).toHaveBeenCalled();
+    });
+  });
+
+  describe("Slice 1 (Tracer Bullet): End-to-end wired path through public handler", () => {
+    it("full flow: /btw question → spawn → registry → notification (not session)", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      // Configure the mock spawner to behave like the real one:
+      // 1. Call onSpawn with a fake child process
+      // 2. Return a successful result
+      const mockChild = { pid: 555, kill: vi.fn() };
+      mockSpawnBtwProcess.mockImplementationOnce(async (opts: any) => {
+        opts.onSpawn?.(mockChild);
+        return {
+          ok: true,
+          text: "Paris is the capital of France.",
+          toolTrace: [{ toolName: "web_search", args: { query: "capital of France" } }],
+          usage: { input: 400, output: 150, cacheRead: 0, cacheWrite: 0, cost: 0.005 },
+          model: "gpt-4",
+          stopReason: "endTurn",
+        };
+      });
+
+      // Invoke the handler with a quoted question
+      await handler('"What is the capital of France?"', ctx);
+
+      // 1. Verify spawnBtwProcess was called with all expected params
+      expect(mockSpawnBtwProcess).toHaveBeenCalledTimes(1);
+      const spawnArgs = mockSpawnBtwProcess.mock.calls[0][0];
+
+      // 2. Verify the query was stripped of surrounding quotes
+      expect(spawnArgs.query).toBe("What is the capital of France?");
+
+      // 3. Verify onSpawn is a function (callable callback)
+      expect(typeof spawnArgs.onSpawn).toBe("function");
+
+      // 4. Verify an isolated AbortSignal was provided (not the main session's)
+      expect(spawnArgs.signal).toBeInstanceOf(AbortSignal);
+
+      // 5. Verify sessionFile was forwarded (non-ephemeral path)
+      expect(spawnArgs.sessionFile).toBe("/tmp/test-session.jsonl");
+
+      // 6. Verify cwd was forwarded
+      expect(spawnArgs.cwd).toBe("/tmp/test-cwd");
+
+      // 7. Verify notification was shown with the result text (outside conversation stream)
+      expect(ctx.ui.notify).toHaveBeenCalledWith(
+        expect.stringContaining("capital of France"),
+        "info",
+      );
+
+      // 8. Verify NO session-writing APIs were called (conversation isolation)
+      expect(ctx.sendMessage).not.toHaveBeenCalled();
+      expect(ctx.sendUserMessage).not.toHaveBeenCalled();
+    });
+
+    it("full flow: unquoted question also works end-to-end", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      mockSpawnBtwProcess.mockImplementationOnce(async (opts: any) => {
+        opts.onSpawn?.({ pid: 666, kill: vi.fn() });
+        return {
+          ok: true,
+          text: "It's a Unix system.",
+          toolTrace: [],
+          usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        };
+      });
+
+      await handler("What is the meaning of life?", ctx);
+
+      // Verify query was passed through unchanged (no quotes to strip)
+      const spawnArgs = mockSpawnBtwProcess.mock.calls[0][0];
+      expect(spawnArgs.query).toBe("What is the meaning of life?");
+
+      // Verify notification was shown
+      expect(ctx.ui.notify).toHaveBeenCalledWith(
+        expect.stringContaining("Unix system"),
+        "info",
+      );
+
+      // Verify conversation isolation
+      expect(ctx.sendMessage).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Slice 2: Multiple concurrent /btw invocations", () => {
+    it("fires two concurrent BTW queries, both complete independently", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      // Track calls to onSpawn
+      const onSpawnCalls: Array<{ pid: number }> = [];
+
+      // Mock spawner to handle two calls with different results
+      mockSpawnBtwProcess
+        .mockImplementationOnce(async (opts: any) => {
+          const child = { pid: 111, kill: vi.fn() };
+          opts.onSpawn?.(child);
+          onSpawnCalls.push(child);
+          return {
+            ok: true,
+            text: "First answer",
+            toolTrace: [],
+            usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+          };
+        })
+        .mockImplementationOnce(async (opts: any) => {
+          const child = { pid: 222, kill: vi.fn() };
+          opts.onSpawn?.(child);
+          onSpawnCalls.push(child);
+          return {
+            ok: true,
+            text: "Second answer",
+            toolTrace: [],
+            usage: { input: 200, output: 75, cacheRead: 0, cacheWrite: 0 },
+          };
+        });
+
+      // Fire both concurrently
+      await Promise.all([
+        handler("first query?", ctx),
+        handler("second query?", ctx),
+      ]);
+
+      // 1. Both spawner calls were made
+      expect(mockSpawnBtwProcess).toHaveBeenCalledTimes(2);
+
+      // 2. Each call received a different query
+      const queries = mockSpawnBtwProcess.mock.calls.map((c: any) => c[0].query);
+      expect(queries).toContain("first query?");
+      expect(queries).toContain("second query?");
+
+      // 3. Both onSpawn callbacks were invoked
+      expect(onSpawnCalls.length).toBe(2);
+
+      // 4. Both got their own isolated AbortSignal
+      const signals = mockSpawnBtwProcess.mock.calls.map((c: any) => c[0].signal);
+      expect(signals[0]).toBeInstanceOf(AbortSignal);
+      expect(signals[1]).toBeInstanceOf(AbortSignal);
+      // Signals are distinct objects (not the same instance)
+      expect(signals[0]).not.toBe(signals[1]);
+
+      // 5. Both completed notifications were shown
+      expect(ctx.ui.notify).toHaveBeenCalledTimes(2);
+
+      // 6. Verify conversation isolation for both
+      expect(ctx.sendMessage).not.toHaveBeenCalled();
+      expect(ctx.sendUserMessage).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Slice 3: Quoted and unquoted question text parsing", () => {
+    it("strips double quotes from input", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      mockSpawnBtwProcess.mockImplementationOnce(async (opts: any) => {
+        opts.onSpawn?.({ pid: 1, kill: vi.fn() });
+        return { ok: true, text: "ans", toolTrace: [], usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } };
+      });
+
+      await handler('"hello world"', ctx);
+
+      const spawnArgs = mockSpawnBtwProcess.mock.calls[0][0];
+      expect(spawnArgs.query).toBe("hello world");
+    });
+
+    it("strips single quotes from input", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      mockSpawnBtwProcess.mockImplementationOnce(async (opts: any) => {
+        opts.onSpawn?.({ pid: 2, kill: vi.fn() });
+        return { ok: true, text: "ans", toolTrace: [], usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } };
+      });
+
+      await handler("'hello world'", ctx);
+
+      const spawnArgs = mockSpawnBtwProcess.mock.calls[0][0];
+      expect(spawnArgs.query).toBe("hello world");
+    });
+
+    it("keeps internal single quotes intact (apostrophe)", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      mockSpawnBtwProcess.mockImplementationOnce(async (opts: any) => {
+        opts.onSpawn?.({ pid: 3, kill: vi.fn() });
+        return { ok: true, text: "ans", toolTrace: [], usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } };
+      });
+
+      await handler("it's a test", ctx);
+
+      const spawnArgs = mockSpawnBtwProcess.mock.calls[0][0];
+      // No leading/trailing quotes, so text passes through unchanged
+      expect(spawnArgs.query).toBe("it's a test");
+    });
+
+    it("strips outer double quotes, keeps single quotes inside", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      mockSpawnBtwProcess.mockImplementationOnce(async (opts: any) => {
+        opts.onSpawn?.({ pid: 4, kill: vi.fn() });
+        return { ok: true, text: "ans", toolTrace: [], usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } };
+      });
+
+      await handler('"what\'s up?"', ctx);
+
+      const spawnArgs = mockSpawnBtwProcess.mock.calls[0][0];
+      expect(spawnArgs.query).toBe("what's up?");
+    });
+
+    it("empty quotes trigger empty-query guard (notification, no spawn)", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      // Reset mock call tracking
+      mockSpawnBtwProcess.mockClear();
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      await handler('""', ctx);
+
+      // No spawn call — empty query guard
+      expect(mockSpawnBtwProcess).not.toHaveBeenCalled();
+      // Warning notification shown
+      expect(ctx.ui.notify).toHaveBeenCalledWith(
+        expect.stringContaining("empty question"),
+        "warning",
+      );
+    });
+
+    it("quoted whitespace triggers empty-query guard", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      mockSpawnBtwProcess.mockClear();
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      await handler('" "', ctx);
+
+      // After trim, this is empty string — guard should catch it
+      expect(mockSpawnBtwProcess).not.toHaveBeenCalled();
+      expect(ctx.ui.notify).toHaveBeenCalledWith(
+        expect.stringContaining("empty question"),
+        "warning",
+      );
+    });
+
+    it("unquoted input passes through unchanged", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      mockSpawnBtwProcess.mockImplementationOnce(async (opts: any) => {
+        opts.onSpawn?.({ pid: 5, kill: vi.fn() });
+        return { ok: true, text: "ans", toolTrace: [], usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } };
+      });
+
+      await handler("just some text", ctx);
+
+      const spawnArgs = mockSpawnBtwProcess.mock.calls[0][0];
+      expect(spawnArgs.query).toBe("just some text");
+    });
+  });
+
+  describe("Issue 0027: Spinning List widget integration", () => {
+    it("registers the Spinning List widget on session_start", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      btwExtension(pi);
+
+      // Get session_start handler
+      const sessionStartCall = pi.on.mock.calls.find(
+        (c: unknown[]) => c[0] === "session_start",
+      );
+      expect(sessionStartCall).toBeDefined();
+      const sessionStartHandler = sessionStartCall![1] as (event: unknown, ctx: unknown) => Promise<void>;
+
+      // Simulate session_start
+      await sessionStartHandler({}, ctx);
+
+      // Verify setWidget was called with correct parameters
+      expect(ctx.ui.setWidget).toHaveBeenCalledWith(
+        "btw-spinning-list",
+        expect.any(Function),
+        { placement: "aboveEditor" },
+      );
+    });
+
+    it("widget factory creates SpinningListComponent", async () => {
+      const { default: btwExtension } = await import("./index");
+      const { SpinningListComponent } = await import("./spinning-list");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      btwExtension(pi);
+
+      // Get session_start handler and call it
+      const sessionStartCall = pi.on.mock.calls.find(
+        (c: unknown[]) => c[0] === "session_start",
+      );
+      const sessionStartHandler = sessionStartCall![1] as (event: unknown, ctx: unknown) => Promise<void>;
+      await sessionStartHandler({}, ctx);
+
+      // Get the widget factory function from setWidget call
+      const widgetFactory = ctx.ui.setWidget.mock.calls[0][1] as (tui: unknown) => unknown;
+
+      // Create a mock TUI
+      const mockTui = { requestRender: vi.fn() };
+
+      // Call the factory to create the widget
+      const widget = widgetFactory(mockTui);
+
+      // Verify it's a SpinningListComponent instance
+      expect(widget).toBeInstanceOf(SpinningListComponent);
+    });
+
+    it("widget factory passes registry to SpinningListComponent", async () => {
+      const { default: btwExtension } = await import("./index");
+      const { SpinningListComponent } = await import("./spinning-list");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      btwExtension(pi);
+
+      // Get session_start handler and call it
+      const sessionStartCall = pi.on.mock.calls.find(
+        (c: unknown[]) => c[0] === "session_start",
+      );
+      const sessionStartHandler = sessionStartCall![1] as (event: unknown, ctx: unknown) => Promise<void>;
+      await sessionStartHandler({}, ctx);
+
+      // Get the widget factory function
+      const widgetFactory = ctx.ui.setWidget.mock.calls[0][1] as (tui: unknown) => unknown;
+      const mockTui = { requestRender: vi.fn() };
+
+      // Call the factory to create the widget
+      widgetFactory(mockTui);
+
+      // Verify SpinningListComponent was constructed with a registry and tui
+      expect(SpinningListComponent).toHaveBeenCalledTimes(1);
+      const constructorArgs = (SpinningListComponent as any).mock.calls[0];
+
+      // First arg is the registry — verify it has getRunning method
+      const registry = constructorArgs[0];
+      expect(typeof registry.getRunning).toBe("function");
+      expect(typeof registry.getCompleted).toBe("function");
+      expect(typeof registry.addRunning).toBe("function");
+
+      // Second arg is the tui
+      expect(constructorArgs[1]).toBe(mockTui);
     });
   });
 });

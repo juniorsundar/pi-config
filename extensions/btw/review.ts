@@ -90,6 +90,7 @@ export interface BtwReviewKeybindingsLike {
 export class BtwReviewComponent {
   private selectedIndex = 0;
   private expandedIndices: Set<number> = new Set();
+  private toolTraceExpandedIndices: Set<number> = new Set();
 
   constructor(
     private readonly entries: readonly CompletedEntry[],
@@ -102,6 +103,7 @@ export class BtwReviewComponent {
     if (entries.length > 0) {
       this.expandedIndices.add(0);
     }
+    // Tool traces default to collapsed
   }
 
   // ── Component interface ───────────────────────────────────────────
@@ -156,6 +158,7 @@ export class BtwReviewComponent {
       if (usage.cacheWrite) usageParts.push(`W${this.formatTokens(usage.cacheWrite)}`);
       if (usage.cost !== undefined && usage.cost > 0) usageParts.push(`$${usage.cost.toFixed(4)}`);
       if (result.model) usageParts.push(result.model);
+      if (result.stopReason) usageParts.push(result.stopReason);
       if (usageParts.length > 0) {
         lines.push(this.theme.fg("dim", usageParts.join(" ")));
       }
@@ -165,10 +168,21 @@ export class BtwReviewComponent {
     const sepLen = Math.min(contentWidth, 40);
     lines.push(this.theme.fg("muted", "─".repeat(sepLen)));
 
-    // Tool trace
+    // Tool trace — collapsed by default
     if (result.toolTrace.length > 0) {
-      for (const tool of result.toolTrace) {
-        lines.push(this.renderToolCall(tool.toolName, tool.args));
+      const traceCount = result.toolTrace.length;
+      const isTraceExpanded = this.toolTraceExpandedIndices.has(
+        this.entries.indexOf(entry),
+      );
+      if (isTraceExpanded) {
+        lines.push(this.theme.fg("muted", "▾ Tool trace"));
+        for (const tool of result.toolTrace) {
+          lines.push(`  ${this.renderToolCall(tool.toolName, tool.args)}`);
+        }
+      } else {
+        lines.push(
+          this.theme.fg("muted", `▸ Tool trace (${traceCount} ${traceCount === 1 ? "tool" : "tools"})`),
+        );
       }
     }
 
@@ -177,6 +191,9 @@ export class BtwReviewComponent {
       lines.push(this.theme.fg("toolOutput", result.text));
     } else {
       lines.push(this.theme.fg("error", `Error: ${result.error}`));
+      if (result.exitCode !== undefined) {
+        lines.push(this.theme.fg("dim", `Exit code: ${result.exitCode}`));
+      }
       if (result.stderr) {
         lines.push(this.theme.fg("dim", result.stderr));
       }
@@ -248,11 +265,25 @@ export class BtwReviewComponent {
       data === "\r" || data === "\x0f" ||
       (this.keybindings?.matches(data, "tui.select.confirm") ?? false)
     ) {
-      // Enter, Ctrl+O, or configured confirm key — toggle expand/collapse
-      if (this.expandedIndices.has(this.selectedIndex)) {
-        this.expandedIndices.delete(this.selectedIndex);
+      // Enter, Ctrl+O, or configured confirm key
+      const entry = this.entries[this.selectedIndex];
+      const isExpanded = this.expandedIndices.has(this.selectedIndex);
+      const hasToolTrace = isExpanded && entry?.result.toolTrace.length > 0;
+
+      if (hasToolTrace) {
+        // If entry is expanded and has tool trace, toggle tool trace
+        if (this.toolTraceExpandedIndices.has(this.selectedIndex)) {
+          this.toolTraceExpandedIndices.delete(this.selectedIndex);
+        } else {
+          this.toolTraceExpandedIndices.add(this.selectedIndex);
+        }
       } else {
-        this.expandedIndices.add(this.selectedIndex);
+        // Otherwise toggle entry expand/collapse
+        if (this.expandedIndices.has(this.selectedIndex)) {
+          this.expandedIndices.delete(this.selectedIndex);
+        } else {
+          this.expandedIndices.add(this.selectedIndex);
+        }
       }
       this.tui.requestRender();
     }

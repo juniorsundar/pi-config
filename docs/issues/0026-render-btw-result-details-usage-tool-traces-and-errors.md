@@ -10,15 +10,15 @@ Make expanded BTW Review entries informative and auditable. Successful results s
 
 ### Acceptance criteria
 
-- [ ] Expanded successful BTW results show the question and final assistant answer
-- [ ] Expanded successful BTW results show usage stats when available
-- [ ] Expanded successful BTW results show model and stop reason when available
-- [ ] Successful BTW results include a collapsed tool trace section when tool activity exists
-- [ ] Expanded error BTW results show the question and clear error message
-- [ ] Error BTW results show exit or stderr details when available
-- [ ] Error BTW results include partial tool trace information when available
-- [ ] Collapsed entries still distinguish success from error status
-- [ ] Tests cover success rendering, error rendering, missing optional usage fields, collapsed tool traces, and partial traces on failure
+- [x] Expanded successful BTW results show the question and final assistant answer
+- [x] Expanded successful BTW results show usage stats when available
+- [x] Expanded successful BTW results show model and stop reason when available
+- [x] Successful BTW results include a collapsed tool trace section when tool activity exists
+- [x] Expanded error BTW results show the question and clear error message
+- [x] Error BTW results show exit or stderr details when available
+- [x] Error BTW results include partial tool trace information when available
+- [x] Collapsed entries still distinguish success from error status
+- [x] Tests cover success rendering, error rendering, missing optional usage fields, collapsed tool traces, and partial traces on failure
 
 ### Blocked by
 

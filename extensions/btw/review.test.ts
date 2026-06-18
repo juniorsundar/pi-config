@@ -241,7 +241,7 @@ describe("Slice 2: Ordered display and default expansion", () => {
     expect(joined).toContain("0.002");
   });
 
-  it("expanded entry shows tool trace items", () => {
+  it("expanded entry shows collapsed tool trace indicator", () => {
     const entries: CompletedEntry[] = [
       successEntry({
         id: "btw-1",
@@ -265,10 +265,11 @@ describe("Slice 2: Ordered display and default expansion", () => {
     const lines = component.render(80);
     const joined = lines.join(" ");
 
-    // Tool trace items should appear
-    expect(joined).toContain("read");
-    expect(joined).toContain("grep");
-    expect(joined).toContain("file.ts");
+    // Tool trace indicator should appear collapsed
+    expect(joined).toContain("▸ Tool trace");
+    expect(joined).toContain("2 tools");
+    // Individual tool items should NOT be visible yet
+    expect(joined).not.toContain("file.ts");
   });
 
   it("newest-first order matches the provided array order (index 0 = newest)", () => {
@@ -726,7 +727,7 @@ describe("Slice 6: Error result rendering", () => {
     expect(joined).toContain("Cannot read property");
   });
 
-  it("error entry shows partial tool trace", () => {
+  it("error entry shows collapsed tool trace indicator", () => {
     const entries: CompletedEntry[] = [
       errorEntry({
         id: "btw-1",
@@ -748,7 +749,38 @@ describe("Slice 6: Error result rendering", () => {
 
     const lines = component.render(80);
     const joined = lines.join(" ");
-    // Tool trace items should appear
+    // Tool trace indicator should appear collapsed
+    expect(joined).toContain("▸ Tool trace");
+    expect(joined).toContain("2 tools");
+    // Individual tool items should NOT be visible yet
+    expect(joined).not.toContain("/some/file.ts");
+  });
+
+  it("error entry shows partial tool trace when expanded", () => {
+    const entries: CompletedEntry[] = [
+      errorEntry({
+        id: "btw-1",
+        query: "Q?",
+        result: {
+          type: "error",
+          error: "Failed",
+          toolTrace: [
+            { toolName: "read", args: { path: "/some/file.ts" } },
+            { toolName: "grep", args: { pattern: "function" } },
+          ],
+        },
+        completedAt: new Date(),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    // Expand tool trace
+    component.handleInput("\r");
+
+    const lines = component.render(80);
+    const joined = lines.join(" ");
     expect(joined).toContain("read");
     expect(joined).toContain("grep");
     expect(joined).toContain("/some/file.ts");
@@ -839,7 +871,7 @@ describe("Keybinding-driven toggle", () => {
 // ── Styling parity with subagent results (AC 8) ──────────────────────
 
 describe("Styling parity with subagent results", () => {
-  it("renders ✓ success icon, separator, usage stats, tool trace, and output text", () => {
+  it("renders ✓ success icon, separator, usage stats, tool trace indicator, and output text", () => {
     const entries: CompletedEntry[] = [
       {
         id: "btw-1",
@@ -882,15 +914,49 @@ describe("Styling parity with subagent results", () => {
     // Separator line
     expect(lines.some((l) => l.includes("─"))).toBe(true);
 
-    // Tool trace with → arrow (subagent-style)
-    expect(joined).toContain("→");
-    expect(joined).toContain("web_search");
+    // Tool trace collapsed indicator (subagent-style)
+    expect(joined).toContain("▸ Tool trace");
+    expect(joined).toContain("1 tool");
 
     // Answer text
     expect(joined).toContain("Paris is the capital of France.");
   });
 
-  it("renders ✗ error icon with error message and tool trace", () => {
+  it("expanded tool trace shows items with → arrow", () => {
+    const entries: CompletedEntry[] = [
+      {
+        id: "btw-1",
+        query: "What is the capital of France?",
+        completedAt: new Date(),
+        result: {
+          type: "success",
+          text: "Paris is the capital of France.",
+          toolTrace: [
+            { toolName: "web_search", args: { query: "capital of France" } },
+          ],
+          usage: { input: 1500, output: 300, cacheRead: 500, cacheWrite: 0, cost: 0.02 },
+          model: "anthropic/claude-sonnet-4",
+        },
+      },
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    // Expand tool trace
+    component.handleInput("\r");
+
+    const lines = component.render(80);
+    const joined = lines.join("\n");
+
+    // Expanded indicator
+    expect(joined).toContain("▾ Tool trace");
+    // Tool trace with → arrow (subagent-style)
+    expect(joined).toContain("→");
+    expect(joined).toContain("web_search");
+  });
+
+  it("renders ✗ error icon with error message and collapsed tool trace", () => {
     const entries: CompletedEntry[] = [
       {
         id: "btw-1",
@@ -920,9 +986,8 @@ describe("Styling parity with subagent results", () => {
     // Separator
     expect(lines.some((l) => l.includes("─"))).toBe(true);
 
-    // Tool trace with → arrow
-    expect(joined).toContain("→");
-    expect(joined).toContain("npm test");
+    // Tool trace collapsed indicator
+    expect(joined).toContain("▸ Tool trace");
 
     // Error message
     expect(joined).toContain("BTW process exited with code 1");
@@ -931,7 +996,39 @@ describe("Styling parity with subagent results", () => {
     expect(joined).toContain("Error: API key not found");
   });
 
-  it("renders tool trace for read tool with file path", () => {
+  it("expanded tool trace on error shows items", () => {
+    const entries: CompletedEntry[] = [
+      {
+        id: "btw-1",
+        query: "Debug the crash",
+        completedAt: new Date(),
+        result: {
+          type: "error",
+          error: "BTW process exited with code 1",
+          exitCode: 1,
+          stderr: "Error: API key not found",
+          toolTrace: [
+            { toolName: "bash", args: { command: "npm test" } },
+          ],
+        },
+      },
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    // Expand tool trace
+    component.handleInput("\r");
+
+    const lines = component.render(80);
+    const joined = lines.join("\n");
+
+    // Tool trace with → arrow
+    expect(joined).toContain("→");
+    expect(joined).toContain("npm test");
+  });
+
+  it("renders tool trace for read tool with file path when expanded", () => {
     const entries: CompletedEntry[] = [
       {
         id: "btw-1",
@@ -951,6 +1048,9 @@ describe("Styling parity with subagent results", () => {
     const theme = createMockTheme();
     const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
 
+    // Expand tool trace
+    component.handleInput("\r");
+
     const lines = component.render(80);
     const joined = lines.join("\n");
 
@@ -958,5 +1058,512 @@ describe("Styling parity with subagent results", () => {
     expect(joined).toContain("→");
     expect(joined).toContain("read");
     expect(joined).toContain("/app/config.json");
+  });
+});
+
+// ── Slice 2: Stop reason and exit code display ────────────────────────
+
+describe("Slice 2: Stop reason display", () => {
+  it("shows stopReason in usage line when present", () => {
+    const entries: CompletedEntry[] = [
+      successEntry({
+        id: "btw-1",
+        query: "Q?",
+        result: {
+          type: "success",
+          text: "Answer",
+          toolTrace: [],
+          usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+          model: "claude-sonnet-4",
+          stopReason: "endTurn",
+        },
+        completedAt: new Date(),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    const lines = component.render(80);
+    const joined = lines.join(" ");
+
+    expect(joined).toContain("endTurn");
+    expect(joined).toContain("claude-sonnet-4");
+  });
+
+  it("omits stopReason when not present", () => {
+    const entries: CompletedEntry[] = [
+      successEntry({
+        id: "btw-1",
+        query: "Q?",
+        result: {
+          type: "success",
+          text: "Answer",
+          toolTrace: [],
+          usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+          model: "claude-sonnet-4",
+        },
+        completedAt: new Date(),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    const lines = component.render(80);
+    const joined = lines.join(" ");
+
+    // Model should still appear
+    expect(joined).toContain("claude-sonnet-4");
+    // stopReason should not appear
+    expect(joined).not.toContain("endTurn");
+  });
+
+  it("omits stopReason when undefined", () => {
+    const entries: CompletedEntry[] = [
+      successEntry({
+        id: "btw-1",
+        query: "Q?",
+        result: {
+          type: "success",
+          text: "Answer",
+          toolTrace: [],
+          usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+        },
+        completedAt: new Date(),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    const lines = component.render(80);
+    const joined = lines.join(" ");
+
+    expect(joined).not.toContain("endTurn");
+  });
+});
+
+describe("Slice 2: Exit code display", () => {
+  it("shows exitCode when present on error", () => {
+    const entries: CompletedEntry[] = [
+      errorEntry({
+        id: "btw-1",
+        query: "Q?",
+        result: {
+          type: "error",
+          error: "Process failed",
+          exitCode: 1,
+          toolTrace: [],
+        },
+        completedAt: new Date(),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    const lines = component.render(80);
+    const joined = lines.join(" ");
+
+    expect(joined).toContain("Exit code: 1");
+  });
+
+  it("omits exitCode when not present on error", () => {
+    const entries: CompletedEntry[] = [
+      errorEntry({
+        id: "btw-1",
+        query: "Q?",
+        result: {
+          type: "error",
+          error: "Process failed",
+          toolTrace: [],
+        },
+        completedAt: new Date(),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    const lines = component.render(80);
+    const joined = lines.join(" ");
+
+    expect(joined).toContain("Error: Process failed");
+    expect(joined).not.toContain("Exit code");
+  });
+
+  it("shows exitCode before stderr", () => {
+    const entries: CompletedEntry[] = [
+      errorEntry({
+        id: "btw-1",
+        query: "Q?",
+        result: {
+          type: "error",
+          error: "Process failed",
+          exitCode: 1,
+          stderr: "stack trace here",
+          toolTrace: [],
+        },
+        completedAt: new Date(),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    const lines = component.render(80);
+    const joined = lines.join("\n");
+
+    const exitCodeIdx = joined.indexOf("Exit code: 1");
+    const stderrIdx = joined.indexOf("stack trace here");
+    expect(exitCodeIdx).toBeGreaterThan(-1);
+    expect(stderrIdx).toBeGreaterThan(-1);
+    expect(exitCodeIdx).toBeLessThan(stderrIdx);
+  });
+});
+
+// ── Slice 3: Missing optional fields and edge cases ───────────────────
+
+describe("Slice 3: Missing optional fields", () => {
+  it("success with no cost omits cost from usage line", () => {
+    const entries: CompletedEntry[] = [
+      successEntry({
+        id: "btw-1",
+        query: "Q?",
+        result: {
+          type: "success",
+          text: "Answer",
+          toolTrace: [],
+          usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+        },
+        completedAt: new Date(),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    const lines = component.render(80);
+    const joined = lines.join(" ");
+
+    expect(joined).toContain("↑100");
+    expect(joined).toContain("↓50");
+    expect(joined).not.toContain("$");
+  });
+
+  it("success with no model omits model from usage line", () => {
+    const entries: CompletedEntry[] = [
+      successEntry({
+        id: "btw-1",
+        query: "Q?",
+        result: {
+          type: "success",
+          text: "Answer",
+          toolTrace: [],
+          usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+        },
+        completedAt: new Date(),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    const lines = component.render(80);
+    const joined = lines.join(" ");
+
+    // Usage line should exist but not contain model
+    expect(joined).toContain("↑100");
+    expect(joined).not.toContain("claude");
+    expect(joined).not.toContain("gpt");
+  });
+
+  it("success with no stop reason omits stop reason from usage line", () => {
+    const entries: CompletedEntry[] = [
+      successEntry({
+        id: "btw-1",
+        query: "Q?",
+        result: {
+          type: "success",
+          text: "Answer",
+          toolTrace: [],
+          usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+          model: "claude-sonnet-4",
+        },
+        completedAt: new Date(),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    const lines = component.render(80);
+    const joined = lines.join(" ");
+
+    expect(joined).toContain("claude-sonnet-4");
+    expect(joined).not.toContain("endTurn");
+  });
+
+  it("error with no exit code omits exit code line", () => {
+    const entries: CompletedEntry[] = [
+      errorEntry({
+        id: "btw-1",
+        query: "Q?",
+        result: {
+          type: "error",
+          error: "Something failed",
+          toolTrace: [],
+        },
+        completedAt: new Date(),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    const lines = component.render(80);
+    const joined = lines.join(" ");
+
+    expect(joined).toContain("Error: Something failed");
+    expect(joined).not.toContain("Exit code");
+  });
+
+  it("error with no stderr omits stderr line", () => {
+    const entries: CompletedEntry[] = [
+      errorEntry({
+        id: "btw-1",
+        query: "Q?",
+        result: {
+          type: "error",
+          error: "Something failed",
+          exitCode: 1,
+          toolTrace: [],
+        },
+        completedAt: new Date(),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    const lines = component.render(80);
+    const joined = lines.join(" ");
+
+    expect(joined).toContain("Exit code: 1");
+    // No stderr content should appear (only the exit code line)
+    expect(joined).not.toContain("stack");
+  });
+
+  it("success with empty tool trace renders no trace indicator", () => {
+    const entries: CompletedEntry[] = [
+      successEntry({
+        id: "btw-1",
+        query: "Q?",
+        result: {
+          type: "success",
+          text: "Answer",
+          toolTrace: [],
+          usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+        },
+        completedAt: new Date(),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    const lines = component.render(80);
+    const joined = lines.join(" ");
+
+    // No tool trace indicator should appear
+    expect(joined).not.toContain("Tool trace");
+    expect(joined).not.toContain("▸");
+    expect(joined).not.toContain("▾");
+  });
+
+  it("error with empty tool trace renders no trace indicator", () => {
+    const entries: CompletedEntry[] = [
+      errorEntry({
+        id: "btw-1",
+        query: "Q?",
+        result: {
+          type: "error",
+          error: "Failed",
+          toolTrace: [],
+        },
+        completedAt: new Date(),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    const lines = component.render(80);
+    const joined = lines.join(" ");
+
+    expect(joined).not.toContain("Tool trace");
+  });
+
+  it("success with all optional fields present renders them all", () => {
+    const entries: CompletedEntry[] = [
+      successEntry({
+        id: "btw-1",
+        query: "Q?",
+        result: {
+          type: "success",
+          text: "Answer",
+          toolTrace: [],
+          usage: { input: 100, output: 50, cacheRead: 10, cacheWrite: 5, cost: 0.001 },
+          model: "claude-sonnet-4",
+          stopReason: "endTurn",
+        },
+        completedAt: new Date(),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    const lines = component.render(80);
+    const joined = lines.join(" ");
+
+    expect(joined).toContain("↑100");
+    expect(joined).toContain("↓50");
+    expect(joined).toContain("R10");
+    expect(joined).toContain("W5");
+    expect(joined).toContain("$0.001");
+    expect(joined).toContain("claude-sonnet-4");
+    expect(joined).toContain("endTurn");
+  });
+});
+
+// ── Slice 4: Collapsed entries distinguish success/error status ──────
+
+describe("Slice 4: Collapsed entries distinguish success/error status", () => {
+  it("collapsed success entry shows ✓ icon in header", () => {
+    const entries: CompletedEntry[] = [
+      successEntry({
+        id: "btw-1",
+        query: "Newer question?",
+        result: {
+          type: "success",
+          text: "Answer",
+          toolTrace: [],
+          usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+        },
+        completedAt: new Date("2026-06-15"),
+      }),
+      successEntry({
+        id: "btw-2",
+        query: "Older question?",
+        result: {
+          type: "success",
+          text: "Older answer",
+          toolTrace: [],
+          usage: { input: 50, output: 20, cacheRead: 0, cacheWrite: 0 },
+        },
+        completedAt: new Date("2026-06-14"),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    // Index 1 (older) is collapsed by default
+    const lines = component.render(80);
+
+    // Find the line for the older entry (collapsed)
+    const olderLine = lines.find((l) => l.includes("Older question?"));
+    expect(olderLine).toBeDefined();
+    expect(olderLine!).toContain("✓");
+  });
+
+  it("collapsed error entry shows ✗ icon in header", () => {
+    const entries: CompletedEntry[] = [
+      successEntry({
+        id: "btw-1",
+        query: "Newer question?",
+        result: {
+          type: "success",
+          text: "Answer",
+          toolTrace: [],
+          usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+        },
+        completedAt: new Date("2026-06-15"),
+      }),
+      errorEntry({
+        id: "btw-2",
+        query: "Failed question?",
+        result: {
+          type: "error",
+          error: "Something broke",
+          toolTrace: [],
+        },
+        completedAt: new Date("2026-06-14"),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    // Index 1 (error) is collapsed by default
+    const lines = component.render(80);
+
+    // Find the line for the error entry (collapsed)
+    const errorLine = lines.find((l) => l.includes("Failed question?"));
+    expect(errorLine).toBeDefined();
+    expect(errorLine!).toContain("✗");
+  });
+
+  it("mixed success and error collapsed entries show correct icons", () => {
+    const entries: CompletedEntry[] = [
+      successEntry({
+        id: "btw-1",
+        query: "Success Q?",
+        result: {
+          type: "success",
+          text: "Answer",
+          toolTrace: [],
+          usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+        },
+        completedAt: new Date("2026-06-15"),
+      }),
+      errorEntry({
+        id: "btw-2",
+        query: "Error Q?",
+        result: {
+          type: "error",
+          error: "Failed",
+          toolTrace: [],
+        },
+        completedAt: new Date("2026-06-14"),
+      }),
+      successEntry({
+        id: "btw-3",
+        query: "Another Success?",
+        result: {
+          type: "success",
+          text: "Answer",
+          toolTrace: [],
+          usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+        },
+        completedAt: new Date("2026-06-13"),
+      }),
+    ];
+    const tui = createMockTui();
+    const theme = createMockTheme();
+    const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
+
+    const lines = component.render(80);
+
+    // All entries are collapsed except the first one
+    const successLine1 = lines.find((l) => l.includes("Success Q?"));
+    const errorLine = lines.find((l) => l.includes("Error Q?"));
+    const successLine2 = lines.find((l) => l.includes("Another Success?"));
+
+    expect(successLine1!).toContain("✓");
+    expect(errorLine!).toContain("✗");
+    expect(successLine2!).toContain("✓");
   });
 });

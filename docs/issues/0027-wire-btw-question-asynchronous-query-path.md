@@ -10,16 +10,16 @@ Connect the user-facing `/btw <question>` command to the full asynchronous side-
 
 ### Acceptance criteria
 
-- [ ] `/btw <question>` starts a BTW Process without blocking the main session UI
-- [ ] Multiple `/btw <question>` invocations can run concurrently
-- [ ] Quoted and unquoted question text both produce the intended query string
-- [ ] Starting a BTW Process adds it to running BTW entries
-- [ ] Successful completion moves the BTW entry to completed results
-- [ ] Failure moves the BTW entry to completed error results
-- [ ] The Spinning List updates when BTW Processes start and finish
-- [ ] BTW answers are displayed outside the conversation stream
-- [ ] BTW answers are not appended to the current session file
-- [ ] Tests cover starting one query, starting multiple queries, quoted input, unquoted input, success completion, failure completion, Spinning List updates, and no conversation-stream insertion
+- [x] `/btw <question>` starts a BTW Process without blocking the main session UI
+- [x] Multiple `/btw <question>` invocations can run concurrently
+- [x] Quoted and unquoted question text both produce the intended query string
+- [x] Starting a BTW Process adds it to running BTW entries
+- [x] Successful completion moves the BTW entry to completed results
+- [x] Failure moves the BTW entry to completed error results
+- [x] The Spinning List updates when BTW Processes start and finish
+- [x] BTW answers are displayed outside the conversation stream
+- [x] BTW answers are not appended to the current session file
+- [x] Tests cover starting one query, starting multiple queries, quoted input, unquoted input, success completion, failure completion, Spinning List updates, and no conversation-stream insertion
 
 ### Blocked by
 
