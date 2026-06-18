@@ -10,13 +10,13 @@ Let BTW work in ephemeral sessions where no session file can be forked. A user c
 
 ### Acceptance criteria
 
-- [ ] BTW detects when there is no session file to fork
-- [ ] In ephemeral sessions, the BTW Process starts without attempting to fork a session
-- [ ] Ephemeral BTW Processes still run in JSON mode
-- [ ] Ephemeral BTW Processes still exclude edit and write tools
-- [ ] Ephemeral BTW Processes still receive the BTW Child Guard environment flag
-- [ ] Ephemeral BTW results use the same success and error result shape as forked BTW results
-- [ ] Tests cover the ephemeral invocation path and verify it does not include a forked session
+- [x] BTW detects when there is no session file to fork
+- [x] In ephemeral sessions, the BTW Process starts without attempting to fork a session
+- [x] Ephemeral BTW Processes still run in JSON mode
+- [x] Ephemeral BTW Processes still exclude edit and write tools
+- [x] Ephemeral BTW Processes still receive the BTW Child Guard environment flag
+- [x] Ephemeral BTW results use the same success and error result shape as forked BTW results
+- [x] Tests cover the ephemeral invocation path and verify it does not include a forked session
 
 ### Blocked by
 

@@ -742,6 +742,238 @@ describe("btw spawner", () => {
       }
     });
   });
+
+  // ── Slice 12: Force-kill escalation — SIGKILL after SIGTERM grace period ──
+
+  // ── Fake-timer lifecycle tests (Slices 12–13) ──
+  // These share fake-timer setup; each slice focuses on a different aspect.
+
+  describe("Slice 12: Force-kill escalation — SIGKILL after SIGTERM grace period", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("escalates to SIGKILL after grace period when process ignores SIGTERM", async () => {
+      const { spawnBtwProcess } = await import("./spawner");
+
+      // Mock child that ignores SIGTERM but closes on SIGKILL
+      const emitter = new EventEmitter() as any;
+      emitter.pid = 12345;
+      const stdoutReadable = new Readable({ read() {} });
+      const stderrReadable = new Readable({ read() {} });
+      emitter.stdout = stdoutReadable;
+      emitter.stderr = stderrReadable;
+      process.nextTick(() => {
+        stdoutReadable.push(null);
+        stderrReadable.push(null);
+      });
+
+      const killSpy = vi.fn((signal?: string) => {
+        if (signal === "SIGKILL") {
+          setImmediate(() => emitter.emit("close", 137)); // 128 + 9
+        }
+        // SIGTERM is ignored — no close
+        return true;
+      });
+      emitter.kill = killSpy;
+      const mockSpawn: any = () => emitter;
+
+      const timeoutMs = 100;
+      const spawnPromise = spawnBtwProcess(
+        { sessionFile: null, query: "Q", cwd: "/tmp", timeoutMs },
+        mockSpawn,
+      );
+
+      // Advance past timeout — SIGTERM fires (process ignores it)
+      await vi.advanceTimersByTimeAsync(timeoutMs + 1);
+      expect(killSpy).toHaveBeenCalledWith("SIGTERM");
+      expect(killSpy).toHaveBeenCalledTimes(1);
+
+      // Advance past SIGTERM_GRACE_MS (5000ms) — SIGKILL fires
+      await vi.advanceTimersByTimeAsync(6000);
+      expect(killSpy).toHaveBeenCalledWith("SIGKILL");
+      expect(killSpy).toHaveBeenCalledTimes(2);
+
+      const result = await spawnPromise;
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.errorMessage).toContain("timed out");
+      }
+    });
+  });
+
+  describe("Slice 13: Timer cleanup — no stale callbacks after process close", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("does not fire stale timeout kill after successful completion", async () => {
+      const { spawnBtwProcess } = await import("./spawner");
+
+      const output = JSON.stringify({
+        type: "message_end",
+        message: { role: "assistant", content: [{ type: "text", text: "ok" }] },
+      });
+      const mockChild = createMockChild({ exitCode: 0, stdoutText: output });
+      const killSpy = vi.fn();
+      (mockChild as any).kill = killSpy;
+      const mockSpawn: any = () => mockChild;
+
+      const spawnPromise = spawnBtwProcess(
+        { sessionFile: null, query: "Q", cwd: "/tmp", timeoutMs: 100 },
+        mockSpawn,
+      );
+
+      // Advance past the auto-close delay (10ms) to complete the process
+      await vi.advanceTimersByTimeAsync(20);
+      const result = await spawnPromise;
+      expect(result.ok).toBe(true);
+
+      // Advance well past the timeout — stale timer should have been cleared
+      await vi.advanceTimersByTimeAsync(200);
+      expect(killSpy).not.toHaveBeenCalled();
+    });
+
+    it("does not fire stale timeout kill after failure exit", async () => {
+      const { spawnBtwProcess } = await import("./spawner");
+
+      const mockChild = createMockChild({ exitCode: 1, stderrText: "error" });
+      const killSpy = vi.fn();
+      (mockChild as any).kill = killSpy;
+      const mockSpawn: any = () => mockChild;
+
+      const spawnPromise = spawnBtwProcess(
+        { sessionFile: null, query: "Q", cwd: "/tmp", timeoutMs: 100 },
+        mockSpawn,
+      );
+
+      await vi.advanceTimersByTimeAsync(20);
+      const result = await spawnPromise;
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.errorMessage).toContain("exited with code");
+
+      await vi.advanceTimersByTimeAsync(200);
+      expect(killSpy).not.toHaveBeenCalled();
+    });
+
+    it("does not fire stale timeout kill after abort-triggered close", async () => {
+      const { spawnBtwProcess } = await import("./spawner");
+
+      const controller = new AbortController();
+      // neverCloses: true — no auto-close, abort's SIGTERM will close it
+      const mockChild = createMockChild({ exitCode: 0, neverCloses: true });
+      const killSpy = vi.fn((signal?: string) => {
+        setImmediate(() => (mockChild as any).emit("close", signal === "SIGTERM" ? 143 : 1));
+        return true;
+      });
+      (mockChild as any).kill = killSpy;
+      const mockSpawn: any = () => mockChild;
+
+      // Abort before the 100ms timeout
+      setTimeout(() => controller.abort(), 5);
+
+      const spawnPromise = spawnBtwProcess(
+        { sessionFile: null, query: "Q", cwd: "/tmp", timeoutMs: 100, signal: controller.signal },
+        mockSpawn,
+      );
+
+      await vi.advanceTimersByTimeAsync(20);
+      const result = await spawnPromise;
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.errorMessage).toContain("aborted");
+
+      // Advance well past the timeout — stale timer should have been cleared
+      await vi.advanceTimersByTimeAsync(200);
+      expect(killSpy).toHaveBeenCalledWith("SIGTERM"); // only the abort SIGTERM
+      expect(killSpy).toHaveBeenCalledTimes(1); // no timeout SIGTERM
+    });
+  });
+
+  describe("Slice 14: Listener cleanup — removeEventListener after process close", () => {
+    it("removes abort listener after successful completion", async () => {
+      const { spawnBtwProcess } = await import("./spawner");
+
+      const output = JSON.stringify({
+        type: "message_end",
+        message: { role: "assistant", content: [{ type: "text", text: "ok" }] },
+      });
+      const mockChild = createMockChild({ exitCode: 0, stdoutText: output });
+      const mockSpawn: any = () => mockChild;
+
+      const controller = new AbortController();
+      const removeSpy = vi.spyOn(controller.signal, "removeEventListener");
+
+      const result = await spawnBtwProcess(
+        { sessionFile: null, query: "Q", cwd: "/tmp", timeoutMs: 0, signal: controller.signal },
+        mockSpawn,
+      );
+
+      expect(result.ok).toBe(true);
+      expect(removeSpy).toHaveBeenCalledWith("abort", expect.any(Function));
+    });
+
+    it("removes abort listener after failure exit", async () => {
+      const { spawnBtwProcess } = await import("./spawner");
+
+      const mockChild = createMockChild({ exitCode: 1 });
+      const mockSpawn: any = () => mockChild;
+
+      const controller = new AbortController();
+      const removeSpy = vi.spyOn(controller.signal, "removeEventListener");
+
+      const result = await spawnBtwProcess(
+        { sessionFile: null, query: "Q", cwd: "/tmp", timeoutMs: 0, signal: controller.signal },
+        mockSpawn,
+      );
+
+      expect(result.ok).toBe(false);
+      expect(removeSpy).toHaveBeenCalledWith("abort", expect.any(Function));
+    });
+
+    it("removes abort listener after timeout-triggered close (process exits on SIGTERM)", async () => {
+      vi.useFakeTimers();
+      const { spawnBtwProcess } = await import("./spawner");
+
+      const controller = new AbortController();
+      const removeSpy = vi.spyOn(controller.signal, "removeEventListener");
+
+      // Mock that exits immediately on SIGTERM (well-behaved process)
+      const emitter = new EventEmitter() as any;
+      emitter.pid = 12345;
+      const stdoutReadable = new Readable({ read() {} });
+      const stderrReadable = new Readable({ read() {} });
+      emitter.stdout = stdoutReadable;
+      emitter.stderr = stderrReadable;
+      process.nextTick(() => {
+        stdoutReadable.push(null);
+        stderrReadable.push(null);
+      });
+      emitter.kill = vi.fn((signal?: string) => {
+        setImmediate(() => emitter.emit("close", signal === "SIGTERM" ? 143 : 1));
+        return true;
+      });
+      const mockSpawn: any = () => emitter;
+
+      const spawnPromise = spawnBtwProcess(
+        { sessionFile: null, query: "Q", cwd: "/tmp", timeoutMs: 100, signal: controller.signal },
+        mockSpawn,
+      );
+
+      await vi.advanceTimersByTimeAsync(150);
+      const result = await spawnPromise;
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.errorMessage).toContain("timed out");
+
+      expect(removeSpy).toHaveBeenCalledWith("abort", expect.any(Function));
+      vi.useRealTimers();
+    });
+  });
 });
 
 // ── Test helpers ────────────────────────────────────────────────────

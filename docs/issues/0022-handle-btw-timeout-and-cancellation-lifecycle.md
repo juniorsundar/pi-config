@@ -10,13 +10,13 @@ Make the BTW Process lifecycle bounded and cancel-safe. Hung side-questions are 
 
 ### Acceptance criteria
 
-- [ ] A BTW Process is terminated when it exceeds the configured timeout
-- [ ] Timeout termination first requests graceful exit, then force-kills if the process does not exit within the grace period
-- [ ] Timeout results appear as BTW error results with a clear message
-- [ ] An explicit abort signal terminates the BTW Process and returns an error result
-- [ ] Cancelling or interrupting the main-session turn does not terminate unrelated running BTW Processes
-- [ ] Process listeners and timers are cleaned up after success, failure, timeout, and abort
-- [ ] Tests cover timeout, force-kill fallback, abort, successful cleanup, and failure cleanup
+- [x] A BTW Process is terminated when it exceeds the configured timeout
+- [x] Timeout termination first requests graceful exit, then force-kills if the process does not exit within the grace period
+- [x] Timeout results appear as BTW error results with a clear message
+- [x] An explicit abort signal terminates the BTW Process and returns an error result
+- [x] Cancelling or interrupting the main-session turn does not terminate unrelated running BTW Processes
+- [x] Process listeners and timers are cleaned up after success, failure, timeout, and abort
+- [x] Tests cover timeout, force-kill fallback, abort, successful cleanup, and failure cleanup
 
 ### Blocked by
 

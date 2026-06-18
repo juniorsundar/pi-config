@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createRegistry } from "./registry";
 
 describe("BTW Registry", () => {
@@ -270,6 +270,35 @@ describe("BTW Registry", () => {
 
       expect(registry.getRunning()).toHaveLength(0);
       expect(registry.getCompleted()).toHaveLength(0);
+    });
+  });
+
+  describe("Slice 8: abort — explicit abort signal for a specific BTW", () => {
+    it("abort() calls AbortController.abort() on the stored controller", () => {
+      const registry = createRegistry();
+      const controller = new AbortController();
+      const abortSpy = vi.spyOn(controller, "abort");
+
+      registry.addRunning("btw-1", "Q1", { pid: 1, kill: () => {} } as any, controller);
+      registry.abort("btw-1");
+
+      expect(abortSpy).toHaveBeenCalled();
+    });
+
+    it("abort() is a no-op when the entry id is unknown", () => {
+      const registry = createRegistry();
+      expect(() => registry.abort("btw-nonexistent")).not.toThrow();
+    });
+
+    it("addRunning() stores the abort controller and does not throw without one", () => {
+      const registry = createRegistry();
+      // Without controller — should work (backward compatible)
+      expect(() => registry.addRunning("btw-1", "Q1", { pid: 1, kill: () => {} } as any)).not.toThrow();
+
+      // With controller
+      const controller = new AbortController();
+      expect(() => registry.addRunning("btw-2", "Q2", { pid: 2, kill: () => {} } as any, controller)).not.toThrow();
+      expect(registry.getRunning()).toHaveLength(2);
     });
   });
 });

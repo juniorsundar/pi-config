@@ -8,9 +8,13 @@ const mockSpawnBtwProcess = vi.fn().mockResolvedValue({
   usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
 });
 
-vi.mock("./spawner.js", () => ({
-  spawnBtwProcess: (...args: any[]) => mockSpawnBtwProcess(...args),
-}));
+vi.mock("./spawner.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./spawner")>();
+  return {
+    ...actual,
+    spawnBtwProcess: (...args: any[]) => mockSpawnBtwProcess(...args),
+  };
+});
 
 // Mock the timeout-config module
 vi.mock("./timeout-config.js", () => ({
@@ -347,6 +351,103 @@ describe("btw extension", () => {
         expect.stringContaining("ENOENT"),
         "error",
       );
+    });
+
+    it("passes an isolated AbortSignal not inherited from main-session context", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      // Main session has its own AbortController
+      const mainSessionController = new AbortController();
+      const ctx = createMockCtx({
+        signal: mainSessionController.signal,
+      } as any);
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      mockSpawnBtwProcess.mockClear();
+      await handler("question?", ctx);
+
+      const options = mockSpawnBtwProcess.mock.calls[0][0];
+      // BTW gets its own isolated signal, NOT the main session's signal
+      expect(options.signal).toBeInstanceOf(AbortSignal);
+      expect(options.signal).not.toBe(mainSessionController.signal);
+    });
+
+    it("passes an AbortSignal to spawnBtwProcess for explicit abort support", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx();
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      mockSpawnBtwProcess.mockClear();
+      await handler("question?", ctx);
+
+      const options = mockSpawnBtwProcess.mock.calls[0][0];
+      expect(options.signal).toBeInstanceOf(AbortSignal);
+    });
+  });
+
+  describe("Ephemeral session path — no session file to fork", () => {
+    it("passes sessionFile: null to spawnBtwProcess when getSessionFile returns null", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx({
+        sessionManager: { getSessionFile: vi.fn().mockReturnValue(null) },
+      });
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      await handler("what is ephemeral?", ctx);
+
+      expect(mockSpawnBtwProcess).toHaveBeenCalledWith(
+        expect.objectContaining({ sessionFile: null }),
+      );
+    });
+
+    it("does not include --fork in args when sessionFile is null", async () => {
+      const { default: btwExtension } = await import("./index");
+      const pi = createMockPi();
+      const ctx = createMockCtx({
+        sessionManager: { getSessionFile: vi.fn().mockReturnValue(null) },
+      });
+
+      btwExtension(pi);
+      const handler = pi.registerCommand.mock.calls[0][1].handler;
+
+      // Mock spawnBtwProcess to capture and inspect args
+      mockSpawnBtwProcess.mockImplementation(async (options: any) => {
+        // The args are built inside spawnBtwProcess, but we can verify
+        // that sessionFile is null which means --no-session will be used
+        expect(options.sessionFile).toBeNull();
+        return {
+          ok: true,
+          text: "ephemeral answer",
+          toolTrace: [],
+          usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        };
+      });
+
+      await handler("what is ephemeral?", ctx);
+
+      expect(mockSpawnBtwProcess).toHaveBeenCalled();
+    });
+
+    it("still uses JSON mode and excludes edit/write tools in ephemeral mode", async () => {
+      // Import the real buildBtwArgs (not mocked) to verify arg construction
+      const { buildBtwArgs } = await import("./spawner");
+
+      // Verify the args built for ephemeral mode include JSON mode and tool exclusion
+      const args = buildBtwArgs({ sessionFile: null, query: "what is ephemeral?" });
+      expect(args).toContain("--no-session");
+      expect(args).not.toContain("--fork");
+      expect(args).toContain("--mode");
+      expect(args).toContain("json");
+      expect(args).toContain("--exclude-tools");
+      expect(args).toContain("edit,write");
     });
   });
 

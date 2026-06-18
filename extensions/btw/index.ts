@@ -59,13 +59,15 @@ export default function btwExtension(pi: ExtensionAPI) {
       const btwId = `btw-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 
       try {
+        const abortController = new AbortController();
         const result = await spawnBtwProcess({
           sessionFile,
           query,
           cwd: ctx.cwd,
           timeoutMs: timeout,
+          signal: abortController.signal,
           onSpawn: (child) => {
-            btwRegistry.addRunning(btwId, query, child as any);
+            btwRegistry.addRunning(btwId, query, child as any, abortController);
           },
         });
 
