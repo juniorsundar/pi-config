@@ -9,9 +9,12 @@
 // ── Types ───────────────────────────────────────────────────────────
 
 import type { BtwToolTraceEntry, BtwUsage } from "./types.js";
+import { parseBtwOutput } from "./parser.js";
 
 // Re-export shared types for backward compatibility
 export type { BtwToolTraceEntry, BtwUsage } from "./types.js";
+// Re-export parser for consumers that import from spawner
+export { parseBtwOutput } from "./parser.js";
 
 export interface BtwSpawnOptions {
   /** Session file path to fork. Null for ephemeral (no history). */
@@ -83,113 +86,6 @@ export function buildBtwArgs(options: BuildBtwArgsOptions): string[] {
  */
 export function buildBtwEnv(): Record<string, string> {
   return { PI_BTW_CHILD: "1" };
-}
-
-// ── JSON event stream parsing ───────────────────────────────────────
-
-interface ParsedEvent {
-  type?: string;
-  message?: {
-    role?: string;
-    content?: unknown;
-    usage?: {
-      input?: number;
-      output?: number;
-      cacheRead?: number;
-      cacheWrite?: number;
-      cost?: number;
-    };
-    model?: string;
-    stopReason?: string;
-  };
-  toolName?: string;
-  toolCallId?: string;
-  id?: string;
-  args?: Record<string, unknown>;
-  input?: Record<string, unknown>;
-}
-
-/**
- * Parse NDJSON lines from the child process stdout and extract structured data.
- *
- * Extracts:
- * - Final assistant text from message_end events
- * - Tool trace from tool_execution_start / tool_call events
- * - Usage stats, model, and stop reason from message_end events
- */
-export function parseBtwOutput(lines: string[]): {
-  text: string;
-  toolTrace: BtwToolTraceEntry[];
-  usage: BtwUsage;
-  model?: string;
-  stopReason?: string;
-} {
-  let text = "";
-  const toolTrace: BtwToolTraceEntry[] = [];
-  const usage: BtwUsage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
-  let model: string | undefined;
-  let stopReason: string | undefined;
-
-  const seenToolIds = new Set<string>();
-
-  for (const line of lines) {
-    if (!line.trim()) continue;
-
-    let parsed: ParsedEvent;
-    try {
-      parsed = JSON.parse(line) as ParsedEvent;
-    } catch {
-      // Malformed JSON line — skip
-      continue;
-    }
-
-    const eventType = parsed.type;
-
-    // Extract assistant text from message_end
-    if (eventType === "message_end" && parsed.message?.role === "assistant") {
-      text = extractTextContent(parsed.message.content);
-      model = parsed.message.model ?? undefined;
-      stopReason = parsed.message.stopReason ?? undefined;
-
-      // Reset usage on each assistant message_end so stale data from prior
-      // events doesn't persist if the final event has no usage block.
-      usage.input = parsed.message.usage?.input ?? 0;
-      usage.output = parsed.message.usage?.output ?? 0;
-      usage.cacheRead = parsed.message.usage?.cacheRead ?? 0;
-      usage.cacheWrite = parsed.message.usage?.cacheWrite ?? 0;
-      usage.cost = parsed.message.usage?.cost ?? undefined;
-    }
-
-    // Extract tool trace from tool_execution_start / tool_call
-    if (eventType === "tool_execution_start" || eventType === "tool_call") {
-      const toolCallId = (parsed.toolCallId ?? parsed.id ?? "") as string;
-      if (toolCallId && seenToolIds.has(toolCallId)) continue;
-      if (toolCallId) seenToolIds.add(toolCallId);
-
-      toolTrace.push({
-        toolName: (parsed.toolName as string) ?? "unknown",
-        args: parsed.args ?? parsed.input ?? {},
-      });
-    }
-  }
-
-  return { text, toolTrace, usage, model, stopReason };
-}
-
-function extractTextContent(content: unknown): string {
-  if (typeof content === "string") return content;
-  if (!Array.isArray(content)) return "";
-
-  return content
-    .filter(
-      (block): block is { type: string; text: string } =>
-        typeof block === "object" &&
-        block !== null &&
-        (block as Record<string, unknown>).type === "text" &&
-        typeof (block as Record<string, unknown>).text === "string",
-    )
-    .map((block) => (block as { text: string }).text)
-    .join("\n");
 }
 
 // ── Process spawning ────────────────────────────────────────────────

@@ -132,7 +132,7 @@ describe("Slice 6: Spinning List reflects registry changes", () => {
 
     const lines = component.render(80);
     expect(lines).toHaveLength(2); // header + 1 running
-    expect(lines[0]).toBe("● btw (1/2)");
+    expect(lines[0]).toBe("○ btw (1/2)");
     expect(lines[1]).toContain("Second");
   });
 });
