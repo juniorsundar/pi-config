@@ -42,3 +42,54 @@ export function truncate(text: string, maxLen: number): string {
   if (text.length <= maxLen) return text;
   return `${text.slice(0, maxLen)}...`;
 }
+
+/**
+ * Wrap text to fit within `maxWidth` columns, breaking at word boundaries.
+ * Preserves existing newlines in the input. Each resulting line is ≤ maxWidth.
+ * ANSI sequences are stripped for width calculation but preserved in output.
+ */
+export function wrapText(text: string, maxWidth: number): string[] {
+  if (maxWidth <= 0) return [text];
+
+  const outputLines: string[] = [];
+  const inputLines = text.split("\n");
+
+  for (const inputLine of inputLines) {
+    // Fast path: line fits as-is
+    if (stripAnsi(inputLine).length <= maxWidth) {
+      outputLines.push(inputLine);
+      continue;
+    }
+
+    // Word-wrap this line
+    let currentLine = "";
+    let currentPlainLen = 0;
+    const words = inputLine.split(/(\s+)/); // preserve whitespace groups
+
+    for (const word of words) {
+      const wordPlainLen = stripAnsi(word).length;
+
+      // If adding this word would exceed width and current line is non-empty
+      if (currentPlainLen + wordPlainLen > maxWidth && currentLine.length > 0) {
+        outputLines.push(currentLine);
+        // Start new line, skip leading whitespace
+        if (/^\s+$/.test(word)) {
+          currentLine = "";
+          currentPlainLen = 0;
+        } else {
+          currentLine = word;
+          currentPlainLen = wordPlainLen;
+        }
+      } else {
+        currentLine += word;
+        currentPlainLen += wordPlainLen;
+      }
+    }
+
+    if (currentLine.length > 0) {
+      outputLines.push(currentLine);
+    }
+  }
+
+  return outputLines;
+}

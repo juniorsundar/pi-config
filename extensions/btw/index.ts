@@ -60,7 +60,9 @@ async function executeBtwQuery(
         toolTrace: result.toolTrace,
         partialText: result.partialText,
       });
-      notify(`${errorPrefix}${result.errorMessage}`, "error");
+      // Include stderr in notification for actionable diagnostics
+      const detail = result.stderr ? `\n${result.stderr.trim()}` : "";
+      notify(`${errorPrefix}${result.errorMessage}${detail}`, "error");
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -142,7 +144,9 @@ export default function btwExtension(pi: ExtensionAPI) {
         const prefixed = level === "info" ? `BTW: ${truncate(msg, 200)}` : truncate(msg, 200);
         ctx.ui.notify(prefixed, level as "info" | "error" | "warning");
       };
-      await executeBtwQuery(query, ctx, notify, { errorPrefix: "BTW error: ", failPrefix: "BTW failed: " });
+      // Fire-and-forget: don't await so the command handler returns immediately.
+      // The BTW process runs in the background; the spinning list widget shows progress.
+      executeBtwQuery(query, ctx, notify, { errorPrefix: "BTW error: ", failPrefix: "BTW failed: " });
     },
   });
 }

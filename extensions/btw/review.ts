@@ -14,7 +14,7 @@
  */
 
 import type { CompletedEntry } from "./registry.js";
-import { truncateToWidth } from "./text-utils.js";
+import { truncateToWidth, wrapText } from "./text-utils.js";
 
 // ---------------------------------------------------------------------------
 // Component
@@ -46,6 +46,9 @@ export class BtwReviewComponent {
   private selectedIndex = 0;
   private expandedIndices: Set<number> = new Set();
   private toolTraceExpandedIndices: Set<number> = new Set();
+  private scrollOffset = 0;
+  private viewportHeight = 40; // default estimate, updated by TUI
+  private entryLineRanges: Array<{ start: number; end: number }> = [];
 
   constructor(
     private readonly entries: readonly CompletedEntry[],
@@ -61,10 +64,75 @@ export class BtwReviewComponent {
     // Tool traces default to collapsed
   }
 
+  /** Set the viewport height (called by TUI wrapper or estimated from terminal). */
+  setViewportHeight(height: number): void {
+    this.viewportHeight = Math.max(5, height);
+  }
+
   // ── Component interface ───────────────────────────────────────────
 
   render(width: number): string[] {
-    return this.computeRender(width);
+    const allLines = this.computeRender(width);
+
+    // Track line ranges for each entry
+    this.computeEntryLineRanges(allLines, width);
+
+    // Ensure selected entry is in the visible viewport
+    this.ensureSelectedVisible();
+
+    // Slice to viewport
+    const visible = allLines.slice(this.scrollOffset, this.scrollOffset + this.viewportHeight);
+
+    // Add scroll indicator if content overflows
+    if (allLines.length > this.viewportHeight && visible.length > 0) {
+      const maxScroll = allLines.length - this.viewportHeight;
+      const scrollPct = maxScroll > 0 ? Math.round((this.scrollOffset / maxScroll) * 100) : 0;
+      const indicator = this.theme.fg("dim", `── ${scrollPct}% · ↑↓ scroll · Enter expand · Esc close ──`);
+      if (this.scrollOffset + this.viewportHeight < allLines.length) {
+        visible[visible.length - 1] = indicator;
+      }
+    }
+
+    return visible;
+  }
+
+  /** Compute which line range each entry occupies in the full render. */
+  private computeEntryLineRanges(allLines: string[], _width: number): void {
+    // We re-run the same logic as computeRender to track line offsets
+    // This is a bit wasteful but keeps the code simple
+    this.entryLineRanges = [];
+    let lineIdx = 0;
+    for (let i = 0; i < this.entries.length; i++) {
+      const start = lineIdx;
+      lineIdx++; // header line
+      if (this.expandedIndices.has(i)) {
+        const entry = this.entries[i];
+        const contentIndent = 2;
+        const contentWidth = Math.max(1, _width - contentIndent);
+        const resultLines = this.renderExpandedContent(entry, i, contentWidth);
+        lineIdx += resultLines.length;
+      }
+      this.entryLineRanges[i] = { start, end: lineIdx - 1 };
+    }
+  }
+
+  /** Adjust scrollOffset so the selected entry is fully visible. */
+  private ensureSelectedVisible(): void {
+    const range = this.entryLineRanges[this.selectedIndex];
+    if (!range) return;
+
+    // Scroll down if selected entry's end is below viewport
+    if (range.end >= this.scrollOffset + this.viewportHeight - 1) {
+      this.scrollOffset = range.end - this.viewportHeight + 2;
+    }
+
+    // Scroll up if selected entry's start is above viewport
+    if (range.start < this.scrollOffset) {
+      this.scrollOffset = range.start;
+    }
+
+    // Clamp
+    this.scrollOffset = Math.max(0, this.scrollOffset);
   }
 
   private computeRender(width: number): string[] {
@@ -139,16 +207,24 @@ export class BtwReviewComponent {
       }
     }
 
-    // Result content
+    // Result content — word-wrapped to fit available width
     if (result.type === "success") {
-      lines.push(this.theme.fg("toolOutput", result.text));
+      const wrappedLines = wrapText(result.text, contentWidth);
+      for (const wl of wrappedLines) {
+        lines.push(this.theme.fg("toolOutput", wl));
+      }
     } else {
-      lines.push(this.theme.fg("error", `Error: ${result.error}`));
+      const errorMsg = `Error: ${result.error}`;
+      for (const wl of wrapText(errorMsg, contentWidth)) {
+        lines.push(this.theme.fg("error", wl));
+      }
       if (result.exitCode !== undefined) {
         lines.push(this.theme.fg("dim", `Exit code: ${result.exitCode}`));
       }
       if (result.stderr) {
-        lines.push(this.theme.fg("dim", result.stderr));
+        for (const wl of wrapText(result.stderr, contentWidth)) {
+          lines.push(this.theme.fg("dim", wl));
+        }
       }
     }
 
@@ -202,19 +278,57 @@ export class BtwReviewComponent {
 
     if (this.entries.length === 0) return;
 
-    if (data === "\x1b[A") {
-      // Up arrow
+    // ── Selection movement (vim-style j/k) ──
+    if (data === "k") {
+      // k — move selection up
       if (this.selectedIndex > 0) {
         this.selectedIndex--;
         this.tui.requestRender();
       }
-    } else if (data === "\x1b[B") {
-      // Down arrow
+    } else if (data === "j") {
+      // j — move selection down
       if (this.selectedIndex < this.entries.length - 1) {
         this.selectedIndex++;
         this.tui.requestRender();
       }
-    } else if (
+    }
+    // ── Viewport scroll (arrow keys, Page Up/Down, Ctrl+D/U) ──
+    else if (data === "\x1b[A") {
+      // Up arrow — scroll viewport up
+      this.scrollOffset = Math.max(0, this.scrollOffset - 1);
+      this.tui.requestRender();
+    } else if (data === "\x1b[B") {
+      // Down arrow — scroll viewport down
+      this.scrollOffset++;
+      this.tui.requestRender();
+    } else if (data === "\x1b[5~") {
+      // Page Up
+      this.scrollOffset = Math.max(0, this.scrollOffset - this.viewportHeight);
+      this.tui.requestRender();
+    } else if (data === "\x1b[6~") {
+      // Page Down
+      this.scrollOffset += this.viewportHeight;
+      this.tui.requestRender();
+    } else if (data === "\x04") {
+      // Ctrl+D — half page down
+      this.scrollOffset += Math.floor(this.viewportHeight / 2);
+      this.tui.requestRender();
+    } else if (data === "\x15") {
+      // Ctrl+U — half page up
+      this.scrollOffset = Math.max(0, this.scrollOffset - Math.floor(this.viewportHeight / 2));
+      this.tui.requestRender();
+    } else if (data === "g") {
+      // g — go to top
+      this.scrollOffset = 0;
+      this.selectedIndex = 0;
+      this.tui.requestRender();
+    } else if (data === "G") {
+      // G — go to bottom
+      this.selectedIndex = this.entries.length - 1;
+      this.tui.requestRender();
+    }
+    // ── Toggle expand/collapse ──
+    else if (
       data === "\r" || data === "\x0f" ||
       (this.keybindings?.matches(data, "tui.select.confirm") ?? false)
     ) {
@@ -238,6 +352,8 @@ export class BtwReviewComponent {
           this.expandedIndices.add(this.selectedIndex);
         }
       }
+      // Reset scroll when expanding so content is visible
+      this.scrollOffset = 0;
       this.tui.requestRender();
     }
   }

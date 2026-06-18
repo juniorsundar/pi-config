@@ -669,7 +669,7 @@ describe("btw extension", () => {
 
       await handler("failing query", ctx);
 
-      expect(console.log).toHaveBeenCalledWith("BTW process exited with code 1");
+      expect(console.log).toHaveBeenCalledWith("BTW process exited with code 1\nerror output");
       expect(ctx.ui.custom).not.toHaveBeenCalled();
     });
   });

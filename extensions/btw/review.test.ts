@@ -319,7 +319,7 @@ describe("Slice 3: Navigation with up/down keys", () => {
     const theme = createMockTheme();
     const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
 
-    component.handleInput("\x1b[B"); // down
+    component.handleInput("j"); // j for selection down
 
     const lines = component.render(80);
     // Entry at index 1 should be selected now
@@ -333,8 +333,8 @@ describe("Slice 3: Navigation with up/down keys", () => {
     const theme = createMockTheme();
     const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
 
-    component.handleInput("\x1b[B"); // down → index 1
-    component.handleInput("\x1b[A"); // up → index 0
+    component.handleInput("j"); // j → index 1
+    component.handleInput("k"); // k → index 0
 
     const lines = component.render(80);
     expect(lines[0].startsWith(">")).toBe(true);
@@ -347,8 +347,8 @@ describe("Slice 3: Navigation with up/down keys", () => {
     const theme = createMockTheme();
     const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
 
-    component.handleInput("\x1b[B"); // down → index 1
-    component.handleInput("\x1b[B"); // down → stays at 1 (boundary)
+    component.handleInput("j"); // j → index 1
+    component.handleInput("j"); // j → stays at 1 (boundary)
 
     const lines = component.render(80);
     expect(lines[0].startsWith(">")).toBe(false); // index 0 no longer selected
@@ -362,7 +362,7 @@ describe("Slice 3: Navigation with up/down keys", () => {
     const theme = createMockTheme();
     const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
 
-    component.handleInput("\x1b[A"); // up at index 0 → stays at 0
+    component.handleInput("k"); // k at index 0 → stays at 0
 
     const lines = component.render(80);
     expect(lines[0].startsWith(">")).toBe(true);
@@ -376,9 +376,9 @@ describe("Slice 3: Navigation with up/down keys", () => {
     const component = new BtwReviewComponent(entries, tui, theme, vi.fn());
 
     // Move down 3 times to reach the last entry
-    component.handleInput("\x1b[B");
-    component.handleInput("\x1b[B");
-    component.handleInput("\x1b[B");
+    component.handleInput("j");
+    component.handleInput("j");
+    component.handleInput("j");
 
     const lines = component.render(80);
     const selectedLine = lines.find((l) => l.startsWith(">"));
@@ -395,7 +395,7 @@ describe("Slice 3: Navigation with up/down keys", () => {
     // Initial render should not have triggered requestRender yet
     expect(tui.requestRender).not.toHaveBeenCalled();
 
-    component.handleInput("\x1b[B"); // down
+    component.handleInput("j"); // j for selection down
 
     expect(tui.requestRender).toHaveBeenCalledTimes(1);
   });
@@ -410,7 +410,7 @@ describe("Slice 3: Navigation with up/down keys", () => {
     expect(component.render(80)[0].startsWith(">")).toBe(true);
 
     // Try to go down — should stay at index 0
-    component.handleInput("\x1b[B");
+    component.handleInput("j");
 
     const lines = component.render(80);
     expect(lines[0].startsWith(">")).toBe(true);
@@ -506,7 +506,7 @@ describe("Slice 4: Toggle expand/collapse", () => {
 
     // Collapse index 0, expand index 1
     component.handleInput("\r"); // collapse index 0
-    component.handleInput("\x1b[B"); // down to index 1
+    component.handleInput("j"); // j to index 1
     component.handleInput("\r"); // expand index 1
 
     const after = component.render(80);
@@ -526,8 +526,8 @@ describe("Slice 4: Toggle expand/collapse", () => {
     component.handleInput("\r");
 
     // Navigate down and back up
-    component.handleInput("\x1b[B");
-    component.handleInput("\x1b[A");
+    component.handleInput("j");
+    component.handleInput("k");
 
     // Index 0 should still be collapsed
     const after = component.render(80);
