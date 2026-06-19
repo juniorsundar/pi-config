@@ -1,6 +1,6 @@
 {
-  "defaultModel": "MiniMax-M3",
-  "defaultProvider": "minimax",
+  "defaultModel": "mimo-v2.5-pro",
+  "defaultProvider": "opencode-go-2",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
@@ -26,7 +26,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "0.79.7",
+  "lastChangelogVersion": "0.79.8",
   "packages": [
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",
