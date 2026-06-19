@@ -1,6 +1,6 @@
 {
-  "defaultModel": "deepseek-v4-pro",
-  "defaultProvider": "opencode-go",
+  "defaultModel": "MiniMax-M3",
+  "defaultProvider": "minimax",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
@@ -43,5 +43,10 @@
   },
   "searxng": {
     "url": "http://127.0.0.1:5340"
-  }
+  },
+  "enableSkillCommands": true,
+  "terminal": {
+    "showTerminalProgress": true
+  },
+  "treeFilterMode": "default"
 }
