@@ -320,7 +320,10 @@ export default function (pi: ExtensionAPI) {
   pi.on("tool_call", async (event, ctx): Promise<ToolCallBlockResult> => {
     if (event.toolName !== "edit" && event.toolName !== "write") return undefined;
     if (!isRecord(event.input)) return { block: true, reason: `${event.toolName} input must be an object` };
-    if (isTmpFileMutation(event.toolName, event.input, ctx.cwd)) return undefined;
+    if (isTmpFileMutation(event.toolName, event.input, ctx.cwd)) {
+      emitVerdict("approve", getPath(event.input));
+      return undefined;
+    }
     if (isSubagentChild()) return undefined;
 
     const confirmation = evaluateConfirmation(
@@ -329,7 +332,10 @@ export default function (pi: ExtensionAPI) {
       event.input,
     );
     if (confirmation.action === "block") return { block: true, reason: confirmation.reason };
-    if (confirmation.action === "bypass") return undefined;
+    if (confirmation.action === "bypass") {
+      emitVerdict("approve", getPath(event.input));
+      return undefined;
+    }
 
     if (!ctx.hasUI) {
       return {
