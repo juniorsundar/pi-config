@@ -17,12 +17,11 @@ import { evaluateConfirmation, getCurrentProfile } from "./lib/permission-policy
 /**
  * Confirm Mutating Tools Extension
  *
- * Requires explicit user approval before the agent can run tools that may
- * change files or system state: edit, write, and bash.
+ * Requires explicit user approval before the agent can run bash commands that
+ * may change files or system state.
  *
- * edit/write: opens Neovim diff approval when available; inside tmux it
- * opens the diff in a new window in the same session.
- * bash: uses Pi's built-in confirmation dialog with a structured summary,
+ * edit/write approval is owned by extensions/mutation, which uses the inline
+ * diff-preview flow. bash uses Pi's built-in confirmation dialog with a structured summary,
  * with an optional modifiable Neovim buffer for command edits.
  *
  * Child subagents are allowed through without an interactive confirmation gate:
@@ -33,7 +32,7 @@ import { evaluateConfirmation, getCurrentProfile } from "./lib/permission-policy
  * blocked by default.
  */
 export default function (pi: ExtensionAPI) {
-  const gatedTools = new Set(["edit", "write", "bash"]);
+  const gatedTools = new Set(["bash"]);
 
   pi.on("tool_call", async (event, ctx) => {
     if (!gatedTools.has(event.toolName)) return undefined;

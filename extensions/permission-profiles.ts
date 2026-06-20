@@ -61,10 +61,10 @@ export default function permissionProfiles(pi: ExtensionAPI) {
       return { block: true, reason: decision.reason };
     }
 
-    // In the bundled permission flow, confirm-mutating-tools owns interactive
-    // confirmations. This extension only applies hard blocks and preserves the
-    // old no-UI safety behavior for risky commands when no confirmation UI can
-    // be shown.
+    // In the bundled permission flow, mutation owns edit/write confirmations
+    // and confirm-mutating-tools owns bash confirmations. This extension only
+    // applies hard blocks and preserves the old no-UI safety behavior for risky
+    // commands when no confirmation UI can be shown.
     if (decision.action === "prompt" && !ctx.hasUI && !isSubagentChild()) {
       return {
         block: true,

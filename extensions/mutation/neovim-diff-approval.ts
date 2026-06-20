@@ -5,9 +5,8 @@
  * flow for file changes: opens `nvim -d before after` with `:Approve`/`:Deny`
  * commands, smart layout (side-by-side / horizontal), and tmux integration.
  *
- * Used by the diff-overlay prototype (and potentially other extensions that
- * need file-change approval via Neovim). confirm-mutating-tools.ts keeps its
- * own inline copy for now — no behaviour change there.
+ * Used by the mutation diff-preview flow (and its /diff-preview prototype
+ * commands) as the edit-in-Neovim escape hatch.
  */
 
 import { spawnSync } from "node:child_process";
