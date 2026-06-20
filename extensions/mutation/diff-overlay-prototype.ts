@@ -238,7 +238,7 @@ export default function (pi: ExtensionAPI) {
     ctx: UiContext,
   ): Promise<boolean> {
     if (approvalResolver || pending) {
-      ctx.ui.notify("Another mutation approval is already pending; decide that one first.", "warning");
+      emitVerdict("deny", getPath(input));
       return false;
     }
 
@@ -299,7 +299,6 @@ export default function (pi: ExtensionAPI) {
       approvalResolver = (decision) => {
         if (decision !== "approve") {
           emitVerdict("deny", targetPath);
-          ctx.ui.notify(`Denied ${toolName}: ${targetPath}`, "warning");
           resolveApproval(false);
           return;
         }
@@ -307,17 +306,12 @@ export default function (pi: ExtensionAPI) {
         const currentSnapshot = readFileSnapshot(absolutePath);
         if (currentSnapshot.fingerprint !== before.fingerprint) {
           emitVerdict("deny", targetPath);
-          ctx.ui.notify(
-            `Blocked ${toolName}: ${targetPath} changed after approval; ask the agent to retry.`,
-            "error",
-          );
           resolveApproval(false);
           return;
         }
 
         applyApprovedContent(toolName, input, before, pending?.after ?? afterContent);
         emitVerdict("approve", targetPath);
-        ctx.ui.notify(`Approved ${toolName}: ${targetPath}`, "info");
         resolveApproval(true);
       };
     });
