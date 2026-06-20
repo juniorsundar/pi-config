@@ -1,8 +1,8 @@
 /**
- * Mutation extension — diff overlay prototype with Neovim editing.
+ * Mutation extension — diff approval for write and edit tool calls.
  *
- * Provides /diff-preview and /diff-overlay commands for reviewing proposed
- * file changes with approve/deny/edit-in-nvim workflows.
+ * Provides inline A/D/E approval cards and a full overlay via Ctrl+Alt+F,
+ * with Neovim editing support for file diffs.
  */
 
-export { default } from "./diff-overlay-prototype";
+export { default } from "./diff-approval";

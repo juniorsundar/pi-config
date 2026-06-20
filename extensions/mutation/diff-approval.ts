@@ -21,8 +21,7 @@ import { Box, Container, Key, Text } from "@earendil-works/pi-tui";
 import { resolve } from "node:path";
 import { evaluateConfirmation, getCurrentProfile } from "../lib/permission-policy";
 import { DiffOverlayComponent, type OverlayResult } from "./overlay-component";
-import { generateCompactDiff, type CompactDiff } from "./diff-generation";
-import { FILE_A, FILE_B } from "./sample-data";
+import { generateCompactDiff } from "./diff-generation";
 import {
   runNeovimDiffApproval,
   commandExists,
@@ -351,61 +350,6 @@ export default function (pi: ExtensionAPI) {
 
   // ── Renderers ──────────────────────────────────────────────────────
 
-  pi.registerMessageRenderer("diff-preview", (message, _options, theme) => {
-    const summary = message.details as CompactDiff;
-    const lines: string[] = [];
-
-    const hunkWord = summary.hunks.length === 1 ? "hunk" : "hunks";
-    const toolLabel = summary.title.includes("| write |") ? "write" : "edit";
-    lines.push(
-      theme.fg("accent", "✎ ") +
-        theme.fg("toolTitle", `${toolLabel}  ${summary.fileName}`) +
-        theme.fg(
-          "dim",
-          `  +${summary.additions} -${summary.deletions}  ${summary.hunks.length} ${hunkWord}`,
-        ),
-    );
-
-    for (const hunk of summary.hunks) {
-      lines.push("");
-      lines.push(theme.fg("dim", `   @@ ${hunk.description || "(hunk)"}`));
-      for (const hunkLine of hunk.lines) {
-        const indent = "   ";
-        if (hunkLine.startsWith("+")) {
-          lines.push(theme.fg("success", indent + hunkLine));
-        } else if (hunkLine.startsWith("-")) {
-          lines.push(theme.fg("error", indent + hunkLine));
-        } else if (hunkLine.startsWith(" ")) {
-          lines.push(theme.fg("muted", indent + hunkLine));
-        } else {
-          lines.push(indent + hunkLine);
-        }
-      }
-      if (hunk.truncated > 0) {
-        const moreWord = hunk.truncated === 1 ? "line" : "lines";
-        lines.push(
-          theme.fg("dim", `   ... +${hunk.truncated} more ${moreWord} in this hunk`),
-        );
-      }
-    }
-
-    lines.push("");
-    lines.push(
-      theme.fg("accent", "Ctrl+Alt+F") +
-        theme.fg("dim", " expand · ") +
-        theme.fg("accent", "A") +
-        theme.fg("dim", " approve · ") +
-        theme.fg("accent", "D") +
-        theme.fg("dim", " deny · ") +
-        theme.fg("accent", "E") +
-        theme.fg("dim", "dit in nvim"),
-    );
-
-    const box = new Box(1, 1, (t) => theme.bg("customMessageBg", t));
-    box.addChild(new Text(lines.join("\n"), 0, 0));
-    return box;
-  });
-
   pi.registerMessageRenderer("diff-verdict", (message, _options, theme) => {
     const details = message.details as {
       verdict: "approved" | "denied";
@@ -423,41 +367,6 @@ export default function (pi: ExtensionAPI) {
     return box;
   });
 
-  // ── Commands ───────────────────────────────────────────────────────
-
-  pi.registerCommand("diff-overlay", {
-    description: "Prototype: show a fixed diff in a floating overlay",
-    handler: async (_args: string, ctx: ExtensionCommandContext) => {
-      const sampleDiff: PendingDiff = {
-        before: FILE_A,
-        after: FILE_B,
-        fileName: "src/greet.ts",
-        title: "Pi Approval | edit | src/greet.ts",
-      };
-      await openOverlay(ctx, sampleDiff);
-    },
-  });
-
-  pi.registerCommand("diff-preview", {
-    description: "Prototype: show a compact diff card in the conversation",
-    handler: async (_args: string, _ctx: ExtensionCommandContext) => {
-      const fileName = "src/greet.ts";
-      const title = "Pi Approval | edit | src/greet.ts";
-      const compact = generateCompactDiff(FILE_A, FILE_B, fileName, title);
-      pi.sendMessage({
-        customType: "diff-preview",
-        content: `${fileName}  +${compact.additions} -${compact.deletions}  ${compact.hunks.length} hunk(s)`,
-        display: true,
-        details: compact satisfies CompactDiff,
-      });
-      setPending({
-        before: FILE_A,
-        after: FILE_B,
-        fileName,
-        title,
-      });
-    },
-  });
 
   // ── Ctrl+Alt+F shortcut ────────────────────────────────────────────
 
@@ -469,7 +378,7 @@ export default function (pi: ExtensionAPI) {
         return;
       }
       if (!pending) {
-        ctx.ui.notify("No diff pending — run /diff-preview first", "warning");
+        ctx.ui.notify("No diff pending", "warning");
         return;
       }
       void (async () => {
