@@ -19,7 +19,7 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import { Box, Container, Key, Text } from "@earendil-works/pi-tui";
 import { resolve } from "node:path";
-import { evaluateConfirmation, getCurrentProfile } from "../lib/permission-policy";
+import { evaluateConfirmation, getCurrentProfile } from "./permission-policy";
 import { DiffOverlayComponent, type OverlayResult } from "./overlay-component";
 import { generateCompactDiff } from "./diff-generation";
 import {

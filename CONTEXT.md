@@ -142,6 +142,24 @@ _Avoid_: BTW output parser, BTW result parser
 - **BTW vs Subagent**: A BTW is not a subagent. Subagents have agent types, task directories, manifests, and stream processors. A BTW is a lightweight fork — it inherits the full conversation history and runs the same model, but has no agent definition, no task directory, and no structured output pipeline. It is closer to `ctx.fork()` than to `spawnSubagent()`.
 - **BTW Result vs Session Entry**: BTW results are intentionally excluded from the session. They live only in extension memory and the BTW Review view. They do not appear in the conversation stream, the session file, or the LLM context. This is the defining difference from a normal tool result.
 
+## Mutation
+
+A permission and approval boundary around tools that can change files, shell state, or external system state.
+
+### Language
+
+**Mutation Package**:
+A single Pi extension package that owns mutation-related policy and approval behavior, including edit/write diff approval, bash approval, and permission profile commands/status.
+_Avoid_: Confirm mutating tools, permission profiles package, mutation folder split
+
+**Bash Approval**:
+A user decision point for a shell command that may mutate files, shell state, or external system state. It is separate from edit/write diff approval because the thing being approved is a command, not a file content transition.
+_Avoid_: Confirm mutating tools, shell gate, bash permission prompt
+
+### Flagged ambiguities
+
+None currently.
+
 ### Example dialogue
 
 > **Dev**: I want to deep-research a topic. What happens?

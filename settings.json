@@ -1,7 +1,7 @@
 {
-  "defaultModel": "byteplus-coding/dola-seed-2.0-code",
-  "defaultProvider": "kilo",
-  "defaultThinkingLevel": "high",
+  "defaultModel": "gpt-5.4",
+  "defaultProvider": "openai-codex",
+  "defaultThinkingLevel": "medium",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
   "enabledModels": [
@@ -26,7 +26,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "0.79.8",
+  "lastChangelogVersion": "0.79.9",
   "packages": [
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",

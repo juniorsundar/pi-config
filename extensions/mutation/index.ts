@@ -1,8 +1,16 @@
-/**
- * Mutation extension — diff approval for write and edit tool calls.
- *
- * Provides inline A/D/E approval cards and a full overlay via Ctrl+Alt+F,
- * with Neovim editing support for file diffs.
- */
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import registerBashApproval from "./bash-approval";
+import registerDiffApproval from "./diff-approval";
+import registerPermissionProfile from "./permission-profile";
 
-export { default } from "./diff-approval";
+/**
+ * Mutation Package — canonical owner of mutation-related approval behavior.
+ *
+ * Registers permission profile state/commands, Bash Approval, and
+ * edit/write diff approval.
+ */
+export default function registerMutationPackage(pi: ExtensionAPI) {
+  registerPermissionProfile(pi);
+  registerDiffApproval(pi);
+  registerBashApproval(pi);
+}

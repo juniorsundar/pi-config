@@ -1,7 +1,7 @@
 /**
  * Neovim Diff Approval — shared module
  *
- * Extracted from confirm-mutating-tools.ts. Provides the Neovim diff approval
+ * Extracted from the legacy confirm-mutating-tools flow. Provides the Neovim diff approval
  * flow for file changes: opens `nvim -d before after` with `:Approve`/`:Deny`
  * commands, smart layout (side-by-side / horizontal), and tmux integration.
  *

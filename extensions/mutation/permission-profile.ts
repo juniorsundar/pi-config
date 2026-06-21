@@ -10,13 +10,13 @@ import {
   profileStatusLabel,
   setCurrentProfile,
   type Profile,
-} from "./lib/permission-policy";
+} from "./permission-policy";
 
 function isSubagentChild(): boolean {
   return process.env.PI_SUBAGENT_CHILD === "1";
 }
 
-export default function permissionProfiles(pi: ExtensionAPI) {
+export default function registerPermissionProfile(pi: ExtensionAPI) {
   function updateStatus(ctx: { ui: any }): void {
     const profile = getCurrentProfile();
     ctx.ui.setStatus(
@@ -61,10 +61,9 @@ export default function permissionProfiles(pi: ExtensionAPI) {
       return { block: true, reason: decision.reason };
     }
 
-    // In the bundled permission flow, mutation owns edit/write confirmations
-    // and confirm-mutating-tools owns bash confirmations. This extension only
-    // applies hard blocks and preserves the old no-UI safety behavior for risky
-    // commands when no confirmation UI can be shown.
+    // The Mutation Package owns edit/write diff approval and Bash Approval.
+    // This module only applies hard blocks and preserves the no-UI safety
+    // behavior for risky shell commands when no confirmation UI can be shown.
     if (decision.action === "prompt" && !ctx.hasUI && !isSubagentChild()) {
       return {
         block: true,

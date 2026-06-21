@@ -50,14 +50,14 @@ vi.mock("@earendil-works/pi-tui", () => ({
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import mutationExtension from "./index";
-import confirmMutatingTools from "../confirm-mutating-tools";
-import { setCurrentProfile } from "../lib/permission-policy";
+import { setCurrentProfile } from "./permission-policy";
 
 function makePi() {
   const handlers: Record<string, Function[]> = {};
   const messages: any[] = [];
   const entries: any[] = [];
   const tools: any[] = [];
+  const commands: Array<{ name: string; definition: any }> = [];
   const pi = {
     on: (eventName: string, handler: Function) => {
       handlers[eventName] ??= [];
@@ -65,12 +65,12 @@ function makePi() {
     },
     registerTool: (tool: any) => tools.push(tool),
     registerMessageRenderer: () => undefined,
-    registerCommand: () => undefined,
+    registerCommand: (name: string, definition: any) => commands.push({ name, definition }),
     registerShortcut: () => undefined,
     appendEntry: (customType: string, data: unknown) => entries.push({ customType, data }),
     sendMessage: (message: unknown) => messages.push(message),
   };
-  return { pi: pi as any, handlers, messages, entries, tools };
+  return { pi: pi as any, handlers, messages, entries, tools, commands };
 }
 
 function makeTheme() {
@@ -93,8 +93,15 @@ function makeInteractiveCtx(cwd: string) {
   const ctx = {
     cwd,
     hasUI: true,
-    sessionManager: { getBranch: () => [] },
+    sessionManager: {
+      getBranch: () => [],
+      getEntries: () => [],
+    },
     ui: {
+      theme: {
+        fg: (_name: string, text: string) => text,
+      },
+      setStatus: vi.fn(),
       confirm: async () => {
         throw new Error("unexpected confirm fallback");
       },
@@ -123,7 +130,7 @@ describe("mutation tool_call approval wiring", () => {
     const { pi, handlers } = makePi();
     mutationExtension(pi);
 
-    const result = await handlers.tool_call![0]!(
+    const result = await handlers.tool_call![1]!(
       { toolName: "write", input: { path: "src/app.ts", content: "ok" } },
       { cwd: process.cwd(), hasUI: false, ui: {} },
     );
@@ -131,12 +138,77 @@ describe("mutation tool_call approval wiring", () => {
     expect(result).toBeUndefined();
   });
 
-  it("blocks edit/write when confirmation is required but no UI is available", async () => {
+  it("registers the permissions command via the canonical mutation package", () => {
+    const { pi, commands } = makePi();
+    mutationExtension(pi);
+
+    expect(commands.some((command) => command.name === "permissions")).toBe(true);
+  });
+
+  it("blocks risky bash when no UI is available", async () => {
     setCurrentProfile("ask");
     const { pi, handlers } = makePi();
     mutationExtension(pi);
 
     const result = await handlers.tool_call![0]!(
+      { toolName: "bash", input: { command: "sudo systemctl restart nginx" } },
+      { cwd: process.cwd(), hasUI: false, ui: {} },
+    );
+
+    expect(result).toMatchObject({ block: true });
+    expect(result.reason).toContain("no UI available for confirmation");
+  });
+
+  it("approves bash through the canonical mutation package", async () => {
+    setCurrentProfile("ask");
+    const { pi, handlers } = makePi();
+    mutationExtension(pi);
+    const notify = vi.fn();
+
+    const result = await handlers.tool_call![2]!(
+      { toolName: "bash", input: { command: "npm test" } },
+      {
+        cwd: process.cwd(),
+        hasUI: true,
+        ui: {
+          select: async () => "Approve",
+          notify,
+        },
+      },
+    );
+
+    expect(result).toBeUndefined();
+    expect(notify).toHaveBeenCalledWith("Approved bash", "info");
+  });
+
+  it("denies bash through the canonical mutation package", async () => {
+    setCurrentProfile("ask");
+    const { pi, handlers } = makePi();
+    mutationExtension(pi);
+    const notify = vi.fn();
+
+    const result = await handlers.tool_call![2]!(
+      { toolName: "bash", input: { command: "npm test" } },
+      {
+        cwd: process.cwd(),
+        hasUI: true,
+        ui: {
+          select: async () => "Deny",
+          notify,
+        },
+      },
+    );
+
+    expect(result).toMatchObject({ block: true, reason: "Blocked by user" });
+    expect(notify).toHaveBeenCalledWith("Denied bash", "warning");
+  });
+
+  it("blocks edit/write when confirmation is required but no UI is available", async () => {
+    setCurrentProfile("ask");
+    const { pi, handlers } = makePi();
+    mutationExtension(pi);
+
+    const result = await handlers.tool_call![1]!(
       { toolName: "edit", input: { path: "src/app.ts", edits: [] } },
       { cwd: process.cwd(), hasUI: false, ui: {} },
     );
@@ -151,7 +223,7 @@ describe("mutation tool_call approval wiring", () => {
     const { pi, handlers } = makePi();
     mutationExtension(pi);
 
-    const result = await handlers.tool_call![0]!(
+    const result = await handlers.tool_call![1]!(
       { toolName: "write", input: { path: "src/app.ts", content: "ok" } },
       { cwd: process.cwd(), hasUI: false, ui: {} },
     );
@@ -164,7 +236,7 @@ describe("mutation tool_call approval wiring", () => {
     const { pi, handlers } = makePi();
     mutationExtension(pi);
 
-    const result = await handlers.tool_call![0]!(
+    const result = await handlers.tool_call![1]!(
       { toolName: "write", input: { path: "/tmp/pi-mutation-test.txt", content: "ok" } },
       { cwd: process.cwd(), hasUI: false, ui: {} },
     );
@@ -238,9 +310,9 @@ describe("mutation tool_call approval wiring", () => {
       const { pi, handlers } = makePi();
       const { ctx, press } = makeInteractiveCtx(cwd);
       mutationExtension(pi);
-      await handlers.session_start![0]!({ reason: "startup" }, ctx);
+      await handlers.session_start![1]!({ reason: "startup" }, ctx);
 
-      const toolCallPromise = handlers.tool_call![0]!(
+      const toolCallPromise = handlers.tool_call![1]!(
         { toolName: "write", input: { path: "target.txt", content: "after\n" } },
         ctx,
       );
@@ -263,9 +335,9 @@ describe("mutation tool_call approval wiring", () => {
       const { pi, handlers, messages } = makePi();
       const { ctx, press } = makeInteractiveCtx(cwd);
       mutationExtension(pi);
-      await handlers.session_start![0]!({ reason: "startup" }, ctx);
+      await handlers.session_start![1]!({ reason: "startup" }, ctx);
 
-      const toolCallPromise = handlers.tool_call![0]!(
+      const toolCallPromise = handlers.tool_call![1]!(
         { toolName: "write", input: { path: "target.txt", content: "after\n" } },
         ctx,
       );
@@ -290,15 +362,15 @@ describe("mutation tool_call approval wiring", () => {
       const { pi, handlers } = makePi();
       const { ctx, press } = makeInteractiveCtx(cwd);
       mutationExtension(pi);
-      await handlers.session_start![0]!({ reason: "startup" }, ctx);
+      await handlers.session_start![1]!({ reason: "startup" }, ctx);
 
-      const first = handlers.tool_call![0]!(
+      const first = handlers.tool_call![1]!(
         { toolName: "write", input: { path: "first.txt", content: "one changed\n" } },
         ctx,
       );
       await new Promise((r) => setTimeout(r, 10));
 
-      const second = await handlers.tool_call![0]!(
+      const second = await handlers.tool_call![1]!(
         { toolName: "write", input: { path: "second.txt", content: "two changed\n" } },
         ctx,
       );
@@ -319,9 +391,9 @@ describe("mutation tool_call approval wiring", () => {
       const { pi, handlers } = makePi();
       const { ctx, press } = makeInteractiveCtx(cwd);
       mutationExtension(pi);
-      await handlers.session_start![0]!({ reason: "startup" }, ctx);
+      await handlers.session_start![1]!({ reason: "startup" }, ctx);
 
-      const toolCallPromise = handlers.tool_call![0]!(
+      const toolCallPromise = handlers.tool_call![1]!(
         { toolName: "write", input: { path: "target.txt", content: "after\n" } },
         ctx,
       );
@@ -336,12 +408,13 @@ describe("mutation tool_call approval wiring", () => {
     }
   });
 
-  it("leaves edit/write detached from confirm-mutating-tools", async () => {
+  it("keeps bash approval owned by the canonical mutation package", async () => {
+    setCurrentProfile("yolo");
     const { pi, handlers } = makePi();
-    confirmMutatingTools(pi);
+    mutationExtension(pi);
 
-    const result = await handlers.tool_call![0]!(
-      { toolName: "write", input: { path: "src/app.ts", content: "ok" } },
+    const result = await handlers.tool_call![2]!(
+      { toolName: "bash", input: { command: "npm test" } },
       { cwd: process.cwd(), hasUI: false, ui: {} },
     );
 
