@@ -164,20 +164,25 @@ async function runNeovimBashApproval(
       "utf8",
     );
 
-    await ctx.ui.custom<void>(() => {
+    await ctx.ui.custom<number | null>((tui, _theme, _kb, done) => {
+      tui.stop();
       process.stdout.write("\x1b[2J\x1b[H");
+
       const result = runNeovimCommandApprovalProcess(
         tempDir,
         scriptPath,
         approvalPath,
       );
+
+      tui.start();
+      tui.requestRender(true);
+      done(result.status);
+
       if (result.status !== 0) {
         ctx.ui.notify("Neovim exited without approval.", "warning");
       }
-      return {
-        render: () => null,
-        destroy: () => undefined,
-      };
+
+      return { render: () => [], invalidate: () => {} };
     });
 
     const decision = readTrimmedFile(decisionPath);
@@ -251,12 +256,12 @@ vim.api.nvim_create_user_command('Deny', function()
   finish('deny')
 end, {})
 
-vim.keymap.set('n', 'A', function() finish('approve') end, { noremap = true, silent = true })
-vim.keymap.set('n', 'D', function() finish('deny') end, { noremap = true, silent = true })
 vim.keymap.set('n', '<Esc>', function() finish('deny') end, { noremap = true, silent = true })
+vim.keymap.set('n', '<leader><leader>A', '<Cmd>Approve<CR>', { noremap = true, silent = true })
+vim.keymap.set('n', '<leader><leader>D', '<Cmd>Deny<CR>', { noremap = true, silent = true })
 
 vim.cmd('edit ' .. vim.fn.fnameescape(script_file))
-vim.api.nvim_echo({{ 'Pi Approval: edit bash command if needed, then :Approve or :Deny', 'None' }}, false, {})
+vim.api.nvim_echo({{ 'Pi Approval: edit bash command if needed, then :Approve or :Deny (or <leader><leader>A / <leader><leader>D)', 'None' }}, false, {})
 `;
 }
 
