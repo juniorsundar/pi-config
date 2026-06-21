@@ -22,9 +22,9 @@ import { resolve } from "node:path";
 import { evaluateConfirmation, getCurrentProfile } from "./permission-policy";
 import { DiffOverlayComponent, type OverlayResult } from "./overlay-component";
 import { generateCompactDiff } from "./diff-generation";
+import { commandExists } from "./neovim-approval-utils";
 import {
   runNeovimDiffApproval,
-  commandExists,
   readFileSnapshot,
   validateAndApplyEditPreview,
   type FileSnapshot,

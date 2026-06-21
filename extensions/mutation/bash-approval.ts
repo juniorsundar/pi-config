@@ -1,10 +1,13 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { spawnSync } from "node:child_process";
-import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, join } from "node:path";
+import { join } from "node:path";
 import { createHash } from "node:crypto";
-import { commandExists } from "./neovim-diff-approval";
+import {
+  commandExists,
+  runNeovimWithArgsProcess,
+  shellQuote,
+} from "./neovim-approval-utils";
 import { evaluateConfirmation, getCurrentProfile } from "./permission-policy";
 
 type PermissionRequest = {
@@ -262,103 +265,12 @@ function runNeovimCommandApprovalProcess(
   scriptPath: string,
   approvalPath: string,
 ): { status: number | null } {
-  return runNeovimWithArgsProcess(
+  return runNeovimWithArgsProcess({
     tempDir,
-    [scriptPath, "-c", `luafile ${approvalPath}`],
-    "bash command",
-  );
-}
-
-function runNeovimWithArgsProcess(
-  tempDir: string,
-  nvimArgs: string[],
-  targetPath: string,
-): { status: number | null } {
-  if (isInsideTmux() && commandExists("tmux")) {
-    const tmuxResult = runNeovimApprovalInTmuxWindow(
-      tempDir,
-      nvimArgs,
-      targetPath,
-    );
-    if (tmuxResult.started) return { status: tmuxResult.status };
-  }
-
-  return spawnSync("nvim", nvimArgs, {
-    stdio: "inherit",
-    env: process.env,
+    nvimArgs: [scriptPath, "-c", `luafile ${approvalPath}`],
+    targetPath: "bash command",
+    windowTitlePrefix: "pi bash",
   });
-}
-
-function runNeovimApprovalInTmuxWindow(
-  tempDir: string,
-  nvimArgs: string[],
-  targetPath: string,
-): { started: boolean; status: number | null } {
-  const sessionTarget = getCurrentTmuxSessionTarget();
-  if (!sessionTarget) return { started: false, status: null };
-
-  const waitName = `pi-nvim-approval-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  const runnerPath = join(tempDir, "run-neovim-approval.sh");
-  const donePath = join(tempDir, "tmux-done.txt");
-  const nvimCommand = getCommandPath("nvim") ?? "nvim";
-  const nvimCommandLine = [nvimCommand, ...nvimArgs].map(shellQuote).join(" ");
-
-  writeFileSync(
-    runnerPath,
-    [
-      "#!/bin/sh",
-      "set +e",
-      `done_file=${shellQuote(donePath)}`,
-      "finish() {",
-      "  printf 'done\\n' > \"$done_file\" 2>/dev/null || true",
-      `  tmux wait-for -S ${shellQuote(waitName)} >/dev/null 2>&1 || true`,
-      "}",
-      "trap finish EXIT",
-      nvimCommandLine,
-      "status=$?",
-      'exit "$status"',
-      "",
-    ].join("\n"),
-    "utf8",
-  );
-  chmodSync(runnerPath, 0o700);
-
-  const windowName = `pi bash ${safePreviewBasename(targetPath)}`.slice(0, 80);
-  const start = spawnSync(
-    "tmux",
-    [
-      "new-window",
-      "-t",
-      sessionTarget,
-      "-n",
-      windowName,
-      shellQuote(runnerPath),
-    ],
-    {
-      stdio: "inherit",
-      env: process.env,
-    },
-  );
-  if (start.status !== 0) return { started: false, status: start.status };
-
-  let status: number | null = null;
-  while (!existsSync(donePath)) {
-    const wait = spawnSync("tmux", ["wait-for", waitName], {
-      stdio: "ignore",
-      env: process.env,
-      timeout: 1000,
-    });
-    status = wait.status;
-    if (existsSync(donePath)) break;
-    if (
-      wait.error &&
-      (wait.error as NodeJS.ErrnoException).code !== "ETIMEDOUT"
-    ) {
-      break;
-    }
-  }
-
-  return { started: true, status };
 }
 
 function formatBashPermissionRequest(
@@ -482,38 +394,6 @@ function detectBashRisks(command: string): string[] {
   }
 
   return risks;
-}
-
-function isInsideTmux(): boolean {
-  return Boolean(process.env.TMUX);
-}
-
-function getCurrentTmuxSessionTarget(): string | undefined {
-  const result = spawnSync("tmux", ["display-message", "-p", "#{session_id}"], {
-    stdio: ["ignore", "pipe", "ignore"],
-    env: process.env,
-    encoding: "utf8",
-  });
-  if (result.status !== 0) return undefined;
-  return result.stdout.trim() || undefined;
-}
-
-function getCommandPath(command: string): string | null {
-  const result = spawnSync("sh", ["-c", `command -v ${shellQuote(command)}`], {
-    stdio: ["ignore", "pipe", "ignore"],
-    encoding: "utf8",
-  });
-  if (result.status !== 0) return null;
-  return result.stdout.trim().split("\n")[0] || command;
-}
-
-function safePreviewBasename(targetPath: string): string {
-  const name = basename(targetPath.trim()) || "file.txt";
-  return name.replaceAll("\0", "_").replace(/[\\/]/g, "_") || "file.txt";
-}
-
-function shellQuote(value: string): string {
-  return `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
 function readTrimmedFile(path: string): string {

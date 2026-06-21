@@ -9,9 +9,7 @@
  * commands) as the edit-in-Neovim escape hatch.
  */
 
-import { spawnSync } from "node:child_process";
 import {
-  chmodSync,
   existsSync,
   mkdtempSync,
   readFileSync,
@@ -20,8 +18,12 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, join } from "node:path";
+import { join } from "node:path";
 import { createHash } from "node:crypto";
+import {
+  runNeovimWithArgsProcess,
+  safePreviewBasename,
+} from "./neovim-approval-utils";
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -219,102 +221,12 @@ function runNeovimApprovalProcess(
   approvalPath: string,
   targetPath: string,
 ): { status: number | null } {
-  return runNeovimWithArgsProcess(
+  return runNeovimWithArgsProcess({
     tempDir,
-    ["-d", beforePath, afterPath, "-c", `luafile ${approvalPath}`],
+    nvimArgs: ["-d", beforePath, afterPath, "-c", `luafile ${approvalPath}`],
     targetPath,
-  );
-}
-
-function runNeovimWithArgsProcess(
-  tempDir: string,
-  nvimArgs: string[],
-  targetPath: string,
-): { status: number | null } {
-  if (isInsideTmux() && commandExists("tmux")) {
-    const tmuxResult = runNeovimApprovalInTmuxWindow(
-      tempDir,
-      nvimArgs,
-      targetPath,
-    );
-    if (tmuxResult.started) return { status: tmuxResult.status };
-  }
-
-  return spawnSync("nvim", nvimArgs, {
-    stdio: "inherit",
-    env: process.env,
+    windowTitlePrefix: "pi diff",
   });
-}
-
-function runNeovimApprovalInTmuxWindow(
-  tempDir: string,
-  nvimArgs: string[],
-  targetPath: string,
-): { started: boolean; status: number | null } {
-  const sessionTarget = getCurrentTmuxSessionTarget();
-  if (!sessionTarget) return { started: false, status: null };
-
-  const waitName = `pi-nvim-approval-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  const runnerPath = join(tempDir, "run-neovim-approval.sh");
-  const donePath = join(tempDir, "tmux-done.txt");
-  const nvimCommand = getCommandPath("nvim") ?? "nvim";
-  const nvimCommandLine = [nvimCommand, ...nvimArgs].map(shellQuote).join(" ");
-
-  writeFileSync(
-    runnerPath,
-    [
-      "#!/bin/sh",
-      "set +e",
-      `done_file=${shellQuote(donePath)}`,
-      "finish() {",
-      "  printf 'done\\n' > \"$done_file\" 2>/dev/null || true",
-      `  tmux wait-for -S ${shellQuote(waitName)} >/dev/null 2>&1 || true`,
-      "}",
-      "trap finish EXIT",
-      nvimCommandLine,
-      "status=$?",
-      'exit "$status"',
-      "",
-    ].join("\n"),
-    "utf8",
-  );
-  chmodSync(runnerPath, 0o700);
-
-  const windowName = `pi diff ${safePreviewBasename(targetPath)}`.slice(0, 80);
-  const start = spawnSync(
-    "tmux",
-    [
-      "new-window",
-      "-t",
-      sessionTarget,
-      "-n",
-      windowName,
-      shellQuote(runnerPath),
-    ],
-    {
-      stdio: "inherit",
-      env: process.env,
-    },
-  );
-  if (start.status !== 0) return { started: false, status: start.status };
-
-  let status: number | null = null;
-  while (!existsSync(donePath)) {
-    const wait = spawnSync("tmux", ["wait-for", waitName], {
-      stdio: "ignore",
-      env: process.env,
-      timeout: 1000,
-    });
-    status = wait.status;
-    if (existsSync(donePath)) break;
-    if (
-      wait.error &&
-      (wait.error as NodeJS.ErrnoException).code !== "ETIMEDOUT"
-    )
-      break;
-  }
-
-  return { started: true, status };
 }
 
 // ── Lua script builder ────────────────────────────────────────────────
@@ -464,44 +376,6 @@ vim.defer_fn(function()
   vim.api.nvim_echo({{ 'Pi Approval: :Approve or :Deny | layout: ' .. layout, 'None' }}, false, {})
 end, 100)
 `;
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────
-
-function isInsideTmux(): boolean {
-  return Boolean(process.env.TMUX);
-}
-
-function getCurrentTmuxSessionTarget(): string | undefined {
-  const result = spawnSync("tmux", ["display-message", "-p", "#{session_id}"], {
-    stdio: ["ignore", "pipe", "ignore"],
-    env: process.env,
-    encoding: "utf8",
-  });
-  if (result.status !== 0) return undefined;
-  return result.stdout.trim() || undefined;
-}
-
-export function commandExists(command: string): boolean {
-  return getCommandPath(command) !== null;
-}
-
-function getCommandPath(command: string): string | null {
-  const result = spawnSync("sh", ["-c", `command -v ${shellQuote(command)}`], {
-    stdio: ["ignore", "pipe", "ignore"],
-    encoding: "utf8",
-  });
-  if (result.status !== 0) return null;
-  return result.stdout.trim().split("\n")[0] || command;
-}
-
-function shellQuote(value: string): string {
-  return `'${value.replace(/'/g, `'\\''`)}'`;
-}
-
-function safePreviewBasename(targetPath: string): string {
-  const name = basename(targetPath.trim()) || "file.txt";
-  return name.replaceAll("\0", "_").replace(/[\\/]/g, "_") || "file.txt";
 }
 
 // ── Text utilities ────────────────────────────────────────────────────
