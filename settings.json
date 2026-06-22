@@ -1,42 +1,41 @@
 {
-  "defaultModel": "gpt-5.4",
-  "defaultProvider": "openai-codex",
+  "defaultModel": "minimax-m3",
+  "defaultProvider": "opencode-go-2",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
+  "enableSkillCommands": true,
   "enabledModels": [
     "openai-codex/gpt-5.5",
     "openai-codex/gpt-5.4",
     "opencode-go-2/mimo-v2.5-pro",
     "opencode-go-2/mimo-v2.5",
-    "opencode-go-2/qwen3.7-max",
-    "opencode-go-2/qwen3.7-plus",
+    "opencode-go-2/minimax-m3",
+    "opencode-go/minimax-m2.7",
     "opencode-go/deepseek-v4-pro",
     "opencode-go/deepseek-v4-flash",
-    "opencode-go/glm-5.2",
-    "opencode-go/glm-5.1",
     "ollama/gemma4:31b",
     "ollama/qwen3.6:35b",
-    "minimax/MiniMax-M3",
-    "minimax/MiniMax-M2.7",
     "kilo/byteplus-coding/glm-5.1",
-    "kilo/byteplus-coding/dola-seed-2.0-code"
+    "kilo/byteplus-coding/dola-seed-2.0-code",
+    "ollama-cloud/glm-5.2",
+    "ollama-cloud/glm-5.1"
   ],
   "hideThinkingBlock": false,
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "0.79.9",
+  "lastChangelogVersion": "0.79.10",
   "packages": [
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@sherif-fanous/pi-atom-one",
     "git:github.com/juniorsundar/kilo-pi-provider",
-    "git:github.com/juniorsundar/pi-subagents"
+    "git:github.com/juniorsundar/pi-subagents",
+    "npm:pi-ollama-cloud"
   ],
   "shellCommandPrefix": "export DIRENV_LOG_FORMAT=''; if command -v direnv >/dev/null 2>&1; then eval \"$(direnv export bash 2>/dev/null)\"; fi",
-  "theme": "atom-one-dark",
   "deepresearch": {
     "subagentModel": "ollama/gemma4:31b",
     "orchestratorModel": "opencode-go/deepseek-v4-flash"
@@ -44,9 +43,9 @@
   "searxng": {
     "url": "http://127.0.0.1:5340"
   },
-  "enableSkillCommands": true,
   "terminal": {
     "showTerminalProgress": true
   },
+  "theme": "atom-one-dark",
   "treeFilterMode": "default"
 }
