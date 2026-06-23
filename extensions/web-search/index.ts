@@ -530,58 +530,34 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 		},
 	});
 
-	pi.on("session_start", async (_event, ctx) => {
-		const uv = getUvBinary();
+	pi.on("session_start", (_event, ctx) => {
+		// Fire-and-forget SearXNG connectivity probe — does not block session.
+		(async () => {
+			let searxngUrl: string;
+			try {
+				searxngUrl = getSearxngUrl();
+			} catch (error: any) {
+				ctx.ui.notify(
+					`web-search: SearXNG not configured: ${error?.message ?? String(error)}`,
+					"warning",
+				);
+				return;
+			}
 
-		// Check uv is available
-		try {
-			await pi.exec(uv, ["--version"], { timeout: 5_000 });
-		} catch (error: any) {
-			ctx.ui.notify(
-				`web-search: uv not found: ${error?.message ?? String(error)}`,
-				"error",
-			);
-			return;
-		}
-
-		// Check Python dependencies (httpx + fetch deps; ddgs removed)
-		try {
-			await pi.exec(uv, ["run", "--project", EXTENSION_DIR, "python", "-c", "import httpx, bs4, readability, markdownify"], {
-				timeout: 20_000,
-				cwd: EXTENSION_DIR,
-			});
-		} catch (error: any) {
-			ctx.ui.notify(
-				`web-search: Python dependency check failed: ${error?.message ?? String(error)}`,
-				"error",
-			);
-			return;
-		}
-
-		// Check SearXNG connectivity
-		let searxngUrl: string;
-		try {
-			searxngUrl = getSearxngUrl();
-		} catch (error: any) {
-			ctx.ui.notify(
-				`web-search: SearXNG not configured: ${error?.message ?? String(error)}`,
-				"warning",
-			);
-			return;
-		}
-
-		try {
-			await pi.exec(uv, [
-				"run", "--project", EXTENSION_DIR, "python", SEARCH_SCRIPT,
-				"--searxng-url", searxngUrl,
-				"--query", "health check",
-				"--max-results", "1",
-			], { timeout: 15_000, cwd: EXTENSION_DIR });
-		} catch (error: any) {
-			ctx.ui.notify(
-				`web-search: SearXNG unreachable at ${searxngUrl}: ${error?.message ?? String(error)}`,
-				"error",
-			);
-		}
+			try {
+				const uv = getUvBinary();
+				await pi.exec(uv, [
+					"run", "--project", EXTENSION_DIR, "python", SEARCH_SCRIPT,
+					"--searxng-url", searxngUrl,
+					"--query", "health check",
+					"--max-results", "1",
+				], { timeout: 15_000, cwd: EXTENSION_DIR });
+			} catch (error: any) {
+				ctx.ui.notify(
+					`web-search: SearXNG unreachable at ${searxngUrl}: ${error?.message ?? String(error)}`,
+					"error",
+				);
+			}
+		})();
 	});
 }
