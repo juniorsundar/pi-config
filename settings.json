@@ -1,7 +1,7 @@
 {
-  "defaultModel": "cx/gpt-5.4",
+  "defaultModel": "mistral/devstral-latest",
   "defaultProvider": "omniroute",
-  "defaultThinkingLevel": "medium",
+  "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
   "enableSkillCommands": true,
