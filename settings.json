@@ -8,6 +8,8 @@
   "enabledModels": [
     "omniroute/cx/gpt-5.5",
     "omniroute/cx/gpt-5.4",
+    "omniroute/kr/claude-sonnet-4.5",
+    "omniroute/kr/claude-haiku-4.5",
     "opencode-go-2/mimo-v2.5-pro",
     "opencode-go-2/mimo-v2.5",
     "opencode-go-2/minimax-m3",
@@ -19,9 +21,7 @@
     "omniroute/kc/byteplus-coding/glm-5.1",
     "omniroute/kc/byteplus-coding/dola-seed-2.0-code",
     "omniroute/ollamacloud/glm-5.2",
-    "omniroute/ollamacloud/glm-5.1",
-    "omniroute/kr/claude-sonnet-4.5",
-    "omniroute/kr/claude-haiku-4.5"
+    "omniroute/ollamacloud/glm-5.1"
   ],
   "hideThinkingBlock": false,
   "images": {
