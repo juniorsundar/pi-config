@@ -1,0 +1,12 @@
+{
+  "name": "omniroute-pi-provider",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Pi provider extension for OmniRoute (local OpenAI-compatible AI gateway at http://localhost:20128/v1). Caches the model catalog on disk so startup doesn't refetch every time.",
+  "keywords": ["pi-package", "pi-extension", "omniroute", "ai-provider"],
+  "license": "MIT",
+  "pi": {
+    "extensions": ["./index.ts"]
+  }
+}
