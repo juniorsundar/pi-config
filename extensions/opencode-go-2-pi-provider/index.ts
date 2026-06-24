@@ -19,11 +19,11 @@ import type {
 	ExtensionAPI,
 	ProviderModelConfig,
 } from "@earendil-works/pi-coding-agent";
-import { getModels } from "@earendil-works/pi-ai";
+import { getModels } from "@earendil-works/pi-ai/compat";
 import type {
 	OAuthCredentials,
 	OAuthLoginCallbacks,
-} from "@earendil-works/pi-ai";
+} from "@earendil-works/pi-ai/compat";
 
 const SOURCE_PROVIDER = "opencode-go";
 const PROVIDER_ID = "opencode-go-2";

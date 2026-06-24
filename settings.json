@@ -1,6 +1,6 @@
 {
-  "defaultModel": "cf/@cf/zai-org/glm-5.2",
-  "defaultProvider": "omniroute",
+  "defaultModel": "mimo-v2.5",
+  "defaultProvider": "opencode-go-2",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
@@ -33,7 +33,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "0.79.10",
+  "lastChangelogVersion": "0.80.2",
   "packages": [
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",
