@@ -7,7 +7,6 @@ model: opencode-go/deepseek-v4-flash
 systemPromptMode: replace
 inheritProjectContext: false
 inheritSkills: false
-defaultProgress: true
 timeout: 600
 ---
 

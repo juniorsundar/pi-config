@@ -7,7 +7,6 @@ thinking: high
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
-defaultProgress: true
 timeout: 600
 ---
 

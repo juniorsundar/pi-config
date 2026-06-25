@@ -7,7 +7,6 @@ model: kilo/byteplus-coding/glm-5.1
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
-defaultProgress: true
 ---
 
 You are a research subagent.

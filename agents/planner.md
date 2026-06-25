@@ -7,7 +7,6 @@ model: opencode-go-2/qwen3.7-max
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
-defaultProgress: true
 ---
 
 You are a planning subagent.

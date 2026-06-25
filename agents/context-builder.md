@@ -7,7 +7,6 @@ model: opencode-go/deepseek-v4-pro
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
-defaultProgress: true
 ---
 
 You are a requirements-to-context subagent.
