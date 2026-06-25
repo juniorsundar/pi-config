@@ -1,6 +1,6 @@
 {
-  "defaultModel": "mimo-v2.5",
-  "defaultProvider": "opencode-go-2",
+  "defaultModel": "ollamacloud/glm-5.2",
+  "defaultProvider": "omniroute",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
