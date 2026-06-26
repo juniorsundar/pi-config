@@ -5,6 +5,17 @@ import { setCurrentProfile } from "./permission-policy";
 const runNeovimWithArgsProcess = vi.fn(() => ({ status: 0 }));
 const commandExists = vi.fn((command: string) => command === "nvim");
 
+vi.mock("@earendil-works/pi-tui", () => ({
+  Box: class {
+    children: any[] = [];
+    addChild(child: any) { this.children.push(child); }
+  },
+  Text: class {
+    text: string;
+    constructor(text = "") { this.text = text; }
+  },
+}));
+
 vi.mock("./neovim-approval-utils", () => ({
   commandExists: (command: string) => commandExists(command),
   runNeovimWithArgsProcess: (options: unknown) => runNeovimWithArgsProcess(options),
@@ -13,14 +24,17 @@ vi.mock("./neovim-approval-utils", () => ({
 
 function makePi() {
   const handlers: Record<string, Function[]> = {};
+  const messages: any[] = [];
   return {
     pi: {
       on: (eventName: string, handler: Function) => {
         handlers[eventName] ??= [];
         handlers[eventName]!.push(handler);
       },
+      sendMessage: (message: unknown) => messages.push(message),
     } as any,
     handlers,
+    messages,
   };
 }
 
@@ -81,7 +95,9 @@ describe("bash approval neovim integration", () => {
       "No Neovim decision; returning to bash approval prompt.",
       "warning",
     );
-    expect(notify).toHaveBeenCalledWith("Denied bash", "warning");
+    expect(
+      messages.some((m: any) => m.customType === "mutation-verdict" && m.details?.verdict === "denied"),
+    ).toBe(true);
 
     const launchOptions = runNeovimWithArgsProcess.mock.calls[0]?.[0];
     expect(launchOptions?.windowTitlePrefix).toBe("pi bash");

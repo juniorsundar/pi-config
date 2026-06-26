@@ -88,15 +88,36 @@ function collectText(node: any): string {
   return "";
 }
 
-function makeInteractiveCtx(cwd: string) {
-  let terminalHandler: ((data: string) => any) | undefined;
+function makeInteractiveCtx(cwd: string, selectChoices: (string | undefined)[] = []) {
+  // Each select() call returns a promise. If a queued choice is available it
+  // resolves immediately; otherwise the promise stays pending until
+  // releaseSelect() is called (used to test concurrent approval gating).
+  let pendingSelectResolve: ((value: string | undefined) => void) | undefined;
+  const select = vi.fn(async () => {
+    if (selectChoices.length > 0) return selectChoices.shift();
+    return new Promise<string | undefined>((resolve) => {
+      pendingSelectResolve = resolve;
+    });
+  });
+  const releaseSelect = (value: string | undefined) => {
+    const resolve = pendingSelectResolve;
+    pendingSelectResolve = undefined;
+    if (resolve) resolve(value);
+  };
+
+  const custom = vi.fn(async (factory: Function) => {
+    let lastResult: unknown;
+    const done = (value: unknown) => { lastResult = value; };
+    const component = factory({ requestRender: vi.fn(), terminal: { rows: 40 } }, {}, {}, done);
+    if (component && typeof component.handleInput === "function") {
+      (custom as any).handleInput = (data: string) => component.handleInput(data);
+    }
+    return lastResult;
+  });
+
   const ctx = {
     cwd,
     hasUI: true,
-    sessionManager: {
-      getBranch: () => [],
-      getEntries: () => [],
-    },
     ui: {
       theme: {
         fg: (_name: string, text: string) => text,
@@ -105,16 +126,12 @@ function makeInteractiveCtx(cwd: string) {
       confirm: async () => {
         throw new Error("unexpected confirm fallback");
       },
-      select: async () => undefined,
+      select,
       notify: () => undefined,
-      custom: vi.fn(async () => undefined),
-      onTerminalInput: vi.fn((h: Function) => {
-        terminalHandler = h as any;
-        return () => { terminalHandler = undefined; };
-      }),
+      custom,
     },
   };
-  return { ctx, press: (key: string) => terminalHandler?.(key) };
+  return { ctx, select, releaseSelect, custom };
 }
 
 describe("mutation tool_call approval wiring", () => {
@@ -161,9 +178,8 @@ describe("mutation tool_call approval wiring", () => {
 
   it("approves bash through the canonical mutation package", async () => {
     setCurrentProfile("ask");
-    const { pi, handlers } = makePi();
+    const { pi, handlers, messages } = makePi();
     mutationExtension(pi);
-    const notify = vi.fn();
 
     const result = await handlers.tool_call![2]!(
       { toolName: "bash", input: { command: "npm test" } },
@@ -172,20 +188,21 @@ describe("mutation tool_call approval wiring", () => {
         hasUI: true,
         ui: {
           select: async () => "Approve",
-          notify,
+          notify: () => undefined,
         },
       },
     );
 
     expect(result).toBeUndefined();
-    expect(notify).toHaveBeenCalledWith("Approved bash", "info");
+    expect(
+      messages.some((m: any) => m.customType === "mutation-verdict" && m.details?.verdict === "approved" && m.details?.target === "npm test"),
+    ).toBe(true);
   });
 
   it("denies bash through the canonical mutation package", async () => {
     setCurrentProfile("ask");
-    const { pi, handlers } = makePi();
+    const { pi, handlers, messages } = makePi();
     mutationExtension(pi);
-    const notify = vi.fn();
 
     const result = await handlers.tool_call![2]!(
       { toolName: "bash", input: { command: "npm test" } },
@@ -194,13 +211,15 @@ describe("mutation tool_call approval wiring", () => {
         hasUI: true,
         ui: {
           select: async () => "Deny",
-          notify,
+          notify: () => undefined,
         },
       },
     );
 
     expect(result).toMatchObject({ block: true, reason: "Blocked by user" });
-    expect(notify).toHaveBeenCalledWith("Denied bash", "warning");
+    expect(
+      messages.some((m: any) => m.customType === "mutation-verdict" && m.details?.verdict === "denied" && m.details?.target === "npm test"),
+    ).toBe(true);
   });
 
   it("blocks edit/write when confirmation is required but no UI is available", async () => {
@@ -302,26 +321,26 @@ describe("mutation tool_call approval wiring", () => {
     }
   });
 
-  it("uses inline diff approval via onTerminalInput to unblock write", async () => {
+  it("approves write through the ui.select modal", async () => {
     setCurrentProfile("ask");
     const cwd = mkdtempSync(join(process.cwd(), ".tmp-mutation-test-"));
     try {
       writeFileSync(join(cwd, "target.txt"), "before\n", "utf8");
       const { pi, handlers } = makePi();
-      const { ctx, press } = makeInteractiveCtx(cwd);
+      const { ctx, select } = makeInteractiveCtx(cwd, ["Approve"]);
       mutationExtension(pi);
-      await handlers.session_start![1]!({ reason: "startup" }, ctx);
 
       const toolCallPromise = handlers.tool_call![1]!(
         { toolName: "write", input: { path: "target.txt", content: "after\n" } },
         ctx,
       );
 
-      await new Promise((r) => setTimeout(r, 10));
-      expect(ctx.ui.custom).not.toHaveBeenCalled();
-      expect(press("a")).toEqual({ consume: true });
-
       await expect(toolCallPromise).resolves.toBeUndefined();
+      expect(select).toHaveBeenCalledWith(
+        expect.stringContaining("Allow write target.txt?"),
+        ["Approve", "Deny", "Inspect/Edit in Neovim", "Expand diff view"],
+      );
+      expect(ctx.ui.custom).not.toHaveBeenCalled();
     } finally {
       rmSync(cwd, { recursive: true, force: true });
     }
@@ -333,21 +352,21 @@ describe("mutation tool_call approval wiring", () => {
     try {
       writeFileSync(join(cwd, "target.txt"), "before\n", "utf8");
       const { pi, handlers, messages } = makePi();
-      const { ctx, press } = makeInteractiveCtx(cwd);
+      const { ctx, select, releaseSelect } = makeInteractiveCtx(cwd);
       mutationExtension(pi);
-      await handlers.session_start![1]!({ reason: "startup" }, ctx);
 
       const toolCallPromise = handlers.tool_call![1]!(
         { toolName: "write", input: { path: "target.txt", content: "after\n" } },
         ctx,
       );
-
       await new Promise((r) => setTimeout(r, 10));
+
       writeFileSync(join(cwd, "target.txt"), "changed elsewhere\n", "utf8");
-      expect(press("a")).toEqual({ consume: true });
+      releaseSelect("Approve");
 
       await expect(toolCallPromise).resolves.toMatchObject({ block: true, reason: "Blocked by user" });
-      expect(messages.some((m: any) => m.customType === "diff-verdict" && m.details?.verdict === "approved")).toBe(false);
+      expect(select).toHaveBeenCalled();
+      expect(messages.some((m: any) => m.customType === "mutation-verdict" && m.details?.verdict === "approved")).toBe(false);
     } finally {
       rmSync(cwd, { recursive: true, force: true });
     }
@@ -360,9 +379,8 @@ describe("mutation tool_call approval wiring", () => {
       writeFileSync(join(cwd, "first.txt"), "one\n", "utf8");
       writeFileSync(join(cwd, "second.txt"), "two\n", "utf8");
       const { pi, handlers } = makePi();
-      const { ctx, press } = makeInteractiveCtx(cwd);
+      const { ctx, select, releaseSelect } = makeInteractiveCtx(cwd);
       mutationExtension(pi);
-      await handlers.session_start![1]!({ reason: "startup" }, ctx);
 
       const first = handlers.tool_call![1]!(
         { toolName: "write", input: { path: "first.txt", content: "one changed\n" } },
@@ -375,34 +393,60 @@ describe("mutation tool_call approval wiring", () => {
         ctx,
       );
       expect(second).toMatchObject({ block: true, reason: "Blocked by user" });
+      expect(select).toHaveBeenCalledTimes(1);
 
-      expect(press("d")).toEqual({ consume: true });
+      releaseSelect("Deny");
       await expect(first).resolves.toMatchObject({ block: true, reason: "Blocked by user" });
+      expect(select).toHaveBeenCalledTimes(1);
     } finally {
       rmSync(cwd, { recursive: true, force: true });
     }
   });
 
-  it("uses inline diff denial via onTerminalInput to block write", async () => {
+  it("denies write through the ui.select modal", async () => {
     setCurrentProfile("ask");
     const cwd = mkdtempSync(join(process.cwd(), ".tmp-mutation-test-"));
     try {
       writeFileSync(join(cwd, "target.txt"), "before\n", "utf8");
       const { pi, handlers } = makePi();
-      const { ctx, press } = makeInteractiveCtx(cwd);
+      const { ctx, select } = makeInteractiveCtx(cwd, ["Deny"]);
       mutationExtension(pi);
-      await handlers.session_start![1]!({ reason: "startup" }, ctx);
 
       const toolCallPromise = handlers.tool_call![1]!(
         { toolName: "write", input: { path: "target.txt", content: "after\n" } },
         ctx,
       );
 
-      await new Promise((r) => setTimeout(r, 10));
+      await expect(toolCallPromise).resolves.toMatchObject({ block: true, reason: "Blocked by user" });
+      expect(select).toHaveBeenCalled();
       expect(ctx.ui.custom).not.toHaveBeenCalled();
-      expect(press("d")).toEqual({ consume: true });
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
+  it("opens the diff overlay when Expand diff view is selected", async () => {
+    setCurrentProfile("ask");
+    const cwd = mkdtempSync(join(process.cwd(), ".tmp-mutation-test-"));
+    try {
+      writeFileSync(join(cwd, "target.txt"), "before\n", "utf8");
+      const { pi, handlers } = makePi();
+      const { ctx, select, custom } = makeInteractiveCtx(cwd, ["Expand diff view", "Deny"]);
+      mutationExtension(pi);
+
+      const toolCallPromise = handlers.tool_call![1]!(
+        { toolName: "write", input: { path: "target.txt", content: "after\n" } },
+        ctx,
+      );
+
+      // The overlay mock exposes handleInput from the DiffOverlayComponent.
+      // Drive it to "dismiss" so the modal loop re-prompts, then "Deny".
+      await new Promise((r) => setTimeout(r, 10));
+      (custom as any).handleInput?.("ctrl+alt+f");
 
       await expect(toolCallPromise).resolves.toMatchObject({ block: true, reason: "Blocked by user" });
+      expect(custom).toHaveBeenCalledTimes(1);
+      expect(select).toHaveBeenCalledTimes(2);
     } finally {
       rmSync(cwd, { recursive: true, force: true });
     }

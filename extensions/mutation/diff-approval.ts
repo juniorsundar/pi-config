@@ -3,12 +3,18 @@
  *
  * Registers custom write/edit tools that delegate execution to Pi's built-ins
  * but replace native renderCall previews with compact diff approval cards.
- * Tool calls are intercepted in tool_call and paused until the user approves
- * or denies via inline A/D/E terminal input. Ctrl+Alt+F expands/minimises the
- * pending diff overlay without deciding.
  *
- * The slash commands `/diff-preview` and `/diff-overlay` remain as sample/demo
- * entrypoints.
+ * Tool calls are intercepted in tool_call and paused until the user picks an
+ * option from a focus-grabbing ui.select modal (mirroring bash approval):
+ *   Approve / Deny / Inspect/Edit in Neovim / Expand diff view
+ * The entry line is disabled while the modal is open, so there is no risk of
+ * an accidental A/D keystroke auto-accepting or denying. The inline renderCall
+ * card is a read-only preview that accumulates the diff; the decision happens
+ * only in the modal.
+ *
+ * Approve/deny verdicts are surfaced through the shared mutation-verdict
+ * module (./verdict.ts) so bash and edit/write show one consistent,
+ * target-annotated line in the transcript.
  */
 
 import {
@@ -17,7 +23,7 @@ import {
   type ExtensionAPI,
   type ExtensionCommandContext,
 } from "@earendil-works/pi-coding-agent";
-import { Box, Container, Key, Text } from "@earendil-works/pi-tui";
+import { Box, Container, Text } from "@earendil-works/pi-tui";
 import { resolve } from "node:path";
 import { evaluateConfirmation, getCurrentProfile } from "./permission-policy";
 import { DiffOverlayComponent, type OverlayResult } from "./overlay-component";
@@ -30,8 +36,9 @@ import {
   type FileSnapshot,
   type UiContext,
 } from "./neovim-diff-approval";
+import { emitVerdict as emitMutationVerdict } from "./verdict";
 
-// ── Pending diff state ──────────────────────────────────────────────
+// ── Approval state ──────────────────────────────────────────────────
 
 interface PendingDiff {
   before: string;
@@ -44,25 +51,12 @@ interface PendingDiff {
 
 type ToolCallBlockResult = { block: true; reason: string } | undefined;
 
-const PENDING_ENTRY_TYPE = "diff-preview-state";
-
-interface PendingStateEntry {
-  cleared?: true;
-  before?: string;
-  after?: string;
-  fileName?: string;
-  title?: string;
-}
-
 // ── Extension factory ─────────────────────────────────────────────────
 
 export default function (pi: ExtensionAPI) {
-  let pending: PendingDiff | null = null;
-  let overlayOpen = false;
-  let approvalResolver: ((decision: "approve" | "deny") => void) | null = null;
-  let unsubscribeTerminal: (() => void) | null = null;
-  // Captured from session_start so openNeovimForPending can use the real ui.
-  let sessionCtx: UiContext | null = null;
+  // True while a tool_call approval modal loop is running. A second mutation
+  // arriving during approval is denied immediately (mirrors bash approval).
+  let approvalInProgress = false;
 
   // Override write/edit rendering while delegating execution to Pi's built-ins.
   // A defined renderCall prevents ToolExecutionComponent from falling back to
@@ -106,129 +100,69 @@ export default function (pi: ExtensionAPI) {
     },
   });
 
-  function persistPending(diff: PendingDiff | null): void {
-    if (diff) {
-      pi.appendEntry(PENDING_ENTRY_TYPE, diff satisfies PendingStateEntry);
-    } else {
-      pi.appendEntry(PENDING_ENTRY_TYPE, { cleared: true } satisfies PendingStateEntry);
-    }
-  }
-
-  function setPending(diff: PendingDiff | null): void {
-    pending = diff;
-    persistPending(diff);
-  }
-
-  function emitVerdict(verdict: "approve" | "deny", fileName?: string): void {
-    const isApprove = verdict === "approve";
-    pi.sendMessage({
-      customType: "diff-verdict",
-      content: isApprove ? "✓ approved" : "✗ denied",
-      display: true,
-      details: {
-        verdict: isApprove ? "approved" : "denied",
-        fileName: fileName ?? pending?.fileName,
-      } satisfies { verdict: "approved" | "denied"; fileName: string | undefined },
-    });
-  }
-
-  function resolvePendingApproval(decision: "approve" | "deny"): void {
-    if (!pending) return;
-    const resolver = approvalResolver;
-    approvalResolver = null;
-    if (resolver) {
-      resolver(decision);
-    } else {
-      emitVerdict(decision, pending.fileName);
-    }
-    setPending(null);
+  // Shared mutation-verdict emitter (see ./verdict.ts). Surfaced as a
+  // persistent, target-annotated line in the transcript.
+  function emit(verdict: "approve" | "deny", toolName: "edit" | "write", target: string): void {
+    emitMutationVerdict(pi, verdict, toolName, target);
   }
 
   // ── Neovim editing ────────────────────────────────────────────────
 
-  async function openNeovimForPending(): Promise<void> {
-    if (!pending) return;
-    if (!sessionCtx) {
-      pi.sendMessage({
-        customType: "diff-verdict",
-        content: "Session context not available — reload and try again",
-        display: true,
-        details: { verdict: "denied", fileName: pending.fileName },
-      });
-      return;
-    }
+  // Opens Neovim diff for the pending change. Returns the user's decision
+  // and the (possibly edited) approved content. Does not resolve the tool
+  // call — the caller's modal loop decides what to do next.
+  async function openNeovimForDiff(
+    ctx: UiContext,
+    diff: PendingDiff,
+  ): Promise<{ decision: "approve" | "deny"; approvedContent?: string }> {
     if (!commandExists("nvim")) {
-      sessionCtx.ui.notify("Neovim not found — approve/deny from the diff preview instead.", "warning");
-      return;
+      ctx.ui.notify("Neovim was not found; denying the change.", "warning");
+      return { decision: "deny" };
     }
 
-    const beforeContent = pending.before;
-    const afterContent = pending.after;
     const metadata: Array<[string, string]> = [
-      ["Tool", pending.toolName ?? "edit"],
-      ["File", pending.fileName],
+      ["Tool", diff.toolName ?? "edit"],
+      ["File", diff.fileName],
     ];
 
-    const result = await runNeovimDiffApproval(sessionCtx, {
-      toolName: pending.toolName ?? "edit",
-      targetPath: pending.fileName,
-      beforeContent,
-      afterContent,
+    return runNeovimDiffApproval(ctx, {
+      toolName: diff.toolName ?? "edit",
+      targetPath: diff.fileName,
+      beforeContent: diff.before,
+      afterContent: diff.after,
       metadata,
     });
-
-    if (result.decision === "approve") {
-      const approvedContent = result.approvedContent ?? afterContent;
-      pending.after = approvedContent;
-      resolvePendingApproval("approve");
-      return;
-    }
-
-    sessionCtx.ui.notify("Neovim did not approve the change — diff approval remains pending.", "warning");
   }
 
   // ── Overlay opener ────────────────────────────────────────────────
 
+  // Opens the full-screen scrolling diff overlay. Returns the user's choice:
+  // approve / deny / edit_in_neovim / dismiss (shrink without deciding).
   async function openOverlay(
     ctx: ExtensionCommandContext,
     diff: PendingDiff,
-  ): Promise<void> {
-    overlayOpen = true;
-    try {
-      const result = await ctx.ui.custom<OverlayResult>(
-        (tui, theme, _kb, done) =>
-          new DiffOverlayComponent(
-            tui,
-            theme,
-            diff.title,
-            diff.before,
-            diff.after,
-            diff.fileName,
-            done,
-          ),
-        {
-          overlay: true,
-          overlayOptions: {
-            anchor: "center",
-            width: "90%",
-            maxHeight: "80%",
-            margin: { bottom: 6 },
-          },
+  ): Promise<OverlayResult> {
+    return ctx.ui.custom<OverlayResult>(
+      (tui, theme, _kb, done) =>
+        new DiffOverlayComponent(
+          tui,
+          theme,
+          diff.title,
+          diff.before,
+          diff.after,
+          diff.fileName,
+          done,
+        ),
+      {
+        overlay: true,
+        overlayOptions: {
+          anchor: "center",
+          width: "90%",
+          maxHeight: "80%",
+          margin: { bottom: 6 },
         },
-      );
-
-      if (result === "dismiss") {
-        // Ctrl+Alt+F toggle — close overlay without deciding.
-      } else if (result === "edit_in_neovim") {
-        await openNeovimForPending();
-      } else if (pending) {
-        resolvePendingApproval(result);
-      } else {
-        emitVerdict(result, diff.fileName);
-      }
-    } finally {
-      overlayOpen = false;
-    }
+      },
+    );
   }
 
   async function approveToolCallWithDiffPreview(
@@ -236,8 +170,8 @@ export default function (pi: ExtensionAPI) {
     input: Record<string, unknown>,
     ctx: UiContext,
   ): Promise<boolean> {
-    if (approvalResolver || pending) {
-      emitVerdict("deny", getPath(input));
+    if (approvalInProgress) {
+      emit("deny", toolName, getPath(input));
       return false;
     }
 
@@ -259,6 +193,7 @@ export default function (pi: ExtensionAPI) {
           fieldBlock(metadata),
         ]),
       );
+      emit(ok ? "approve" : "deny", toolName, targetPath);
       return ok;
     }
 
@@ -272,6 +207,7 @@ export default function (pi: ExtensionAPI) {
           "Approve anyway without a diff preview?",
         ]),
       );
+      emit(ok ? "approve" : "deny", toolName, targetPath);
       return ok;
     }
 
@@ -281,46 +217,119 @@ export default function (pi: ExtensionAPI) {
         `Large diff: ${targetPath}`,
         joinSections([largeWarning, fieldBlock(metadata), "Continue to diff approval?"]),
       );
-      if (!ok) return false;
+      if (!ok) {
+        emit("deny", toolName, targetPath);
+        return false;
+      }
     }
 
     const title = `Pi Approval | ${toolName} | ${targetPath}`;
-    setPending({
+    const diff: PendingDiff = {
       before: before.content,
       after: afterContent,
       fileName: targetPath,
       title,
       toolName,
       toolInput: input,
-    });
+    };
 
-    return new Promise<boolean>((resolveApproval) => {
-      approvalResolver = (decision) => {
-        if (decision !== "approve") {
-          emitVerdict("deny", targetPath);
-          resolveApproval(false);
-          return;
+    // Track the editable after-content across Neovim editing rounds so an
+    // approve after editing applies the edited content.
+    let currentAfter = afterContent;
+
+    approvalInProgress = true;
+    try {
+      // Modal loop — mirrors bash approval. The ui.select modal grabs focus,
+      // disabling the entry line, so an accidental A/D keystroke cannot
+      // auto-accept or deny. The inline renderCall card is only a preview.
+      while (true) {
+        const choice = await ctx.ui.select(`Allow ${toolName} ${targetPath}?`, [
+          "Approve",
+          "Deny",
+          "Inspect/Edit in Neovim",
+          "Expand diff view",
+        ]);
+
+        if (choice === "Approve") {
+          const currentSnapshot = readFileSnapshot(absolutePath);
+          if (currentSnapshot.fingerprint !== before.fingerprint) {
+            ctx.ui.notify("File changed before approval — denying.", "warning");
+            emit("deny", toolName, targetPath);
+            return false;
+          }
+          applyApprovedContent(toolName, input, before, currentAfter);
+          emit("approve", toolName, targetPath);
+          return true;
         }
 
-        const currentSnapshot = readFileSnapshot(absolutePath);
-        if (currentSnapshot.fingerprint !== before.fingerprint) {
-          emitVerdict("deny", targetPath);
-          resolveApproval(false);
-          return;
+        if (choice === "Deny" || choice === undefined) {
+          emit("deny", toolName, targetPath);
+          return false;
         }
 
-        applyApprovedContent(toolName, input, before, pending?.after ?? afterContent);
-        emitVerdict("approve", targetPath);
-        resolveApproval(true);
-      };
-    });
+        if (choice === "Inspect/Edit in Neovim") {
+          const result = await openNeovimForDiff(ctx, { ...diff, after: currentAfter });
+          if (result.decision === "approve") {
+            currentAfter = result.approvedContent ?? currentAfter;
+            // Loop back to the modal so the user confirms from the focus-
+            // grabbing prompt rather than auto-approving from Neovim.
+            ctx.ui.notify("Edited in Neovim — confirm to approve.", "info");
+            continue;
+          }
+          // Neovim deny is an explicit decision — deny outright.
+          emit("deny", toolName, targetPath);
+          return false;
+        }
+
+        if (choice === "Expand diff view") {
+          const overlayResult = await openOverlay(
+            ctx as unknown as ExtensionCommandContext,
+            { ...diff, after: currentAfter },
+          );
+          if (overlayResult === "approve") {
+            const currentSnapshot = readFileSnapshot(absolutePath);
+            if (currentSnapshot.fingerprint !== before.fingerprint) {
+              ctx.ui.notify("File changed before approval — denying.", "warning");
+              emit("deny", toolName, targetPath);
+              return false;
+            }
+            applyApprovedContent(toolName, input, before, currentAfter);
+            emit("approve", toolName, targetPath);
+            return true;
+          }
+          if (overlayResult === "deny") {
+            emit("deny", toolName, targetPath);
+            return false;
+          }
+          if (overlayResult === "edit_in_neovim") {
+            const result = await openNeovimForDiff(ctx, { ...diff, after: currentAfter });
+            if (result.decision === "approve") {
+              currentAfter = result.approvedContent ?? currentAfter;
+              ctx.ui.notify("Edited in Neovim — confirm to approve.", "info");
+              continue;
+            }
+            // Neovim deny — deny outright.
+            emit("deny", toolName, targetPath);
+            return false;
+          }
+          // "dismiss" — shrink back to the inline card; loop to the modal.
+          continue;
+        }
+
+        // Unknown choice — treat as deny.
+        emit("deny", toolName, targetPath);
+        return false;
+      }
+    } finally {
+      approvalInProgress = false;
+    }
   }
 
   pi.on("tool_call", async (event, ctx): Promise<ToolCallBlockResult> => {
     if (event.toolName !== "edit" && event.toolName !== "write") return undefined;
     if (!isRecord(event.input)) return { block: true, reason: `${event.toolName} input must be an object` };
     if (isTmpFileMutation(event.toolName, event.input, ctx.cwd)) {
-      emitVerdict("approve", getPath(event.input));
+      emit("approve", event.toolName, getPath(event.input));
       return undefined;
     }
     if (isSubagentChild()) return undefined;
@@ -332,7 +341,7 @@ export default function (pi: ExtensionAPI) {
     );
     if (confirmation.action === "block") return { block: true, reason: confirmation.reason };
     if (confirmation.action === "bypass") {
-      emitVerdict("approve", getPath(event.input));
+      emit("approve", event.toolName, getPath(event.input));
       return undefined;
     }
 
@@ -346,119 +355,6 @@ export default function (pi: ExtensionAPI) {
     const approved = await approveToolCallWithDiffPreview(event.toolName, event.input, ctx);
     if (!approved) return { block: true, reason: "Blocked by user" };
     return undefined;
-  });
-
-  // ── Renderers ──────────────────────────────────────────────────────
-
-  pi.registerMessageRenderer("diff-verdict", (message, _options, theme) => {
-    const details = message.details as {
-      verdict: "approved" | "denied";
-      fileName?: string;
-    };
-    const isApprove = details.verdict === "approved";
-    const icon = isApprove ? "✓" : "✗";
-    const word = isApprove ? "approved" : "denied";
-    let text = theme.fg(isApprove ? "success" : "error", `${icon} ${word}`);
-    if (details.fileName) {
-      text += theme.fg("dim", ` — ${details.fileName}`);
-    }
-    const box = new Box(1, 1, (t) => theme.bg("customMessageBg", t));
-    box.addChild(new Text(text, 0, 0));
-    return box;
-  });
-
-
-  // ── Ctrl+Alt+F shortcut ────────────────────────────────────────────
-
-  pi.registerShortcut(Key.ctrlAlt("f"), {
-    description: "Expand pending inline diff to full overlay",
-    handler: (ctx) => {
-      if (overlayOpen) {
-        ctx.ui.notify("Diff overlay already open", "warning");
-        return;
-      }
-      if (!pending) {
-        ctx.ui.notify("No diff pending", "warning");
-        return;
-      }
-      void (async () => {
-        const current = pending;
-        if (!current) return;
-        await openOverlay(ctx, current);
-      })();
-    },
-  });
-
-  // ── Session lifecycle ──────────────────────────────────────────────
-
-  pi.on("session_start", async (_event, ctx) => {
-    if (!ctx.hasUI) return;
-
-    // Capture the real session context so openNeovimForPending can use
-    // ctx.ui.custom() to suspend the TUI and open Neovim.
-    sessionCtx = {
-      cwd: ctx.cwd,
-      ui: ctx.ui,
-    };
-
-    // Restore pending diff from the session (survives /reload).
-    const branch = ctx.sessionManager.getBranch();
-    for (let i = branch.length - 1; i >= 0; i--) {
-      const entry = branch[i] as
-        | { type: string; customType?: string; data?: PendingStateEntry }
-        | undefined;
-      if (entry?.type === "custom" && entry.customType === PENDING_ENTRY_TYPE) {
-        const data = entry.data;
-        if (
-          data &&
-          !data.cleared &&
-          data.before &&
-          data.after &&
-          data.fileName &&
-          data.title
-        ) {
-          pending = {
-            before: data.before,
-            after: data.after,
-            fileName: data.fileName,
-            title: data.title,
-          };
-        }
-        break;
-      }
-    }
-
-    if (unsubscribeTerminal) {
-      unsubscribeTerminal();
-      unsubscribeTerminal = null;
-    }
-
-    // Raw terminal input capture for inline A/D/E. Only consumes keys when
-    // (a) a diff is pending and (b) the overlay is NOT open.
-    unsubscribeTerminal = ctx.ui.onTerminalInput((data) => {
-      if (overlayOpen) return undefined;
-      if (!pending) return undefined;
-      if (data === "a" || data === "A") {
-        resolvePendingApproval("approve");
-        return { consume: true };
-      }
-      if (data === "d" || data === "D") {
-        resolvePendingApproval("deny");
-        return { consume: true };
-      }
-      if (data === "e" || data === "E") {
-        void openNeovimForPending();
-        return { consume: true };
-      }
-      return undefined;
-    });
-  });
-
-  pi.on("session_shutdown", async () => {
-    if (unsubscribeTerminal) {
-      unsubscribeTerminal();
-      unsubscribeTerminal = null;
-    }
   });
 }
 
@@ -583,16 +479,7 @@ function renderMutationResult(
 }
 
 function renderApprovalHints(theme: any): string {
-  return (
-    theme.fg("accent", "A") +
-    theme.fg("dim", " approve · ") +
-    theme.fg("accent", "D") +
-    theme.fg("dim", " deny · ") +
-    theme.fg("accent", "E") +
-    theme.fg("dim", "dit in nvim · ") +
-    theme.fg("accent", "Ctrl+Alt+F") +
-    theme.fg("dim", " expand/minimise")
-  );
+  return theme.fg("dim", "Diff preview — a prompt will appear for Approve / Deny / Inspect/Edit in Neovim / Expand diff view");
 }
 
 function renderApprovalBox(lines: string[], theme: any): Box {
