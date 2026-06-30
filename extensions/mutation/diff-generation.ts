@@ -3,7 +3,7 @@
  *
  * `generateDiff` produces a full-width coloured diff (delta or unified)
  * for the TUI overlay. `generateCompactDiff` produces a structured summary
- * (counts, hunks, truncated lines) for the inline card.
+ * (counts, hunks) for the inline card.
  */
 
 import { spawnSync } from "node:child_process";
@@ -108,7 +108,7 @@ export function generateDiff(
 // ── Compact diff (for inline card) ────────────────────────────────────
 //
 // Re-parses the output of `diff -u` into a small, structured shape:
-// counts, hunks, and the first N lines of each hunk for the inline card.
+// counts and full hunks (every line, untruncated) for the inline card.
 // ANSI escapes are stripped — the inline card uses simple +/- prefixes
 // coloured via theme.fg rather than delta's full syntax theme.
 //
@@ -118,7 +118,8 @@ export function generateDiff(
 // which makes counts impossible. `diff -u` always produces a unified stream
 // with `+`/`-` prefixes.
 
-const DEFAULT_MAX_LINES_PER_HUNK = 5;
+// No per-hunk truncation: edit/write approval cards show every hunk line as-is.
+const DEFAULT_MAX_LINES_PER_HUNK = Number.POSITIVE_INFINITY;
 
 export function generateCompactDiff(
   before: string,
