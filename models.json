@@ -27,23 +27,13 @@
         },
         {
           "_launch": true,
-          "contextWindow": 131072,
-          "id": "qwable-v1-q5:latest",
+          "contextWindow": 262144,
+          "id": "ornith-1.0:35b",
           "input": [
             "text",
           ],
           "reasoning": true
 
-        },
-        {
-          "_launch": true,
-          "contextWindow": 131072,
-          "id": "tongyi-deepresearch:30b",
-          "input": [
-            "text",
-            "image"
-          ],
-          "reasoning": false
         }
       ]
     }
