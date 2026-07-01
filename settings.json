@@ -1,6 +1,6 @@
 {
-  "defaultModel": "ollamacloud/glm-5.2",
-  "defaultProvider": "omniroute",
+  "defaultModel": "gemma4:31b",
+  "defaultProvider": "ollama",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
@@ -34,7 +34,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "0.80.2",
+  "lastChangelogVersion": "0.80.3",
   "packages": [
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",
