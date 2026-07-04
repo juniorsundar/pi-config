@@ -1,7 +1,7 @@
 {
-  "defaultModel": "cx/gpt-5.5",
+  "defaultModel": "oc/big-pickle",
   "defaultProvider": "omniroute",
-  "defaultThinkingLevel": "low",
+  "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
   "enableSkillCommands": true,
