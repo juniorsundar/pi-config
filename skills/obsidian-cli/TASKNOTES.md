@@ -1,118 +1,136 @@
 # TaskNotes quick reference
 
-Use this branch for TaskNotes task capture, scheduling, time tracking, Pomodoro, and task reporting.
+Use this branch to work with TaskNotes tasks through the `tn` CLI (`tasknotes-cli`).
 
 ## Discovery
 
-- Verify the plugin when needed: `obsidian-cli plugins:enabled filter=community format=tsv` and look for `tasknotes`.
+- Verify the plugin is installed and enabled:
+  ```sh
+  obsidian-cli plugins:enabled filter=community format=tsv | grep tasknotes
+  ```
+- `tn` communicates with the TaskNotes plugin API. If commands fail, ensure Obsidian is running and the TaskNotes plugin is enabled.
+- Task IDs (`<taskId>`) are shown by `tn list` and `tn search`. Use them for all task-specific operations (complete, update, timer, pomodoro, etc.).
 - If local vocabulary matters, inspect non-secret TaskNotes settings: `.obsidian/plugins/tasknotes/manifest.json` and `.obsidian/plugins/tasknotes/data.json`.
-- Relevant TaskNotes setting keys include `customStatuses`, `customPriorities`, `defaultTaskStatus`, `defaultTaskPriority`, `fieldMapping`, `taskTag`, and `taskFolder`.
-- If multiple tasks may match, search/list first and then use `path=<path>` for the write.
+- Relevant keys include `customStatuses`, `customPriorities`, `defaultTaskStatus`, `defaultTaskPriority`, `fieldMapping`, `taskTag`, and `taskFolder`.
 
-## Capture
-
-Command:
+## Creating tasks
 
 ```sh
-obsidian-cli tasknotes:capture text="..."
+tn create "Buy groceries tomorrow 9am #personal priority=high"
 ```
 
-Options:
+`tn create` uses natural-language parsing (NLP) — dates, times, tags, priorities, and projects are extracted from the text. There are no explicit flags for structured fields; to set fields explicitly, create then update.
 
-- `text=<text>`: free text parsed with NLP unless `literal` is set.
-- `title=<title>`: explicit task title; overrides NLP-derived title.
-- `details=<details>`: explicit body/details.
-- `status=<status>`: TaskNotes status.
-- `priority=<priority>`: TaskNotes priority.
-- `due=<date>`: due date or datetime, `YYYY-MM-DD` or `YYYY-MM-DDTHH:MM`.
-- `scheduled=<date>`: scheduled date or datetime.
-- `tags=<tag1,tag2>`: comma-separated tags.
-- `contexts=<ctx1,ctx2>`: comma-separated contexts.
-- `projects=<proj1,proj2>`: comma-separated projects.
-- `recurrence=<rrule>`: recurrence rule.
-- `recurrence-anchor=<scheduled|completion>`: how recurring tasks advance.
-- `reminders=<spec>`: `due:-PT1H;scheduled:-PT30M;at:2026-04-02T09:00` or JSON array.
-- `estimate=<minutes>`: estimate in minutes.
-- `literal`: treat `text` as literal title instead of NLP.
-
-Predictable capture rules:
-
-- Use `text` without `literal` when the user wants natural-language parsing.
-- Use `title`, `details`, and explicit flags when the user provides structured fields or when accuracy matters.
-- Use `literal` when the requested title contains dates, tags, or words that should not be parsed.
-
-Examples:
+To set fields that NLP can't infer:
 
 ```sh
-obsidian-cli tasknotes:capture text="Submit rent receipt tomorrow 9am #admin" priority=high estimate=10
-obsidian-cli tasknotes:capture text="Submit rent receipt" due=2026-07-05 priority=high tags=admin estimate=10 literal
-obsidian-cli tasknotes:capture title="Review weekly plan" scheduled=2026-07-06 recurrence="FREQ=WEEKLY;BYDAY=MO" recurrence-anchor=scheduled
+tn create "Write Q4 report"
+tn update <taskId> --priority high --due 2026-07-10 --add-tags work
+```
+
+## Listing and searching tasks
+
+```sh
+tn list                          # all tasks
+tn list --filter "status:open"   # only open tasks
+tn list --filter "priority:high AND status:in-progress"
+tn search "drone provisioning"
+```
+
+**Filter expressions** support:
+- `status:<value>` — `open`, `in-progress`, `done`, `cancelled`, `follow-up`
+- `priority:<value>` — `highest`, `high`, `medium`, `low`, `lowest`
+- `AND`, `OR`, parentheses grouping
+- Omit `--filter` to see all tasks
+
+## Updating tasks
+
+```sh
+tn update <taskId> --title "New title"
+tn update <taskId> --status in-progress
+tn update <taskId> --priority high
+tn update <taskId> --due 2026-07-10
+tn update <taskId> --scheduled 2026-07-08
+tn update <taskId> --estimate 30
+tn update <taskId> --add-tags admin,review
+tn update <taskId> --remove-tags backlog
+tn update <taskId> --add-contexts @office
+tn update <taskId> --add-projects ssrc-vnu
+```
+
+## Completing and toggling
+
+```sh
+tn complete <taskId>              # mark done
+tn toggle <taskId>                # toggle open/closed
+tn archive <taskId>               # toggle archive
 ```
 
 ## Time tracking
 
-Start:
-
 ```sh
-obsidian-cli tasknotes:start-time path="Tasks/Submit rent receipt.md" description="Filing receipt"
-obsidian-cli tasknotes:start-time title="Submit rent receipt"
-obsidian-cli tasknotes:start-time query="rent receipt"
-```
-
-Stop:
-
-```sh
-obsidian-cli tasknotes:stop-time path="Tasks/Submit rent receipt.md"
-obsidian-cli tasknotes:stop-time query="rent receipt"
-obsidian-cli tasknotes:stop-time
-```
-
-Status:
-
-```sh
-obsidian-cli tasknotes:time-status
-obsidian-cli tasknotes:time-status path="Tasks/Submit rent receipt.md"
-obsidian-cli tasknotes:time-status query="rent receipt"
+tn timer start --task <taskId>
+tn timer stop --task <taskId>
+tn timer status                   # active sessions
+tn timer log                      # today's log
+tn timer log --period week        # weekly log
+tn timer log --period month       # monthly log
+tn timer log --from 2026-07-01 --to 2026-07-07
+tn timer log --limit 20
 ```
 
 Rules:
-
-- Prefer `path` over `title`, and `title` over `query`, for writes.
-- Use bare `tasknotes:stop-time` only when the only active session is unambiguous.
+- Use `tn list` or `tn search` first to find the task ID if unknown.
+- `--task` is required for `start` and `stop`; `status` and `log` can run without it.
 
 ## Pomodoro
 
-Command:
-
 ```sh
-obsidian-cli tasknotes:pomodoro action=<status|start|pause|resume|stop|short-break|long-break>
+tn pomodoro status                # current state
+tn pomodoro start --task <taskId>
+tn pomodoro start --task <taskId> --duration 25
+tn pomodoro pause
+tn pomodoro resume
+tn pomodoro stop
+tn pomodoro short-break
+tn pomodoro long-break
+tn pomodoro stats                 # session statistics
+tn pomodoro stats --week
+tn pomodoro stats --month
+tn pomodoro sessions              # past sessions
+tn pomodoro sessions --date 2026-07-04
+tn pomodoro sessions --limit 10
 ```
 
-Examples:
+## Stats and projects
 
 ```sh
-obsidian-cli tasknotes:pomodoro action=status
-obsidian-cli tasknotes:pomodoro action=start path="Tasks/Submit rent receipt.md" duration=25
-obsidian-cli tasknotes:pomodoro action=pause
-obsidian-cli tasknotes:pomodoro action=resume
-obsidian-cli tasknotes:pomodoro action=short-break
-obsidian-cli tasknotes:pomodoro action=stop
+tn stats                          # task statistics
+tn stats --json                   # machine-readable output
+tn projects list
+tn projects show <projectName>
+tn projects create <projectName> --description "..." --folder "task_notes/projects"
+tn projects stats <projectName> --period month
 ```
 
-Rules:
-
-- For `action=start`, provide one of `path`, `title`, or `query`; prefer `path`.
-- `duration=<minutes>` overrides the work-session duration.
-
-## Classic markdown tasks
-
-TaskNotes is note-based, but the CLI also supports markdown checkbox tasks:
+## Deleting and archiving
 
 ```sh
-obsidian-cli tasks todo verbose format=json
-obsidian-cli task ref="Daily/2026-07-04.md:12" done
-obsidian-cli task path="Daily/2026-07-04.md" line=12 toggle
-obsidian-cli task daily line=5 status="/"
+tn delete <taskId>                # delete permanently
+tn archive <taskId>               # toggle archive
 ```
 
-Use these only for markdown checkboxes, not TaskNotes note files, unless the user asks for markdown task operations.
+## Configuration
+
+```sh
+tn config --list                  # show all settings
+tn config --get vault             # get single value
+tn config --set vault=MyVault     # set value
+```
+
+## General safety rules
+
+1. Use `tn list` or `tn search` before any write-by-ID to confirm the right task.
+2. Prefer `tn list --filter` over `tn search` for structured queries; prefer `tn search` for free-text.
+3. `tn create` uses NLP — the user can write natural language with dates, priorities, tags, and projects inline. Do not add explicit flags to `tn create`; use `tn update` for post-creation field adjustments.
+4. For destructive operations (`delete`, `archive`), confirm with the user if the ID looks ambiguous.

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-04T18:05:42.590Z",
+  "updatedAt": "2026-07-05T13:31:52.658Z",
   "base": "http://localhost:20128/v1",
   "models": [
     {
@@ -9180,8 +9180,8 @@
       "maxTokens": 25600
     },
     {
-      "id": "ollamacloud/qwen3-coder-next",
-      "name": "ollamacloud/qwen3-coder-next",
+      "id": "ollamacloud/minimax-m2.5",
+      "name": "ollamacloud/minimax-m2.5",
       "reasoning": true,
       "input": [
         "text"
@@ -9192,24 +9192,8 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "ollamacloud/deepseek-v3.2",
-      "name": "ollamacloud/deepseek-v3.2",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
+      "contextWindow": 200000,
+      "maxTokens": 131072
     },
     {
       "id": "ollamacloud/deepseek-v4-flash",
@@ -9228,170 +9212,24 @@
       "maxTokens": 384000
     },
     {
-      "id": "ollamacloud/minimax-m2.5",
-      "name": "ollamacloud/minimax-m2.5",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 131072
-    },
-    {
-      "id": "ollamacloud/nemotron-3-super",
-      "name": "NVIDIA Nemotron 3 Super",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "ollamacloud/glm-5",
-      "name": "ollamacloud/glm-5",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "ollamacloud/kimi-k2.6",
-      "name": "ollamacloud/Kimi K2.6",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 262144,
-      "maxTokens": 262144
-    },
-    {
-      "id": "ollamacloud/deepseek-v4-pro",
-      "name": "ollamacloud/DeepSeek V4 Pro",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 384000
-    },
-    {
-      "id": "ollamacloud/nemotron-3-nano:30b",
-      "name": "nemotron-3-nano:30b",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "ollamacloud/minimax-m3",
-      "name": "ollamacloud/MiniMax M3",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 512000
-    },
-    {
-      "id": "ollamacloud/ministral-3:3b",
-      "name": "ministral-3:3b",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "ollamacloud/glm-5.1",
-      "name": "GLM 5.1",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "ollamacloud/glm-5.2",
-      "name": "ollamacloud/glm-5.2",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 131072
-    },
-    {
       "id": "ollamacloud/ministral-3:8b",
       "name": "ministral-3:8b",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "ollamacloud/mistral-large-3:675b",
+      "name": "mistral-large-3:675b",
       "reasoning": true,
       "input": [
         "text"
@@ -9422,9 +9260,106 @@
       "maxTokens": 25600
     },
     {
-      "id": "ollamacloud/gemini-3-flash-preview",
-      "name": "gemini-3-flash-preview",
-      "reasoning": false,
+      "id": "ollamacloud/gemma3:12b",
+      "name": "gemma3:12b",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "ollamacloud/qwen3.5:397b",
+      "name": "Qwen 3.5 397B",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "ollamacloud/gpt-oss:20b",
+      "name": "gpt-oss:20b",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 400000,
+      "maxTokens": 80000
+    },
+    {
+      "id": "ollamacloud/ministral-3:14b",
+      "name": "ministral-3:14b",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "ollamacloud/gemma4:31b",
+      "name": "Gemma 4 31B",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "ollamacloud/kimi-k2.6",
+      "name": "ollamacloud/Kimi K2.6",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 262144,
+      "maxTokens": 262144
+    },
+    {
+      "id": "ollamacloud/minimax-m3",
+      "name": "ollamacloud/MiniMax M3",
+      "reasoning": true,
       "input": [
         "text",
         "image"
@@ -9436,7 +9371,39 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 65536
+      "maxTokens": 512000
+    },
+    {
+      "id": "ollamacloud/gemma3:27b",
+      "name": "gemma3:27b",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "ollamacloud/gpt-oss:120b",
+      "name": "gpt-oss:120b",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 400000,
+      "maxTokens": 80000
     },
     {
       "id": "ollamacloud/gemma3:4b",
@@ -9455,8 +9422,24 @@
       "maxTokens": 25600
     },
     {
-      "id": "ollamacloud/gemma3:12b",
-      "name": "gemma3:12b",
+      "id": "ollamacloud/glm-5.2",
+      "name": "ollamacloud/glm-5.2",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 131072
+    },
+    {
+      "id": "ollamacloud/qwen3-coder-next",
+      "name": "ollamacloud/qwen3-coder-next",
       "reasoning": true,
       "input": [
         "text"
@@ -9471,8 +9454,56 @@
       "maxTokens": 25600
     },
     {
-      "id": "ollamacloud/gemma3:27b",
-      "name": "gemma3:27b",
+      "id": "ollamacloud/deepseek-v3.1:671b",
+      "name": "deepseek-v3.1:671b",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "ollamacloud/ministral-3:3b",
+      "name": "ministral-3:3b",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "ollamacloud/devstral-2:123b",
+      "name": "devstral-2:123b",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "ollamacloud/nemotron-3-super",
+      "name": "NVIDIA Nemotron 3 Super",
       "reasoning": true,
       "input": [
         "text"
@@ -9504,8 +9535,73 @@
       "maxTokens": 262144
     },
     {
-      "id": "ollamacloud/qwen3-coder:480b",
-      "name": "qwen3-coder:480b",
+      "id": "ollamacloud/minimax-m2.1",
+      "name": "ollamacloud/minimax-m2.1",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "ollamacloud/gemini-3-flash-preview",
+      "name": "gemini-3-flash-preview",
+      "reasoning": false,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "ollamacloud/glm-5",
+      "name": "ollamacloud/glm-5",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 200000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "ollamacloud/deepseek-v3.2",
+      "name": "ollamacloud/deepseek-v3.2",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "ollamacloud/nemotron-3-nano:30b",
+      "name": "nemotron-3-nano:30b",
       "reasoning": true,
       "input": [
         "text"
@@ -9552,8 +9648,8 @@
       "maxTokens": 25600
     },
     {
-      "id": "ollamacloud/minimax-m2.1",
-      "name": "ollamacloud/minimax-m2.1",
+      "id": "ollamacloud/glm-5.1",
+      "name": "GLM 5.1",
       "reasoning": true,
       "input": [
         "text"
@@ -9564,152 +9660,8 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "ollamacloud/minimax-m2.7",
-      "name": "ollamacloud/MiniMax M2.7",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 204800,
-      "maxTokens": 131072
-    },
-    {
-      "id": "ollamacloud/mistral-large-3:675b",
-      "name": "mistral-large-3:675b",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "ollamacloud/deepseek-v3.1:671b",
-      "name": "deepseek-v3.1:671b",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "ollamacloud/gpt-oss:120b",
-      "name": "gpt-oss:120b",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 400000,
-      "maxTokens": 80000
-    },
-    {
-      "id": "ollamacloud/gpt-oss:20b",
-      "name": "gpt-oss:20b",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 400000,
-      "maxTokens": 80000
-    },
-    {
-      "id": "ollamacloud/ministral-3:14b",
-      "name": "ministral-3:14b",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "ollamacloud/devstral-2:123b",
-      "name": "devstral-2:123b",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "ollamacloud/gemma4:31b",
-      "name": "Gemma 4 31B",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "ollamacloud/qwen3.5:397b",
-      "name": "Qwen 3.5 397B",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
+      "contextWindow": 200000,
+      "maxTokens": 128000
     },
     {
       "id": "ollamacloud/kimi-k2.7-code",
@@ -9727,6 +9679,54 @@
       },
       "contextWindow": 262144,
       "maxTokens": 262144
+    },
+    {
+      "id": "ollamacloud/qwen3-coder:480b",
+      "name": "qwen3-coder:480b",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "ollamacloud/deepseek-v4-pro",
+      "name": "ollamacloud/DeepSeek V4 Pro",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 384000
+    },
+    {
+      "id": "ollamacloud/minimax-m2.7",
+      "name": "ollamacloud/MiniMax M2.7",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 204800,
+      "maxTokens": 131072
     },
     {
       "id": "opencode-go/minimax-m3",

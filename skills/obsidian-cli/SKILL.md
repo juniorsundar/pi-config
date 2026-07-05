@@ -1,6 +1,6 @@
 ---
 name: obsidian-cli
-description: Obsidian CLI vault operations and TaskNotes automation. Use when the user asks to operate an Obsidian vault through obsidian-cli, or to capture, schedule, track, Pomodoro, or report TaskNotes tasks.
+description: Obsidian CLI vault operations and TaskNotes (tn) automation. Use when the user asks to operate an Obsidian vault through obsidian-cli, or to capture, schedule, track, Pomodoro, or report TaskNotes tasks.
 ---
 
 # Obsidian CLI
@@ -24,9 +24,10 @@ Use this skill as a thin, predictable wrapper around `obsidian-cli`.
    - For writes, pass exact option values; quote spaces and encode newlines as `\n` when needed.
 
 4. Execute with a visible command line:
-   - Run `obsidian-cli <command> key=value flag`.
-   - If command syntax is uncertain or the catalog may be stale, run `obsidian-cli --help` before acting.
-   - Do not edit vault files directly when `obsidian-cli` has a matching command, unless the user explicitly asks for raw file edits.
+   - **TaskNotes branch**: run `tn <command> [options]`.
+   - **Command branch**: run `obsidian-cli <command> key=value flag`.
+   - If command syntax is uncertain or the catalog may be stale, run `obsidian-cli --help` or `tn --help` before acting.
+   - Do not edit vault files directly when `obsidian-cli` or `tn` has a matching command, unless the user explicitly asks for raw file edits.
 
 5. Report completion:
    - State the command family used, affected note/task if any, and the result.

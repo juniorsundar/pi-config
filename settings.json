@@ -1,5 +1,5 @@
 {
-  "defaultModel": "oc/big-pickle",
+  "defaultModel": "cx/gpt-5.5",
   "defaultProvider": "omniroute",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
