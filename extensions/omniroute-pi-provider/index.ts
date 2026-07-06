@@ -289,11 +289,6 @@ export default async function (pi: ExtensionAPI) {
   // Try the disk cache first — avoids a network fetch on every startup.
   const cache = await loadModelCache(OMNIROUTE_API_BASE);
   if (cache) {
-    console.log(
-      "[omniroute] Using cached model list from",
-      new Date(cache.updatedAt).toLocaleString(),
-      `(${cache.models.length} models)`,
-    );
     models = cache.models;
   } else {
     // Cache miss — fetch once (blocking) so the provider is populated before
@@ -342,9 +337,9 @@ export default async function (pi: ExtensionAPI) {
 
       models = fresh;
       saveModelCache(OMNIROUTE_API_BASE, models).catch((err) =>
-        console.warn(
-          "[omniroute] Failed to save model cache on session_start:",
-          err instanceof Error ? err.message : err,
+        ctx.ui.notify?.(
+          `[omniroute] Failed to save model cache on session_start: ${err instanceof Error ? err.message : err}`,
+          "error",
         ),
       );
       ctx.modelRegistry.registerProvider("omniroute", {
@@ -353,9 +348,9 @@ export default async function (pi: ExtensionAPI) {
       });
       ctx.ui.notify?.(`OmniRoute model list refreshed (${models.length} models)`, "info");
     } catch (error) {
-      console.warn(
-        "[omniroute] Failed to refresh models at session start:",
-        error instanceof Error ? error.message : error,
+      ctx.ui.notify?.(
+        `[omniroute] Failed to refresh models at session start: ${error instanceof Error ? error.message : error}`,
+        "error",
       );
     }
   });
