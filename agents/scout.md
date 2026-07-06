@@ -1,7 +1,7 @@
 ---
 name: scout
 description: Fast codebase recon that returns compressed context for handoff
-model: opencode-go/minimax-m3
+model: opencode-go-2/minimax-m3
 tools: read, grep, find, ls, bash, write
 thinking: high
 systemPromptMode: replace
