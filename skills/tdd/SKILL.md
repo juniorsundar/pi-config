@@ -65,12 +65,12 @@ Before writing any code:
 
 ### 1.5 Criteria Audit (after plan approval)
 
-**After the plan is approved by the user**, dispatch a `criteria-auditor` subagent to cross-reference the plan's intended behaviors against the issue's acceptance criteria.
+**After the plan is approved by the user**, dispatch a `criteria-auditor` subagent to cross-reference the plan's intended behaviors against the ticket/spec's acceptance criteria.
 
 ```
 dispatch subagent: criteria-auditor
 task: |
-  Audit the acceptance criteria in {issue_path} against the planned test coverage.
+  Audit the acceptance criteria in {ticket_path} against the planned test coverage.
   The plan intends to cover these behaviors: {list from step 1}.
   Test directory: {test_dir}
   Source directory: {src_dir}
@@ -98,7 +98,7 @@ This is your tracer bullet - proves the path works end-to-end.
 dispatch subagent: checkpoint-reviewer
 task: |
   Review the first TDD slice (tracer bullet).
-  Issue: {issue_path}
+  Ticket: {ticket_path}
   Slice description: {tracer bullet behavior}
   Changed files: {list of files modified}
   Test files: {list of test files modified/added}
@@ -137,7 +137,7 @@ For simple slices (adding another test for the same behavior, refactoring), a ch
 dispatch subagent: checkpoint-reviewer
 task: |
   Review TDD slice: {slice_description}
-  Issue: {issue_path}
+  Ticket: {ticket_path}
   Changed files: {list}
   Test files: {list}
   Previous slices: {brief summary of what earlier slices implemented}
@@ -163,23 +163,23 @@ After all tests pass, look for [refactor candidates](refactoring.md):
 dispatch subagent: criteria-auditor
 task: |
   Full audit of acceptance criteria coverage.
-  Issue: {issue_path}
+  Ticket: {ticket_path}
   Test directory: {test_dir}
   Source directory: {src_dir}
-  Verify every checkbox in the issue has a dedicated test AND implementation.
+  Verify every checkbox in the ticket/spec has a dedicated test AND implementation.
 ```
 
 ```
 dispatch subagent: checkpoint-reviewer
 task: |
   Final review of all slices.
-  Issue: {issue_path}
+  Ticket: {ticket_path}
   Changed files: {all files changed across all slices}
   Test files: {all test files added/modified}
   Previous slices: {summary of all slices}
 ```
 
-Only proceed to mark the issue complete once both reports show no BLOCKERs.
+Only proceed to mark the ticket complete once both reports show no BLOCKERs.
 
 ## Rules
 

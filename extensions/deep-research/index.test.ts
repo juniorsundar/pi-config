@@ -783,7 +783,7 @@ describe("deep-research command handler", () => {
     });
   });
 
-  // ── Error Recovery Slices (Issue 0003) ──────────────────────────────
+  // ── Error Recovery Slices (Ticket 0003) ─────────────────────────────
 
   describe("Slice 10: wasCompleteToolCalled error logging (AC4)", () => {
     it("logs a console.warn when getBranch throws inside wasCompleteToolCalled", async () => {

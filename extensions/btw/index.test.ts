@@ -674,7 +674,7 @@ describe("btw extension", () => {
     });
   });
 
-  describe("Issue 0029 & session_start: lifecycle event handlers", () => {
+  describe("Ticket 0029 & session_start: lifecycle event handlers", () => {
     describe("Slice 1 (Tracer): registers lifecycle handlers", () => {
       it("registers a session_start event handler on the extension API", async () => {
         const { default: btwExtension } = await import("./index");
@@ -1311,7 +1311,7 @@ describe("btw extension", () => {
     });
   });
 
-  describe("Issue 0027: Spinning List widget integration", () => {
+  describe("Ticket 0027: Spinning List widget integration", () => {
     it("registers the Spinning List widget on session_start", async () => {
       const { default: btwExtension } = await import("./index");
       const pi = createMockPi();

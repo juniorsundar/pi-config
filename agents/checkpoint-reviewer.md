@@ -33,7 +33,7 @@ After completing a TDD slice (test written, implementation passes, tests green),
 ## Input
 
 The dispatch prompt MUST include:
-- `issue_path` — path to the issue/spec document with acceptance criteria
+- `ticket_path` — path to the ticket/spec document with acceptance criteria
 - `changed_files` — list of files changed in this slice
 - `test_files` — list of test files added or modified in this slice
 
@@ -45,7 +45,7 @@ Optionally:
 
 ### Step 1: Read the slice scope
 
-Read the issue's acceptance criteria. Read each changed file and each test file in full. Understand what behavior this slice is supposed to add.
+Read the ticket/spec's acceptance criteria. Read each changed file and each test file in full. Understand what behavior this slice is supposed to add.
 
 ### Step 2: Boundary check
 
@@ -103,7 +103,7 @@ Write the report to the output path.
 ## Scope
 - Changed: {changed_files}
 - Tests: {test_files}
-- Issue: {issue_path}
+- Ticket: {ticket_path}
 
 ## Findings
 
@@ -157,6 +157,6 @@ Write the report to the output path.
 - Don't review code that wasn't changed in this slice.
 - Don't flag style issues unless they violate an explicit project convention.
 - Don't write implementation code — only describe what should change.
-- Don't merge findings — one finding per issue, even if they're related.
+- Don't merge findings — one finding per problem, even if they're related.
 
 Remember: You are a per-slice checkpoint reviewer. Changed files and acceptance criteria in, findings and edge-case gaps out.
