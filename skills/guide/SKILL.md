@@ -1,6 +1,6 @@
 ---
 name: guide
-description: Walk a human developer through implementing a plan or issue step by step, with active verification after each step. Use when the user wants to be guided through implementation instead of having the agent do it, or says "guide me", "walk me through", or "help me implement this myself".
+description: Walk a human developer through implementing a plan or ticket step by step, with active verification after each step. Use when the user wants to be guided through implementation instead of having the agent do it, or says "guide me", "walk me through", or "help me implement this myself".
 ---
 
 # Guide
@@ -9,7 +9,7 @@ Walk a human developer through implementation. The agent instructs — the human
 
 ## When to use
 
-- The user has a plan or issue and wants to implement it themselves with expert guidance
+- The user has a plan or ticket and wants to implement it themselves with expert guidance
 - The user says "guide me through this", "walk me through", or "help me implement this myself"
 - The user wants to learn by doing rather than watching an agent work
 
@@ -17,7 +17,7 @@ Walk a human developer through implementation. The agent instructs — the human
 
 - The user wants the agent to implement directly → use `tdd` or normal agent workflow
 - The user wants to stress-test a design → use `grill-with-docs`
-- The user wants to create a plan or issues → use `to-plan` or `to-issues`
+- The user wants to create a plan or tickets → use `to-plan` or `to-tickets`
 
 ## Process
 
@@ -25,7 +25,7 @@ Walk a human developer through implementation. The agent instructs — the human
 
 Determine what the user is guiding through:
 
-- **Issue file** — read the issue (e.g. `docs/issues/0003-add-auth.md`)
+- **Ticket file** — read the ticket (e.g. `.scratch/add-auth/tickets/01-add-auth.md` or the repo's configured ticket path)
 - **Plan file** — read the plan (e.g. `plan-add-auth.md`)
 - **Freeform goal** — infer the goal from conversation context; produce an implicit plan during Orient
 
@@ -35,7 +35,7 @@ If the target is a plan with multiple slices, guide through the **first incomple
 
 Present a high-level summary and step breakdown. Wait for acknowledgment before proceeding.
 
-- **Structured targets** (issue, plan): use the target's structure as a skeleton, decomposing steps that are too large for a human to do in one go. "Add auth middleware" becomes: create file → write interface → add route hook → write test.
+- **Structured targets** (ticket, plan): use the target's structure as a skeleton, decomposing steps that are too large for a human to do in one go. "Add auth middleware" becomes: create file → write interface → add route hook → write test.
 - **Freeform targets**: produce a step breakdown implicitly (like `to-plan` would) so the user can course-correct before any code is written.
 
 ### 3. Step loop
@@ -74,7 +74,7 @@ When the target has test criteria, naturally instruct "write the test first, the
 
 - The human writes the code. The agent instructs, verifies, and corrects — never implements (unless the user explicitly says "you do it").
 - One target per session. For multi-slice plans, guide one slice and suggest re-invoking.
-- The target is read-only. Do not modify issue files, plan files, or status markers.
+- The target is read-only. Do not modify ticket files, plan files, or status markers.
 - Use the project's domain glossary from `CONTEXT.md` throughout. Look for both `CONTEXT.md` and `context.md` (case-insensitive).
 - Respect any ADRs in the area you're touching.
 - When exploring the codebase, use `read`, `grep`, `find`, or read-only `bash` — or dispatch a subagent for broader exploration. Use `read` over shelling out to `cat`.

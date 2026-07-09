@@ -1,6 +1,6 @@
 ---
 name: to-plan
-description: Turn the current conversation context into a concrete implementation plan for immediate execution. Use when the user wants to plan quick implementation after a grilling session, or when saying "let's plan this" or "make a plan" for a change that doesn't need a full PRD.
+description: Turn the current conversation context into a concrete implementation plan for immediate execution. Use when the user wants to plan quick implementation after a grilling session, or when saying "let's plan this" or "make a plan" for a change that doesn't need a full spec.
 ---
 
 # To Plan
@@ -10,13 +10,13 @@ Turn conversation context into a concrete, ordered implementation plan — persi
 ## When to use
 
 - You've just finished a `grill-with-docs` session and want to move straight to building
-- The change is small-to-medium and doesn't warrant a full PRD → issues → TDD pipeline
+- The change is small-to-medium and doesn't warrant a full spec → tickets → TDD pipeline
 - The user says "let's plan this" or "make a plan" and intends to implement right away
 
 ## When NOT to use
 
-- The change is large enough to need formal handoff → use `to-prd` instead
-- The user wants to break work into separately-grabbable tickets → use `to-issues` instead
+- The change is large enough to need formal handoff → use `to-spec` instead
+- The user wants to break work into separately-grabbable tickets → use `to-tickets` instead
 - The conversation has no design context yet → `grill-with-docs` first, then `to-plan`
 
 ## Process

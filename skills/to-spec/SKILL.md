@@ -1,17 +1,17 @@
 ---
-name: to-prd
-description: Turn the current conversation context into a PRD and publish it to the project issue tracker. Use when user wants to create a PRD from the current context.
+name: to-spec
+description: Turn the current conversation context into a Spec and publish it to the project issue tracker. Use when user wants to create a Spec from the current context.
 ---
 
-# To PRD
+# To Spec
 
-Use this skill to produce a PRD from the current conversation context and codebase understanding. Do not interview the user — synthesize what you already know.
+Use this skill to produce a Spec from the current conversation context and codebase understanding. Do not interview the user — synthesize what you already know.
 
 ## When to use
 
-- The user wants a formal PRD written from discussion context
+- The user wants a formal Spec written from discussion context
 - You have enough context about the codebase and the feature to produce a meaningful document
-- The user wants to hand off the PRD to an issue tracker or share it with a team
+- The user wants to hand off the Spec to an issue tracker or share it with a team
 
 ## Process
 
@@ -19,11 +19,11 @@ Use this skill to produce a PRD from the current conversation context and codeba
 
 2. **Sketch out the modules** you will need to build or modify. Actively look for opportunities to extract deep modules — modules that encapsulate a lot of functionality behind a simple, testable interface which rarely changes. Check with the user that these modules match their expectations. Ask which modules they want tests written for.
 
-3. **Write the PRD** using the template below.
+3. **Write the Spec** using the template below.
 
-4. **Publish the PRD** to the project's issue tracker if one is configured and accessible. Apply a `ready-for-agent` triage label if available. If no issue tracker integration is available, write the PRD to `docs/prd/` or the root of the project as `PRD.md` — ask the user which they prefer.
+4. **Publish the Spec** to the project's issue tracker if one is configured and accessible. Apply a `ready-for-agent` triage label if available. If the configured tracker is Local Markdown, write the Spec to `.scratch/<feature-slug>/SPEC.md`. If no issue tracker integration is available, write the Spec to `docs/spec/` or the root of the project as `SPEC.md` — ask the user which they prefer.
 
-## PRD Template
+## Spec Template
 
 ### Problem Statement
 
@@ -70,7 +70,7 @@ A list of testing decisions. Include:
 
 ### Out of Scope
 
-A description of the things that are out of scope for this PRD.
+A description of the things that are out of scope for this Spec.
 
 ### Further Notes
 
@@ -79,10 +79,10 @@ Any further notes about the feature.
 ## Rules
 
 - Synthesize from existing context. Do not interview the user — use what you already know.
-- Explore the codebase before writing the PRD. Use `read`, `grep`, `find`, or read-only `bash` — or dispatch a `scout` subagent for broader exploration.
-- Use the project's domain glossary vocabulary from `CONTEXT.md` throughout the PRD. When searching for the glossary, look for both `CONTEXT.md` and `context.md` (case-insensitive).
+- Explore the codebase before writing the Spec. Use `read`, `grep`, `find`, or read-only `bash` — or dispatch a `scout` subagent for broader exploration.
+- Use the project's domain glossary vocabulary from `CONTEXT.md` throughout the Spec. When searching for the glossary, look for both `CONTEXT.md` and `context.md` (case-insensitive).
 - Respect any ADRs in the area you're touching.
 - User stories must be extremely extensive — cover all aspects of the feature.
-- Do not include file paths or code snippets in the PRD (except for prototype snippets that encode decisions precisely).
-- If no issue tracker integration is available, ask the user where to write the PRD file.
+- Do not include file paths or code snippets in the Spec (except for prototype snippets that encode decisions precisely).
+- If no issue tracker integration is available, ask the user where to write the Spec file.
 - Use `read` over shelling out to `cat` for file contents.

@@ -1,5 +1,5 @@
 {
-  "defaultModel": "kc/tencent/hy3:free",
+  "defaultModel": "kc/hy3:free",
   "defaultProvider": "omniroute",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",

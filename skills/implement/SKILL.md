@@ -1,16 +1,16 @@
 ---
 name: implement
-description: "Implement a piece of work based on a plan, PRD, or set of issues."
+description: "Implement a piece of work based on a plan, spec, or set of tickets."
 disable-model-invocation: true
 ---
 
 # Implement
 
-Implement the work described by the user — from a plan, PRD, or issues.
+Implement the work described by the user — from a plan, spec, or tickets.
 
 ## Process
 
-1. **Load the target.** Read the plan (`plan-<slug>.md`), PRD, or issue(s) the user points at. If a plan file exists with a slice status, pick up at the first incomplete slice.
+1. **Load the target.** Read the plan (`plan-<slug>.md`), spec, or ticket(s) the user points at. If a plan file exists with a slice status, pick up at the first incomplete slice.
 
 2. **Explore before editing.** Use `read`, `grep`, `find`, or read-only `bash` — or dispatch a `scout` subagent for broader exploration. Read the project's domain glossary (look for `CONTEXT.md` or `context.md` — case-insensitive) so naming matches the project's language, and respect any ADRs in the area you're touching.
 
