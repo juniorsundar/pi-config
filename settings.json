@@ -1,5 +1,5 @@
 {
-  "defaultModel": "kc/hy3:free",
+  "defaultModel": "kc/tencent/hy3:free",
   "defaultProvider": "omniroute",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
@@ -34,7 +34,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "0.80.3",
+  "lastChangelogVersion": "0.80.6",
   "packages": [
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",
