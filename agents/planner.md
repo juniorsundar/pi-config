@@ -3,7 +3,7 @@ name: planner
 description: Creates implementation plans from context and requirements
 tools: read, grep, find, ls, write
 thinking: high
-model: opencode-go-2/qwen3.7-max
+model: omniroute/ollamacloud/glm-5.2
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
