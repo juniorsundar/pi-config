@@ -1,5 +1,5 @@
 {
-  "defaultModel": "kc/tencent/hy3:free",
+  "defaultModel": "opencode-go/deepseek-v4-pro",
   "defaultProvider": "omniroute",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
