@@ -1,16 +1,15 @@
 {
-  "defaultModel": "ollamacloud/glm-5.2",
+  "defaultModel": "antigravity/claude-opus-4-6-thinking",
   "defaultProvider": "omniroute",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
   "enableSkillCommands": true,
   "enabledModels": [
+    "omniroute/cx/gpt-5.5",
     "omniroute/cx/gpt-5.6-sol",
     "omniroute/cx/gpt-5.6-terra",
     "omniroute/cx/gpt-5.6-luna",
-    "omniroute/cx/gpt-5.5",
-    "omniroute/cx/gpt-5.4",
     "omniroute/antigravity/claude-opus-4-6-thinking",
     "omniroute/antigravity/claude-sonnet-4-6",
     "omniroute/kr/claude-sonnet-4.5",
@@ -36,7 +35,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "0.80.6",
+  "lastChangelogVersion": "0.80.7",
   "packages": [
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",
