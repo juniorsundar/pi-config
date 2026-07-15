@@ -1,5 +1,5 @@
 {
-  "defaultModel": "opencode-go/deepseek-v4-flash",
+  "defaultModel": "cx/gpt-5.6-sol",
   "defaultProvider": "omniroute",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",

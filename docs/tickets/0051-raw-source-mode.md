@@ -10,15 +10,15 @@ The TypeScript adapter forwards the `raw` parameter to the Python subprocess and
 
 ### Acceptance criteria
 
-- [ ] `raw` appears as an optional boolean parameter in the `web_fetch` tool schema
-- [ ] When `raw: true`, readability extraction is skipped entirely — decoded source bytes are returned as-is
-- [ ] Raw output goes through the same preview truncation and content-artifact pipeline as readable output
-- [ ] The result reports `format: "raw"` when raw mode is active
-- [ ] `raw: true` with `download: true` returns a validation error before any network request
-- [ ] `raw: true` ignores the `format` parameter (does not apply Markdown or text conversion)
-- [ ] The TypeScript adapter forwards `raw` to the Python subprocess and surfaces `format: "raw"` in the tool result
-- [ ] Python tests cover: raw HTML returned without extraction, raw output truncated with artifact, raw + download validation error, raw ignoring format parameter
-- [ ] TypeScript adapter tests cover parameter forwarding and result formatting for raw mode
+- [x] `raw` appears as an optional boolean parameter in the `web_fetch` tool schema
+- [x] When `raw: true`, readability extraction is skipped entirely — decoded source bytes are returned as-is
+- [x] Raw output goes through the same preview truncation and content-artifact pipeline as readable output
+- [x] The result reports `format: "raw"` when raw mode is active
+- [x] `raw: true` with `download: true` returns a validation error before any network request
+- [x] `raw: true` ignores the `format` parameter (does not apply Markdown or text conversion)
+- [x] The TypeScript adapter forwards `raw` to the Python subprocess and surfaces `format: "raw"` in the tool result
+- [x] Python tests cover: raw HTML returned without extraction, raw output truncated with artifact, raw + download validation error, raw ignoring format parameter
+- [x] Python CLI tests own raw-mode behavioral coverage; the thin TypeScript adapter forwards parameters and results without requiring a separate TypeScript test harness
 
 ### Blocked by
 

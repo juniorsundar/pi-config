@@ -7,6 +7,9 @@ completeness flags, warnings, and an optional content artifact path.
 
 from __future__ import annotations
 
+import os
+import tempfile
+
 from representation import PipelineResult, process, OutputFormat
 
 
@@ -367,3 +370,278 @@ class TestMetadataPropagation:
         )
         assert len(result.warnings) > 0
         assert any("not valid JSON" in w for w in result.warnings)
+
+
+# ===========================================================================
+# Content artifact (tracer bullet)
+# ===========================================================================
+
+class TestContentArtifact:
+    """Content artifacts are written when the preview is truncated."""
+
+    def test_artifact_written_when_truncated(self):
+        """When content exceeds max_chars, an artifact file is written with the full content."""
+        # Generate text that will exceed max_chars after pipeline normalization
+        text_line = "Line of text for the content artifact test. "
+        raw_text = text_line * 200  # ~10k chars, well over 5k
+        body = raw_text.encode("utf-8")
+
+        # Run with truncation to get the artifact
+        result = process(
+            body=body,
+            content_type="text/plain",
+            url="https://example.com/long.txt",
+            output_format="text",
+            max_chars=5000,
+        )
+
+        assert result.truncated is True
+        assert result.content_artifact_path is not None
+        assert os.path.exists(result.content_artifact_path)
+
+        # Run without truncation to get the full normalized content
+        full_result = process(
+            body=body,
+            content_type="text/plain",
+            url="https://example.com/long.txt",
+            output_format="text",
+            max_chars=100_000,  # well over the expected length
+        )
+
+        assert full_result.truncated is False
+
+        # Artifact contains the full normalized content (same as non-truncated result)
+        with open(result.content_artifact_path, "r", encoding="utf-8") as f:
+            artifact_content = f.read()
+        assert artifact_content == full_result.content
+        assert len(artifact_content) > len(result.content)
+
+        # Verify it's in a system temp directory
+        temp_dir = tempfile.gettempdir()
+        assert result.content_artifact_path.startswith(temp_dir)
+
+        # Clean up temp file
+        os.unlink(result.content_artifact_path)
+
+    def test_no_artifact_when_not_truncated(self):
+        """When content fits within max_chars, no artifact file is created."""
+        short_text = "Short content that fits within the limit."
+        result = process(
+            body=short_text.encode("utf-8"),
+            content_type="text/plain",
+            url="https://example.com/short.txt",
+            output_format="text",
+            max_chars=100_000,
+        )
+
+        assert result.truncated is False
+        assert result.content_artifact_path is None
+
+    def test_artifact_in_temp_directory(self):
+        """Content artifact is written to the system temp directory (ephemeral)."""
+        text_line = "Line of text for temp directory test. "
+        body = (text_line * 200).encode("utf-8")
+        result = process(
+            body=body,
+            content_type="text/plain",
+            url="https://example.com/temp-test.txt",
+            output_format="text",
+            max_chars=1000,
+        )
+
+        assert result.truncated is True
+        assert result.content_artifact_path is not None
+
+        # File is in the system temp directory
+        temp_dir = tempfile.gettempdir()
+        assert result.content_artifact_path.startswith(temp_dir)
+
+        # File has the expected prefix
+        file_name = os.path.basename(result.content_artifact_path)
+        assert file_name.startswith("pi-web-fetch-")
+
+        # File is ephemeral (can be deleted after use)
+        assert os.path.exists(result.content_artifact_path)
+        os.unlink(result.content_artifact_path)
+        assert not os.path.exists(result.content_artifact_path)
+
+
+# ===========================================================================
+# sourceTruncated flag
+# ===========================================================================
+
+class TestSourceTruncated:
+    """sourceTruncated is reported independently of truncated."""
+
+    def test_neither_truncated(self):
+        """Both flags are False when content fits and no source truncation."""
+        result = process(
+            body=b"short content",
+            content_type="text/plain",
+            url="https://example.com/",
+            output_format="text",
+            max_chars=100_000,
+            source_truncated=False,
+        )
+        assert result.truncated is False
+        assert result.source_truncated is False
+
+    def test_only_preview_truncated(self):
+        """truncated=True, source_truncated=False when preview is cut but source is complete."""
+        text_line = "Line of text for the source truncated test. "
+        body = (text_line * 500).encode("utf-8")  # ~20k chars
+        result = process(
+            body=body,
+            content_type="text/plain",
+            url="https://example.com/",
+            output_format="text",
+            max_chars=5000,
+            source_truncated=False,
+        )
+        assert result.truncated is True
+        assert result.source_truncated is False
+
+    def test_only_source_truncated(self):
+        """truncated=False, source_truncated=True when source is truncated but preview fits."""
+        short_text = "Short content that fits within the limit."
+        result = process(
+            body=short_text.encode("utf-8"),
+            content_type="text/plain",
+            url="https://example.com/",
+            output_format="text",
+            max_chars=100_000,
+            source_truncated=True,
+        )
+        assert result.truncated is False
+        assert result.source_truncated is True
+
+    def test_both_truncated(self):
+        """Both flags are True when source is truncated AND preview is cut."""
+        text_line = "Line of text for the source truncated test. "
+        body = (text_line * 500).encode("utf-8")  # ~20k chars
+        result = process(
+            body=body,
+            content_type="text/plain",
+            url="https://example.com/",
+            output_format="text",
+            max_chars=5000,
+            source_truncated=True,
+        )
+        assert result.truncated is True
+        assert result.source_truncated is True
+        os.unlink(result.content_artifact_path)
+
+
+# ===========================================================================
+# Content artifact format
+# ===========================================================================
+
+class TestContentArtifactFormat:
+    """Content artifacts use the same format as the preview."""
+
+    def test_markdown_format(self):
+        """Artifact uses .md extension when output is markdown."""
+        text_line = "Line of text for format test. "
+        body = (text_line * 200).encode("utf-8")
+        result = process(
+            body=body,
+            content_type="text/markdown",
+            url="https://example.com/test.md",
+            output_format="markdown",
+            max_chars=1000,
+        )
+        assert result.truncated is True
+        assert result.content_artifact_path is not None
+        assert result.content_artifact_path.endswith(".md")
+        os.unlink(result.content_artifact_path)
+
+    def test_text_format(self):
+        """Artifact uses .txt extension when output is text."""
+        text_line = "Line of text for format test. "
+        body = (text_line * 200).encode("utf-8")
+        result = process(
+            body=body,
+            content_type="text/plain",
+            url="https://example.com/test.txt",
+            output_format="text",
+            max_chars=1000,
+        )
+        assert result.truncated is True
+        assert result.content_artifact_path is not None
+        assert result.content_artifact_path.endswith(".txt")
+        os.unlink(result.content_artifact_path)
+
+
+# ===========================================================================
+# Raw mode
+# ===========================================================================
+
+class TestRawMode:
+    """Raw mode bypasses extraction and returns decoded source as-is."""
+
+    def test_raw_html_bypasses_extraction(self):
+        """When raw=True, HTML content is returned without readability extraction."""
+        raw_html = b"<html><body><h1>Hello</h1><p>World</p></body></html>"
+        result = process(
+            body=raw_html,
+            content_type="text/html",
+            url="https://example.com",
+            output_format="markdown",
+            max_chars=100_000,
+            raw=True,
+        )
+        assert isinstance(result, PipelineResult)
+        # Content should be the raw HTML, not markdown-extracted text
+        assert "<h1>Hello</h1>" in result.content
+        assert "<html>" in result.content
+        assert result.title is None  # No title extraction in raw mode
+        assert result.truncated is False
+        assert result.warnings == []
+
+    def test_raw_ignores_format_parameter(self):
+        """When raw=True, the output_format parameter is ignored."""
+        raw_html = b"<html><body><h1>Same</h1></body></html>"
+        markdown_result = process(
+            body=raw_html,
+            content_type="text/html",
+            url="https://example.com",
+            output_format="markdown",
+            max_chars=100_000,
+            raw=True,
+        )
+        text_result = process(
+            body=raw_html,
+            content_type="text/html",
+            url="https://example.com",
+            output_format="text",
+            max_chars=100_000,
+            raw=True,
+        )
+        assert markdown_result.content == text_result.content
+        assert "<h1>Same</h1>" in markdown_result.content
+        assert markdown_result.title is None
+        assert text_result.title is None
+
+    def test_raw_output_truncated_with_artifact(self):
+        """Raw output goes through the same truncation and artifact pipeline as readable."""
+        # Generate raw HTML long enough to exceed max_chars
+        long_html_line = "<p>" + "x" * 100 + "</p>"
+        body = ("<html><body>" + long_html_line * 30 + "</body></html>").encode("utf-8")
+        result = process(
+            body=body,
+            content_type="text/html",
+            url="https://example.com",
+            output_format="markdown",
+            max_chars=500,
+            raw=True,
+        )
+        assert result.truncated is True
+        assert result.content_artifact_path is not None
+        assert os.path.exists(result.content_artifact_path)
+        # The artifact should contain the full raw HTML
+        with open(result.content_artifact_path, "r") as f:
+            artifact_content = f.read()
+        assert "<html>" in artifact_content
+        assert len(artifact_content) > len(result.content)
+        # Clean up
+        os.unlink(result.content_artifact_path)

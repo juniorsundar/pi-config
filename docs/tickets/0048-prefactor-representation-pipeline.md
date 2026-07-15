@@ -10,13 +10,13 @@ All existing `web_fetch` behavior must remain unchanged — this is a pure refac
 
 ### Acceptance criteria
 
-- [ ] A new Python module (or class) encapsulates the representation pipeline: bytes in → (metadata, representation, preview, flags) out
-- [ ] The existing readable extraction (semantic-container-first with readability-lxml fallback, markdownify) is moved behind this interface
-- [ ] The existing text-mode extraction is moved behind this interface
-- [ ] The existing character-limit truncation logic is moved behind this interface
-- [ ] `fetch.py` delegates to the pipeline module instead of inlining extraction and truncation
-- [ ] All existing `test_fetch.py` tests pass without modification (or with import-path-only changes)
-- [ ] The pipeline module has its own unit tests covering: encoding detection, readable extraction, text extraction, truncation at the character boundary, and metadata propagation
+- [x] A new Python module (or class) encapsulates the representation pipeline: bytes in → (metadata, representation, preview, flags) out
+- [x] The existing readable extraction (semantic-container-first with readability-lxml fallback, markdownify) is moved behind this interface
+- [x] The existing text-mode extraction is moved behind this interface
+- [x] The existing character-limit truncation logic is moved behind this interface
+- [x] `fetch.py` delegates to the pipeline module instead of inlining extraction and truncation
+- [x] All existing `test_fetch.py` tests pass without modification (or with import-path-only changes)
+- [x] The pipeline module has its own unit tests covering: encoding detection, readable extraction, text extraction, truncation at the character boundary, and metadata propagation
 
 ### Blocked by
 

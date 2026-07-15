@@ -26,12 +26,14 @@ interface FetchResponse {
 	statusCode?: number;
 	contentType?: string;
 	title?: string;
-	format?: "markdown" | "text";
+	format?: "markdown" | "text" | "raw";
 	content?: string;
 	truncated?: boolean;
 	contentLength?: number;
 	fetchedBytes?: number;
 	warnings?: string[];
+	contentArtifactPath?: string;
+	sourceTruncated?: boolean;
 	error?: string;
 	details?: Record<string, unknown>;
 }
@@ -74,8 +76,14 @@ const WebFetchParams = Type.Object({
 		maximum: 100000,
 	})),
 	format: Type.Optional(StringEnum(["markdown", "text"] as const, {
-		description: "Output format for readable content (default markdown)",
+		description: "Output format for readable content (default markdown). Ignored when raw is true.",
 	})),
+	raw: Type.Optional(
+		Type.Boolean({
+			description: "If true, return the raw source text (HTML, JSON, etc.) without readability extraction. Default: false.",
+			default: false,
+		}),
+	),
 });
 
 const EXTENSION_DIR = __dirname;
@@ -248,11 +256,13 @@ async function runFetch(
 		maxChars?: number;
 		format?: "markdown" | "text";
 		download?: boolean;
+		raw?: boolean;
 	},
 	signal?: AbortSignal,
 	timeoutMs?: number,
 ): Promise<FetchResponse> {
 	const uv = getUvBinary();
+	const raw = params.raw === true;
 	const download = params.download === true;
 	const effectiveTimeout = timeoutMs ?? (download ? 60_000 : 30_000);
 	const args = [
@@ -266,6 +276,12 @@ async function runFetch(
 	];
 	if (download) {
 		args.push("--download");
+	} else if (raw) {
+		args.push(
+			"--max-chars",
+			String(clampMaxChars(params.maxChars)),
+			"--raw",
+		);
 	} else {
 		args.push(
 			"--max-chars",
@@ -338,6 +354,12 @@ function formatFetchResult(response: FetchResponse, prompt?: string): string {
 	if (response.contentType) parts.push(`**Content-Type:** ${response.contentType}`);
 	if (response.truncated) {
 		parts.push(`**Truncated:** yes (${response.contentLength ?? "?"} chars of ${response.fetchedBytes ?? "?"} bytes fetched)`);
+	}
+	if (response.sourceTruncated) {
+		parts.push(`**Source truncated:** yes (the upstream or transport limited the response)`);
+	}
+	if (response.contentArtifactPath) {
+		parts.push(`**Content artifact:** \`${response.contentArtifactPath}\` (use the read tool to inspect omitted content)`);
 	}
 	if (response.warnings?.length) {
 		parts.push("**Warnings:**");
@@ -422,8 +444,9 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 			" Accepts an optional prompt for the agent to answer about the document." +
 			" Pass download=true to save a binary file (image, PDF) to a local temp path" +
 			" instead of extracting text; the returned path can then be passed to the read tool." +
+			" Pass raw=true to return the decoded source text (HTML, JSON, etc.) without extraction." +
 			" Does not execute JavaScript; pages requiring JS may have incomplete content.",
-		promptSnippet: "Fetch a URL and return readable document content with source metadata, or download a binary file to a local path",
+		promptSnippet: "Fetch a URL and return readable document content with source metadata, or download a binary file to a local path, or return raw source with raw=true",
 		promptGuidelines: [
 			"Use web_fetch when the user provides a URL or after web_search discovers a relevant URL.",
 			"Use web_search first when no URL is known yet.",
@@ -446,6 +469,7 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 				maxChars: params.maxChars,
 				format: params.format,
 				download: params.download,
+				raw: params.raw,
 			}, signal);
 
 			return {
@@ -460,6 +484,9 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 					truncated: result.truncated,
 					contentLength: result.contentLength,
 					fetchedBytes: result.fetchedBytes,
+					format: result.format,
+					contentArtifactPath: result.contentArtifactPath,
+					sourceTruncated: result.sourceTruncated,
 					// Download-mode fields (only populated when download=true).
 					path: result.path,
 					fileName: result.fileName,
@@ -497,11 +524,11 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("web-fetch", {
-		description: "Fetch a URL: /web-fetch <url> [--max-chars N] [--format markdown|text] [--download]",
+		description: "Fetch a URL: /web-fetch <url> [--max-chars N] [--format markdown|text] [--raw] [--download]",
 		handler: async (args, ctx) => {
 			const trimmed = args.trim();
 			if (!trimmed) {
-				ctx.ui.notify("Usage: /web-fetch <url> [--max-chars N] [--format markdown|text] [--download]", "warning");
+				ctx.ui.notify("Usage: /web-fetch <url> [--max-chars N] [--format markdown|text] [--raw] [--download]", "warning");
 				return;
 			}
 
@@ -513,9 +540,10 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 			const fmtIdx = parts.indexOf("--format");
 			const format = fmtIdx >= 0 && parts[fmtIdx + 1] === "text" ? "text" as const : undefined;
 			const download = parts.indexOf("--download") >= 0;
+			const raw = parts.indexOf("--raw") >= 0;
 
 			ctx.ui.notify(`Fetching: ${url}`, "info");
-			const result = await runFetch(pi, { url, maxChars, format, download }, ctx.signal);
+			const result = await runFetch(pi, { url, maxChars, format, download, raw }, ctx.signal);
 			const text = formatFetchResult(result);
 
 			pi.sendMessage(

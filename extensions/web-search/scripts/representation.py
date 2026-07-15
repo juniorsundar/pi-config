@@ -11,6 +11,8 @@ one interface.
 
 from __future__ import annotations
 
+import os
+import tempfile
 from copy import copy
 from dataclasses import dataclass, field
 from typing import Dict, List, Literal, Optional, Tuple
@@ -19,7 +21,7 @@ from bs4 import BeautifulSoup, Tag
 from markdownify import markdownify as md
 from readability import Document as ReadabilityDoc
 
-OutputFormat = Literal["markdown", "text"]
+OutputFormat = Literal["markdown", "text", "raw"]
 ContentCategory = Literal["html", "text_like", "unsupported"]
 
 
@@ -35,6 +37,10 @@ class PipelineResult:
         title: Extracted document title, if available.
         content: The representation content (preview or full).
         truncated: Whether content was truncated due to max_chars limit.
+        content_artifact_path: Path to a temporary file containing the full
+            available representation, or ``None`` if no truncation occurred.
+        source_truncated: Whether the source itself was truncated by a
+            transport or upstream-service limit (independent of *truncated*).
         content_length: Length of the content string (computed from *content*).
         warnings: Non-fatal warnings from the pipeline.
     """
@@ -42,6 +48,8 @@ class PipelineResult:
     title: Optional[str] = None
     content: str = ""
     truncated: bool = False
+    content_artifact_path: Optional[str] = None
+    source_truncated: bool = False
     warnings: List[str] = field(default_factory=list)
 
     @property
@@ -386,12 +394,30 @@ def _truncate(text: str, max_chars: int) -> Tuple[str, bool]:
 # Public API: process()
 # ---------------------------------------------------------------------------
 
+def _write_content_artifact(full_content: str, output_format: OutputFormat) -> str:
+    """Write *full_content* to a temporary file and return its absolute path.
+
+    The file uses a ``.md`` or ``.txt`` extension matching *output_format*.
+    """
+    suffix = ".md" if output_format == "markdown" else ".txt"
+    fd, path = tempfile.mkstemp(suffix=suffix, prefix="pi-web-fetch-")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(full_content)
+    except Exception:
+        os.unlink(path)
+        raise
+    return path
+
+
 def process(
     body: bytes,
     content_type: Optional[str],
     url: str,
     output_format: OutputFormat,
     max_chars: int,
+    source_truncated: bool = False,
+    raw: bool = False,
 ) -> PipelineResult:
     """Run the full representation pipeline on fetched bytes.
 
@@ -399,12 +425,20 @@ def process(
     extracts the appropriate representation (HTML or text-like), truncates
     to *max_chars*, and returns the result with completeness flags.
 
+    When truncation occurs, the full available representation is written
+    to an ephemeral temp file whose path is returned in
+    ``content_artifact_path``.
+
     Args:
         body: Raw response bytes from the HTTP fetch.
         content_type: Content-Type header value (may include charset).
         url: The original URL (used for contextual extraction decisions).
         output_format: ``"markdown"`` or ``"text"``.
         max_chars: Character limit for the content preview.
+        source_truncated: Whether the source was truncated by a transport
+            or upstream limit.
+        raw: If true, skip readability extraction and return the decoded body
+            as-is. When raw is true, *output_format* is ignored.
 
     Returns:
         A :class:`PipelineResult` with the extracted representation.
@@ -413,19 +447,35 @@ def process(
     text = decode_body(body, content_type)
 
     # 2. Categorize and extract
-    category = categorize_content(content_type)
-
-    if category == "html":
-        title, content, warnings = _extract_html(text, url, output_format)
+    if raw:
+        # Raw mode: skip all extraction, return decoded body as-is
+        title = None
+        warnings: List[str] = []
+        content = text
     else:
-        title, content, warnings = _extract_text_like(text, content_type, output_format)
+        category = categorize_content(content_type)
 
-    # 3. Truncate
+        if category == "html":
+            title, content, warnings = _extract_html(text, url, output_format)
+        else:
+            title, content, warnings = _extract_text_like(text, content_type, output_format)
+
+    # 3. Save full content before truncation
+    full_content = content
+
+    # 4. Truncate
     content, truncated = _truncate(content, max_chars)
+
+    # 5. Write content artifact if truncated
+    content_artifact_path: Optional[str] = None
+    if truncated:
+        content_artifact_path = _write_content_artifact(full_content, output_format)
 
     return PipelineResult(
         title=title,
         content=content,
         truncated=truncated,
+        content_artifact_path=content_artifact_path,
+        source_truncated=source_truncated,
         warnings=warnings,
     )

@@ -5,8 +5,10 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import socket
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from bs4 import BeautifulSoup
@@ -724,3 +726,110 @@ class TestDownloadJson:
         assert "format" not in result
         assert "truncated" not in result
         assert "title" not in result
+
+
+# ===========================================================================
+# Content artifact & sourceTruncated fields in main() output
+# ===========================================================================
+
+class TestContentArtifactInOutput:
+    """contentArtifactPath and sourceTruncated appear in JSON output."""
+
+    def test_content_artifact_path_present_when_truncated(self, httpx_mock, capsys):
+        """contentArtifactPath is in the JSON when the preview is truncated."""
+        # Use content long enough to exceed _truncate's 1000-char minimum clamp
+        long_text = "Line of text for testing. " * 100  # ~2600 chars
+        httpx_mock.add_response(
+            url="https://example.com/long.txt",
+            text=long_text,
+            headers={"Content-Type": "text/plain"},
+        )
+
+        exit_code = main([
+            "--url", "https://example.com/long.txt",
+            "--max-chars", "1000",
+            "--format", "text",
+        ])
+        output = json.loads(capsys.readouterr().out)
+
+        assert exit_code == 0
+        assert output["truncated"] is True
+        assert "contentArtifactPath" in output
+        assert isinstance(output["contentArtifactPath"], str)
+        assert os.path.exists(output["contentArtifactPath"])
+
+    def test_content_artifact_path_absent_when_not_truncated(self, httpx_mock, capsys):
+        """contentArtifactPath is absent from JSON when not truncated."""
+        httpx_mock.add_response(
+            url="https://example.com/short.txt",
+            text="Short content.",
+            headers={"Content-Type": "text/plain"},
+        )
+
+        exit_code = main([
+            "--url", "https://example.com/short.txt",
+            "--max-chars", "50000",
+            "--format", "text",
+        ])
+        output = json.loads(capsys.readouterr().out)
+
+        assert exit_code == 0
+        assert output["truncated"] is False
+        assert "contentArtifactPath" not in output
+
+    def test_source_truncated_field_present(self, httpx_mock, capsys):
+        """sourceTruncated field is always present in the JSON output."""
+        httpx_mock.add_response(
+            url="https://example.com/page",
+            text="Some content.",
+            headers={"Content-Type": "text/plain"},
+        )
+
+        exit_code = main([
+            "--url", "https://example.com/page",
+            "--format", "text",
+        ])
+        output = json.loads(capsys.readouterr().out)
+
+        assert exit_code == 0
+        assert "sourceTruncated" in output
+        assert output["sourceTruncated"] is False
+
+
+# ===========================================================================
+# Raw mode
+# ===========================================================================
+
+class TestRawMode:
+    """Raw mode returns decoded source without extraction."""
+
+    def test_raw_plus_download_returns_error(self):
+        """raw=true combined with download=true returns a validation error."""
+        exit_code = main([
+            "--url", "https://example.com/photo.jpg",
+            "--raw",
+            "--download",
+        ])
+        # Should fail before any network request (no httpx_mock needed).
+        assert exit_code != 0
+
+    def test_raw_html_returned_without_extraction(self, httpx_mock, capsys):
+        """When --raw is set, HTML content is returned without extraction."""
+        raw_html = "<html><body><h1>Hello</h1><p>World</p></body></html>"
+        httpx_mock.add_response(
+            url="https://example.com/page.html",
+            text=raw_html,
+            headers={"Content-Type": "text/html"},
+        )
+        # Mock DNS to avoid network dependency
+        with patch.object(socket, "getaddrinfo", return_value=[
+            (socket.AF_INET, socket.SOCK_STREAM, 0, "", ("93.184.216.34", 80)),
+        ]):
+            exit_code = main([
+                "--url", "https://example.com/page.html",
+                "--raw",
+            ])
+        output = json.loads(capsys.readouterr().out)
+        assert exit_code == 0
+        assert "<h1>Hello</h1>" in output["content"]
+        assert output["format"] == "raw"

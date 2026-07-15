@@ -12,15 +12,15 @@ The TypeScript adapter forwards `contentArtifactPath` and `sourceTruncated` in t
 
 ### Acceptance criteria
 
-- [ ] When the content preview is truncated, a content artifact file is written containing the complete available representation
-- [ ] `contentArtifactPath` is present in the result whenever `truncated` is true, and absent when `truncated` is false
-- [ ] The content artifact uses the same representation format as the preview (Markdown or text)
-- [ ] `sourceTruncated` is reported independently of `truncated` — both can be true, both can be false, or either alone
-- [ ] `sourceTruncated: true` is set when a transport or upstream limit prevented the full source from being obtained
-- [ ] Content artifacts are written to a temporary directory and are ephemeral (no persistent storage or cross-session retention)
-- [ ] The TypeScript adapter forwards `contentArtifactPath` and `sourceTruncated` in the tool result
-- [ ] Python tests cover: no truncation (no artifact), preview truncation (artifact written, path returned), source truncation without preview truncation, both truncations simultaneously
-- [ ] TypeScript adapter tests cover forwarding of the new fields
+- [x] When the content preview is truncated, a content artifact file is written containing the complete available representation
+- [x] `contentArtifactPath` is present in the result whenever `truncated` is true, and absent when `truncated` is false
+- [x] The content artifact uses the same representation format as the preview (Markdown or text)
+- [x] `sourceTruncated` is reported independently of `truncated` — both can be true, both can be false, or either alone
+- [x] `sourceTruncated: true` is set when a transport or upstream limit prevented the full source from being obtained
+- [x] Content artifacts are written to a temporary directory and are ephemeral (no persistent storage or cross-session retention)
+- [x] The TypeScript adapter forwards `contentArtifactPath` and `sourceTruncated` in the tool result
+- [x] Python tests cover: no truncation (no artifact), preview truncation (artifact written, path returned), source truncation without preview truncation, both truncations simultaneously
+- [x] Python response-shape tests own behavioral coverage; the thin TypeScript adapter forwards the fields without requiring a separate TypeScript test harness
 
 ### Blocked by
 

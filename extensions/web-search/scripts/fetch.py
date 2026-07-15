@@ -159,6 +159,14 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         help="Max fetch bytes (default 5 MiB)",
     )
     parser.add_argument(
+        "--raw",
+        action="store_true",
+        help=(
+            "Return the raw decoded source instead of extracted text. "
+            "Ignores --format. Mutually exclusive with --download."
+        ),
+    )
+    parser.add_argument(
         "--download",
         action="store_true",
         help=(
@@ -513,9 +521,11 @@ def success_json(
     truncated: bool,
     fetched_bytes: int,
     warnings: List[str],
+    content_artifact_path: Optional[str] = None,
+    source_truncated: bool = False,
 ) -> Dict[str, Any]:
     """Build success JSON response."""
-    return {
+    result: Dict[str, Any] = {
         "url": url,
         "finalUrl": final_url,
         "statusCode": status_code,
@@ -527,7 +537,11 @@ def success_json(
         "contentLength": len(content),
         "fetchedBytes": fetched_bytes,
         "warnings": warnings,
+        "sourceTruncated": source_truncated,
     }
+    if content_artifact_path is not None:
+        result["contentArtifactPath"] = content_artifact_path
+    return result
 
 
 def error_json(
@@ -625,6 +639,13 @@ def main(argv: Optional[List[str]] = None) -> int:
     args = parse_args(argv)
 
     try:
+        if args.raw and args.download:
+            raise FetchError(
+                "raw and download are mutually exclusive. "
+                "Use either --raw (return decoded source) or --download (save to file), not both.",
+                {"url": args.url},
+            )
+
         if args.download:
             result = run_download(
                 url=args.url,
@@ -648,13 +669,17 @@ def main(argv: Optional[List[str]] = None) -> int:
         body = fetch_result["body"]
         fetched_bytes = fetch_result["fetchedBytes"]
 
+        # Determine effective format: raw mode reports "raw" irrespective of --format
+        effective_format = "raw" if args.raw else (args.format or "markdown")
+
         # Run the representation pipeline (decode → extract → truncate)
         pipeline_result = _pipeline_process(
             body=body,
             content_type=content_type,
             url=url,
-            output_format=args.format,
+            output_format=effective_format if not args.raw else "text",
             max_chars=args.max_chars,
+            raw=args.raw,
         )
 
         # Build success JSON
@@ -664,11 +689,13 @@ def main(argv: Optional[List[str]] = None) -> int:
             status_code=status_code,
             content_type=content_type,
             title=pipeline_result.title,
-            output_format=args.format,
+            output_format=effective_format,
             content=pipeline_result.content,
             truncated=pipeline_result.truncated,
             fetched_bytes=fetched_bytes,
             warnings=pipeline_result.warnings,
+            content_artifact_path=pipeline_result.content_artifact_path,
+            source_truncated=pipeline_result.source_truncated,
         )
 
         print(json.dumps(result, ensure_ascii=False))
