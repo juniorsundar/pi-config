@@ -22,6 +22,6 @@ The TypeScript adapter correctly forwards all GitHub-specific result fields (tre
 
 ### Blocked by
 
-- 06 — GitHub repository and tree resource representation
-- 07 — GitHub blob resource and binary download
-- 08 — GitHub resolution failures and rate-limit reporting
+- 0053 — GitHub repository and tree resource representation
+- 0054 — GitHub blob resource and binary download
+- 0055 — GitHub resolution failures and rate-limit reporting

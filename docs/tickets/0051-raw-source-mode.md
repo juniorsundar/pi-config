@@ -22,5 +22,5 @@ The TypeScript adapter forwards the `raw` parameter to the Python subprocess and
 
 ### Blocked by
 
-- 01 — Prefactor: Extract representation pipeline as a deep module
-- 02 — Content artifact persistence and recoverable truncation
+- 0048 — Prefactor: Extract representation pipeline as a deep module
+- 0049 — Content artifact persistence and recoverable truncation

@@ -1,5 +1,5 @@
 {
-  "defaultModel": "antigravity/claude-opus-4-6-thinking",
+  "defaultModel": "opencode-go/deepseek-v4-flash",
   "defaultProvider": "omniroute",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",

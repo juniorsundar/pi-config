@@ -23,4 +23,4 @@ Rate-limit failures include HTTP status, remaining quota (when available), reset
 
 ### Blocked by
 
-- 05 — GitHub URL recognition and ref/path resolution
+- 0052 — GitHub URL recognition and ref/path resolution

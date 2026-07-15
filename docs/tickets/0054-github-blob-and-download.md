@@ -23,6 +23,6 @@ Authentication uses `GITHUB_TOKEN` when available, confined to fixed GitHub API 
 
 ### Blocked by
 
-- 01 — Prefactor: Extract representation pipeline as a deep module
-- 02 — Content artifact persistence and recoverable truncation
-- 05 — GitHub URL recognition and ref/path resolution
+- 0048 — Prefactor: Extract representation pipeline as a deep module
+- 0049 — Content artifact persistence and recoverable truncation
+- 0052 — GitHub URL recognition and ref/path resolution

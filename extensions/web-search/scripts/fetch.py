@@ -16,15 +16,26 @@ from typing import Any, Dict, List, Literal, Optional, Tuple
 
 import httpx
 from bs4 import BeautifulSoup, Tag
-from markdownify import markdownify as md
-from readability import Document as ReadabilityDoc
+
+from representation import (
+    OutputFormat,
+    ContentCategory,
+    find_main_container,
+    extract_title,
+    strip_boilerplate,
+    strip_anchor_links,
+    decode_body,
+    _normalize_whitespace,
+    _extract_html,
+    _extract_text_like,
+    _truncate,
+    process as _pipeline_process,
+    categorize_content,
+)
 
 # ---------------------------------------------------------------------------
 # Types
 # ---------------------------------------------------------------------------
-
-OutputFormat = Literal["markdown", "text"]
-ContentCategory = Literal["html", "text_like", "unsupported"]
 
 ExtractedDocument = Dict[str, Any]
 """
@@ -54,23 +65,8 @@ On error:
 # Constants
 # ---------------------------------------------------------------------------
 
-SUPPORTED_HTML_TYPES = {
-    "text/html",
-    "application/xhtml+xml",
-}
-
-SUPPORTED_TEXT_TYPES = {
-    "text/plain",
-    "text/markdown",
-}
-
-SUPPORTED_DATA_TYPES = {
-    "application/json",
-    "application/xml",
-    "text/xml",
-}
-
-SUPPORTED_TYPES = SUPPORTED_HTML_TYPES | SUPPORTED_TEXT_TYPES | SUPPORTED_DATA_TYPES
+# Representation pipeline types are imported from representation module.
+# Only fetch-specific constants remain here.
 
 # Binary types accepted only in --download mode.
 # Keep this list small and intentional: images + PDFs. Add more only with
@@ -359,21 +355,7 @@ def fetch_response(
 # ---------------------------------------------------------------------------
 
 
-def categorize_content(content_type: Optional[str]) -> ContentCategory:
-    """Determine if the content type is HTML, text-like, or unsupported."""
-    if not content_type:
-        return "html"  # Assume HTML if no content-type
-
-    media_type = content_type.split(";")[0].strip().lower()
-
-    if media_type in SUPPORTED_HTML_TYPES:
-        return "html"
-    if media_type in SUPPORTED_TEXT_TYPES or media_type in SUPPORTED_DATA_TYPES:
-        return "text_like"
-
-    return "unsupported"
-
-
+# categorize_content is imported from representation module
 def is_download_supported(content_type: Optional[str]) -> bool:
     """Return True if the content type is in the binary download allowlist."""
     if not content_type:
@@ -431,160 +413,26 @@ def is_supported_content_type(content_type: Optional[str]) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def decode_body(body: bytes, content_type: Optional[str]) -> str:
-    """Decode bytes to string using charset from Content-Type or UTF-8 fallback."""
-    charset = "utf-8"
-    if content_type:
-        for part in content_type.split(";"):
-            part = part.strip()
-            if part.lower().startswith("charset="):
-                charset = part[8:].strip().strip("'\"")
-                break
-
-    try:
-        return body.decode(charset)
-    except (LookupError, UnicodeDecodeError):
-        return body.decode("utf-8", errors="replace")
-
+# Decode body is imported from representation module
 
 # ---------------------------------------------------------------------------
 # Content extraction
 # ---------------------------------------------------------------------------
-
 # Tags to strip from extracted semantic containers.
 # Note: header/footer are NOT stripped here because the semantic container
 # (article/main) IS the content boundary — page-level header/footer are
 # already excluded. Stripping them inside the container risks losing
 # article-level headings and metadata.
-SemanticStripTags = ["script", "style", "noscript", "nav", "form", "button"]
-
-# Anchor-link classes known to be decorative heading icons (additive).
-AnchorClasses = {"anchor", "headerlink", "header-anchor"}
-
-# Glyph-only text patterns that indicate decorative anchor links.
-AnchorGlyphs = {"#", "¶", "§"}
+# Extraction constants live in representation.py.
 
 
-def find_main_container(soup: BeautifulSoup) -> Optional[Tag]:
-    """Return the first semantic main-content element, or None.
-
-    Search order: <article>, <main>, [role="main"].
-    This is the primary content-detection heuristic used before falling
-    back to readability-lxml.
-    """
-    for selector in ("article", "main"):
-        container = soup.find(selector)
-        if container is not None:
-            return container
-    return soup.find(attrs={"role": "main"})
+# find_main_container is imported from representation module
 
 
-def extract_title(soup: BeautifulSoup, container: Optional[Tag]) -> Optional[str]:
-    """Return the document title for the semantic extraction path.
-
-    Search order: ``<title>`` in ``<head>``, then the first heading
-    (``<h1>``–``<h6>``) in document order inside *container*, then ``None``.
-    """
-    # 1. <title> from <head>
-    head_title = soup.find("title")
-    if head_title:
-        text = head_title.get_text(strip=True)
-        if text:
-            return text
-
-    # 2. First heading in document order inside the container
-    if container is not None:
-        heading = container.find(["h1", "h2", "h3", "h4", "h5", "h6"])
-        if heading is not None:
-            text = heading.get_text(strip=True)
-            if text:
-                return text
-
-    return None
-
-
-def strip_boilerplate(container: Tag) -> None:
-    """Remove non-content elements from *container* in-place.
-
-    Strips scripts, styles, navigation, site chrome, forms, and buttons.
-    """
-    for tag in container.find_all(SemanticStripTags):
-        tag.decompose()
-
-
-def strip_anchor_links(container: Tag) -> None:
-    """Remove decorative heading-anchor links from *container* in-place.
-
-    An anchor link is removed when its class matches a known pattern
-    (``anchor``, ``headerlink``, ``header-anchor``) **or** its text
-    content is a decorative glyph (``#``, ``¶``, ``§``) or empty.
-    """
-    for a_tag in container.find_all("a"):
-        text = a_tag.get_text(strip=True)
-        if text in AnchorGlyphs or text == "":
-            a_tag.decompose()
-            continue
-        classes = set(a_tag.get("class", []))
-        if classes & AnchorClasses:
-            a_tag.decompose()
-
-
-def _extract_via_readability(
-    html_text: str,
-    url: str,
-    output_format: OutputFormat,
-) -> ExtractedDocument:
-    """Extract content using readability-lxml (fallback path)."""
-    warnings: List[str] = []
-
-    doc = ReadabilityDoc(html_text, url=url)
-    title = doc.short_title() or doc.title() or None
-    summary_html = doc.summary()
-
-    soup = BeautifulSoup(summary_html, "lxml")
-    for tag in soup.find_all(["script", "style", "noscript", "nav", "footer", "header"]):
-        tag.decompose()
-
-    readable_html = str(soup)
-    extracted_text = soup.get_text(separator="\n", strip=True)
-
-    if len(extracted_text.strip()) < 50:
-        warnings.append(
-            "Readability extraction returned very little content; "
-            "page may require JavaScript. Falling back to raw HTML text."
-        )
-        full_soup = BeautifulSoup(html_text, "lxml")
-        for tag in full_soup.find_all(["script", "style", "noscript"]):
-            tag.decompose()
-        body = full_soup.find("body")
-        if body:
-            extracted_text = body.get_text(separator="\n", strip=True)
-        else:
-            extracted_text = full_soup.get_text(separator="\n", strip=True)
-
-    if output_format == "markdown":
-        try:
-            content = md(
-                readable_html,
-                heading_style="ATX",
-                bullets="-",
-                strip=["script", "style", "noscript", "nav", "footer", "header"],
-            )
-            content = normalize_whitespace(content)
-            if len(content.strip()) < 50:
-                warnings.append(
-                    "Markdown conversion produced minimal output; falling back to plain text."
-                )
-                content = extracted_text
-        except Exception as exc:
-            warnings.append(f"Markdown conversion failed: {exc}; using plain text.")
-            content = extracted_text
-    else:
-        content = extracted_text
-
-    return {"title": title, "content": normalize_whitespace(content), "warnings": warnings}
-
-
+# extract_title is imported from representation module
+# strip_boilerplate is imported from representation module
+# strip_anchor_links is imported from representation module
+# _extract_via_readability is in representation module
 def extract_html(
     html_text: str,
     url: str,
@@ -592,144 +440,38 @@ def extract_html(
 ) -> ExtractedDocument:
     """Extract readable content from HTML.
 
-    Primary path: semantic container (``<article>`` / ``<main>`` / ``[role="main"]``)
-    with markdownify conversion — preserves headings, code blocks, and structure.
-    Fallback: readability-lxml when no container is found or its output is too short.
+    Delegates to the representation module.
     """
-    warnings: List[str] = []
-    full_soup = BeautifulSoup(html_text, "lxml")
-
-    # --- Primary: semantic container extraction ---
-    container = find_main_container(full_soup)
-    use_readability = False
-
-    if container is not None:
-        # Clone so we don't mutate the parsed tree (readability may need it)
-        from copy import copy
-        container = copy(container)
-        strip_boilerplate(container)
-        strip_anchor_links(container)
-
-        extracted_text = container.get_text(separator="\n", strip=True)
-        if len(extracted_text.strip()) < 50:
-            warnings.append(
-                "Semantic container contained very little text; "
-                "falling back to readability extraction."
-            )
-            use_readability = True
-    else:
-        use_readability = True
-
-    if use_readability:
-        return _extract_via_readability(html_text, url, output_format)
-
-    title = extract_title(full_soup, container)
-
-    if output_format == "markdown":
-        try:
-            content = md(
-                str(container),
-                heading_style="ATX",
-                bullets="-",
-                strip=["script", "style", "noscript", "nav", "footer", "header"],
-            )
-            content = normalize_whitespace(content)
-            if len(content.strip()) < 50:
-                warnings.append(
-                    "Markdown conversion produced minimal output; falling back to plain text."
-                )
-                content = extracted_text
-        except Exception as exc:
-            warnings.append(f"Markdown conversion failed: {exc}; using plain text.")
-            content = extracted_text
-    else:
-        content = extracted_text
-
-    return {
-        "title": title,
-        "content": normalize_whitespace(content),
-        "warnings": warnings,
-    }
-
-
+    title, content, warnings = _extract_html(html_text, url, output_format)
+    return {"title": title, "content": content, "warnings": warnings}
 def extract_text_like(
     text: str,
     content_type: Optional[str],
     output_format: OutputFormat,
 ) -> ExtractedDocument:
-    """Extract content from plain text, markdown, JSON, or XML responses."""
-    title: Optional[str] = None
-    warnings: List[str] = []
-    content = text
-    media_type = (content_type or "").split(";")[0].strip().lower()
+    """Extract content from plain text, markdown, JSON, or XML responses.
 
-    # For JSON, try pretty-printing
-    if media_type == "application/json":
-        try:
-            parsed = json.loads(text)
-            content = json.dumps(parsed, indent=2, ensure_ascii=False)
-        except json.JSONDecodeError:
-            content = text
-            warnings.append("Content type is JSON but body is not valid JSON; returning raw text.")
-
-    # For XML, keep raw XML
-    if media_type in ("application/xml", "text/xml"):
-        content = normalize_whitespace(text)
-
-    # For markdown, use directly
-    if media_type == "text/markdown" and output_format == "text":
-        # Convert markdown to plain text if text output requested
-        soup = BeautifulSoup(f"<pre>{text}</pre>", "lxml")
-        content = soup.get_text(separator="\n", strip=True)
-
-    return {"title": title, "content": normalize_whitespace(content), "warnings": warnings}
-
-
+    Delegates to the representation module.
+    """
+    title, content, warnings = _extract_text_like(text, content_type, output_format)
+    return {"title": title, "content": content, "warnings": warnings}
 # ---------------------------------------------------------------------------
 # Text utilities
 # ---------------------------------------------------------------------------
 
 
 def normalize_whitespace(text: str) -> str:
-    """Collapse excessive blank lines and trim trailing whitespace."""
-    lines = text.splitlines()
-    result: List[str] = []
-    blank_count = 0
-    for line in lines:
-        stripped = line.rstrip()
-        if stripped:
-            result.append(stripped)
-            blank_count = 0
-        else:
-            blank_count += 1
-            if blank_count <= 2:
-                result.append("")
-    # Trim leading/trailing blank lines
-    while result and result[0] == "":
-        result.pop(0)
-    while result and result[-1] == "":
-        result.pop()
-    return "\n".join(result)
+    """Collapse excessive blank lines and trim trailing whitespace.
 
-
+    Delegates to the representation module.
+    """
+    return _normalize_whitespace(text)
 def truncate_content(text: str, max_chars: int) -> Tuple[str, bool]:
-    """Truncate text to max_chars, with message if truncated."""
-    max_chars = max(1_000, min(max_chars, 100_000))
-    if len(text) <= max_chars:
-        return text, False
-    # Try to break at a natural boundary within the limit
-    truncated = text[:max_chars]
-    last_newline = truncated.rfind("\n")
-    if last_newline > max_chars // 2:
-        truncated = text[:last_newline]
-    truncated += (
-        f"\n\n[... Content truncated at {max_chars} characters. "
-        f"Total document length: {len(text)} characters. "
-        f"Use --max-chars to increase limit up to 100,000.]"
-    )
-    return truncated, True
+    """Truncate text to max_chars, with message if truncated.
 
-
+    Delegates to the representation module.
+    """
+    return _truncate(text, max_chars)
 # ---------------------------------------------------------------------------
 # JSON response builders
 # ---------------------------------------------------------------------------
@@ -906,23 +648,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         body = fetch_result["body"]
         fetched_bytes = fetch_result["fetchedBytes"]
 
-        # Decode
-        text = decode_body(body, content_type)
-
-        # Categorize and extract
-        category = categorize_content(content_type)
-
-        if category == "html":
-            doc = extract_html(text, url, args.format)
-        else:
-            doc = extract_text_like(text, content_type, args.format)
-
-        title = doc["title"]
-        content = doc["content"]
-        base_warnings = doc.get("warnings", [])
-
-        # Truncate
-        content, truncated = truncate_content(content, args.max_chars)
+        # Run the representation pipeline (decode → extract → truncate)
+        pipeline_result = _pipeline_process(
+            body=body,
+            content_type=content_type,
+            url=url,
+            output_format=args.format,
+            max_chars=args.max_chars,
+        )
 
         # Build success JSON
         result = success_json(
@@ -930,12 +663,12 @@ def main(argv: Optional[List[str]] = None) -> int:
             final_url=final_url,
             status_code=status_code,
             content_type=content_type,
-            title=title,
+            title=pipeline_result.title,
             output_format=args.format,
-            content=content,
-            truncated=truncated,
+            content=pipeline_result.content,
+            truncated=pipeline_result.truncated,
             fetched_bytes=fetched_bytes,
-            warnings=base_warnings,
+            warnings=pipeline_result.warnings,
         )
 
         print(json.dumps(result, ensure_ascii=False))

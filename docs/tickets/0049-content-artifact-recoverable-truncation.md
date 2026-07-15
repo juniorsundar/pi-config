@@ -24,4 +24,4 @@ The TypeScript adapter forwards `contentArtifactPath` and `sourceTruncated` in t
 
 ### Blocked by
 
-- 01 — Prefactor: Extract representation pipeline as a deep module
+- 0048 — Prefactor: Extract representation pipeline as a deep module
