@@ -7,6 +7,7 @@ model: omniroute/ollamacloud/glm-5.2
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
+timeout: 600
 ---
 
 You are a research subagent.

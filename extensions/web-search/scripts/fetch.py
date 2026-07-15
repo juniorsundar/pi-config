@@ -451,38 +451,108 @@ def decode_body(body: bytes, content_type: Optional[str]) -> str:
 # Content extraction
 # ---------------------------------------------------------------------------
 
+# Tags to strip from extracted semantic containers.
+# Note: header/footer are NOT stripped here because the semantic container
+# (article/main) IS the content boundary — page-level header/footer are
+# already excluded. Stripping them inside the container risks losing
+# article-level headings and metadata.
+SemanticStripTags = ["script", "style", "noscript", "nav", "form", "button"]
 
-def extract_html(
+# Anchor-link classes known to be decorative heading icons (additive).
+AnchorClasses = {"anchor", "headerlink", "header-anchor"}
+
+# Glyph-only text patterns that indicate decorative anchor links.
+AnchorGlyphs = {"#", "¶", "§"}
+
+
+def find_main_container(soup: BeautifulSoup) -> Optional[Tag]:
+    """Return the first semantic main-content element, or None.
+
+    Search order: <article>, <main>, [role="main"].
+    This is the primary content-detection heuristic used before falling
+    back to readability-lxml.
+    """
+    for selector in ("article", "main"):
+        container = soup.find(selector)
+        if container is not None:
+            return container
+    return soup.find(attrs={"role": "main"})
+
+
+def extract_title(soup: BeautifulSoup, container: Optional[Tag]) -> Optional[str]:
+    """Return the document title for the semantic extraction path.
+
+    Search order: ``<title>`` in ``<head>``, then the first heading
+    (``<h1>``–``<h6>``) in document order inside *container*, then ``None``.
+    """
+    # 1. <title> from <head>
+    head_title = soup.find("title")
+    if head_title:
+        text = head_title.get_text(strip=True)
+        if text:
+            return text
+
+    # 2. First heading in document order inside the container
+    if container is not None:
+        heading = container.find(["h1", "h2", "h3", "h4", "h5", "h6"])
+        if heading is not None:
+            text = heading.get_text(strip=True)
+            if text:
+                return text
+
+    return None
+
+
+def strip_boilerplate(container: Tag) -> None:
+    """Remove non-content elements from *container* in-place.
+
+    Strips scripts, styles, navigation, site chrome, forms, and buttons.
+    """
+    for tag in container.find_all(SemanticStripTags):
+        tag.decompose()
+
+
+def strip_anchor_links(container: Tag) -> None:
+    """Remove decorative heading-anchor links from *container* in-place.
+
+    An anchor link is removed when its class matches a known pattern
+    (``anchor``, ``headerlink``, ``header-anchor``) **or** its text
+    content is a decorative glyph (``#``, ``¶``, ``§``) or empty.
+    """
+    for a_tag in container.find_all("a"):
+        text = a_tag.get_text(strip=True)
+        if text in AnchorGlyphs or text == "":
+            a_tag.decompose()
+            continue
+        classes = set(a_tag.get("class", []))
+        if classes & AnchorClasses:
+            a_tag.decompose()
+
+
+def _extract_via_readability(
     html_text: str,
     url: str,
     output_format: OutputFormat,
 ) -> ExtractedDocument:
-    """Extract readable content from HTML using readability-lxml + BeautifulSoup."""
+    """Extract content using readability-lxml (fallback path)."""
     warnings: List[str] = []
 
-    # Use readability to extract main content
     doc = ReadabilityDoc(html_text, url=url)
     title = doc.short_title() or doc.title() or None
-
     summary_html = doc.summary()
 
-    # If readability produced nothing useful, fall back to body text
     soup = BeautifulSoup(summary_html, "lxml")
-
-    # Remove remaining boilerplate
     for tag in soup.find_all(["script", "style", "noscript", "nav", "footer", "header"]):
         tag.decompose()
 
     readable_html = str(soup)
     extracted_text = soup.get_text(separator="\n", strip=True)
 
-    # Check if readability extraction was meaningful
     if len(extracted_text.strip()) < 50:
         warnings.append(
             "Readability extraction returned very little content; "
             "page may require JavaScript. Falling back to raw HTML text."
         )
-        # Fallback: extract from full HTML
         full_soup = BeautifulSoup(html_text, "lxml")
         for tag in full_soup.find_all(["script", "style", "noscript"]):
             tag.decompose()
@@ -500,7 +570,69 @@ def extract_html(
                 bullets="-",
                 strip=["script", "style", "noscript", "nav", "footer", "header"],
             )
-            # Clean up excessive whitespace in markdown
+            content = normalize_whitespace(content)
+            if len(content.strip()) < 50:
+                warnings.append(
+                    "Markdown conversion produced minimal output; falling back to plain text."
+                )
+                content = extracted_text
+        except Exception as exc:
+            warnings.append(f"Markdown conversion failed: {exc}; using plain text.")
+            content = extracted_text
+    else:
+        content = extracted_text
+
+    return {"title": title, "content": normalize_whitespace(content), "warnings": warnings}
+
+
+def extract_html(
+    html_text: str,
+    url: str,
+    output_format: OutputFormat,
+) -> ExtractedDocument:
+    """Extract readable content from HTML.
+
+    Primary path: semantic container (``<article>`` / ``<main>`` / ``[role="main"]``)
+    with markdownify conversion — preserves headings, code blocks, and structure.
+    Fallback: readability-lxml when no container is found or its output is too short.
+    """
+    warnings: List[str] = []
+    full_soup = BeautifulSoup(html_text, "lxml")
+
+    # --- Primary: semantic container extraction ---
+    container = find_main_container(full_soup)
+    use_readability = False
+
+    if container is not None:
+        # Clone so we don't mutate the parsed tree (readability may need it)
+        from copy import copy
+        container = copy(container)
+        strip_boilerplate(container)
+        strip_anchor_links(container)
+
+        extracted_text = container.get_text(separator="\n", strip=True)
+        if len(extracted_text.strip()) < 50:
+            warnings.append(
+                "Semantic container contained very little text; "
+                "falling back to readability extraction."
+            )
+            use_readability = True
+    else:
+        use_readability = True
+
+    if use_readability:
+        return _extract_via_readability(html_text, url, output_format)
+
+    title = extract_title(full_soup, container)
+
+    if output_format == "markdown":
+        try:
+            content = md(
+                str(container),
+                heading_style="ATX",
+                bullets="-",
+                strip=["script", "style", "noscript", "nav", "footer", "header"],
+            )
             content = normalize_whitespace(content)
             if len(content.strip()) < 50:
                 warnings.append(

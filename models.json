@@ -1,5 +1,39 @@
 {
   "providers": {
+    "omr": {
+      "api": "openai-completions",
+      "apiKey": "sk-9b1556b560f39dfe-6484f7-13901139",
+      "baseUrl": "http://100.77.160.81:20128/v1",
+      "models": [
+        {
+          "_launch": true,
+          "contextWindow": 128000,
+          "id": "dmr/ai/smollm2",
+          "input": [
+            "text",
+          ],
+          "reasoning": true
+        },
+        {
+          "_launch": true,
+          "contextWindow": 262144,
+          "id": "llamacpp/Qwen3.5-122B-A10B-Q5_K_M-00001-of-00003.gguf",
+          "input": [
+            "text",
+          ],
+          "reasoning": true
+        },
+        {
+          "_launch": true,
+          "contextWindow": 262144,
+          "id": "llamacpp/gpt-oss-120b-MXFP4-00001-of-00002.gguf",
+          "input": [
+            "text",
+          ],
+          "reasoning": true
+        }
+      ]
+    },
     "ollama": {
       "api": "openai-completions",
       "apiKey": "ollama",

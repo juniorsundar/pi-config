@@ -9,13 +9,20 @@ import tempfile
 from pathlib import Path
 
 import pytest
+from bs4 import BeautifulSoup
+
 from fetch import (
     SUPPORTED_DOWNLOAD_TYPES,
     download_json,
+    extract_html,
+    extract_title,
     extension_for,
+    find_main_container,
     is_download_supported,
     main,
     media_type_of,
+    strip_anchor_links,
+    strip_boilerplate,
 )
 
 
@@ -88,6 +95,372 @@ class TestExtensionFor:
 
     def test_lowercases_url_extension(self):
         assert extension_for("text/plain", "https://example.com/Photo.JPG") == ".jpg"
+
+
+# ===========================================================================
+# Unit: semantic container helpers
+# ===========================================================================
+
+class TestFindMainContainer:
+    """find_main_container returns the first semantic main-content element."""
+
+    def test_returns_article_when_present(self):
+        html = "<html><body><article><p>Content</p></article></body></html>"
+        soup = BeautifulSoup(html, "lxml")
+        container = find_main_container(soup)
+        assert container is not None
+        assert container.name == "article"
+
+    def test_prefers_article_over_main(self):
+        html = "<html><body><main><p>Main</p></main><article><p>Article</p></article></body></html>"
+        soup = BeautifulSoup(html, "lxml")
+        container = find_main_container(soup)
+        assert container is not None
+        assert container.name == "article"
+        assert "Article" in container.get_text()
+
+    def test_falls_back_to_main_when_no_article(self):
+        html = "<html><body><main><p>Main content</p></main></body></html>"
+        soup = BeautifulSoup(html, "lxml")
+        container = find_main_container(soup)
+        assert container is not None
+        assert container.name == "main"
+
+    def test_falls_back_to_role_main(self):
+        html = '<html><body><div role="main"><p>Role main</p></div></body></html>'
+        soup = BeautifulSoup(html, "lxml")
+        container = find_main_container(soup)
+        assert container is not None
+        assert container.get("role") == "main"
+
+    def test_returns_none_when_no_semantic_container(self):
+        html = "<html><body><div><p>Just a div</p></div></body></html>"
+        soup = BeautifulSoup(html, "lxml")
+        assert find_main_container(soup) is None
+
+
+class TestStripBoilerplate:
+    """strip_boilerplate removes non-content elements from a container."""
+
+    def test_removes_scripts_and_styles(self):
+        html = "<article><p>Content</p><script>alert(1)</script><style>.x{}</style></article>"
+        container = BeautifulSoup(html, "lxml").find("article")
+        strip_boilerplate(container)
+        text = container.get_text(strip=True)
+        assert "Content" in text
+        assert "alert" not in text
+
+    def test_removes_nav(self):
+        html = "<article><nav>Menu</nav><p>Content</p></article>"
+        container = BeautifulSoup(html, "lxml").find("article")
+        strip_boilerplate(container)
+        text = container.get_text(strip=True)
+        assert text == "Content"
+
+    def test_preserves_header_and_footer_inside_container(self):
+        """header/footer inside a semantic container are article content, not page chrome."""
+        html = "<article><header><h1>Title</h1></header><p>Body</p><footer>Tags</footer></article>"
+        container = BeautifulSoup(html, "lxml").find("article")
+        strip_boilerplate(container)
+        text = container.get_text(strip=True)
+        assert "Title" in text
+        assert "Body" in text
+        assert "Tags" in text
+
+    def test_removes_form_and_button(self):
+        html = "<article><p>Content</p><form><button>Click</button></form></article>"
+        container = BeautifulSoup(html, "lxml").find("article")
+        strip_boilerplate(container)
+        text = container.get_text(strip=True)
+        assert text == "Content"
+
+    def test_preserves_article_content(self):
+        html = "<article><h1>Title</h1><p>Body text</p><code>inline</code></article>"
+        container = BeautifulSoup(html, "lxml").find("article")
+        strip_boilerplate(container)
+        text = container.get_text(strip=True)
+        assert "Title" in text
+        assert "Body text" in text
+        assert "inline" in text
+
+
+class TestStripAnchorLinks:
+    """strip_anchor_links removes decorative heading-anchor <a> tags."""
+
+    def test_removes_gyph_hash(self):
+        html = '<h1>Title <a href="#title">#</a></h1>'
+        container = BeautifulSoup(html, "lxml").find("h1")
+        strip_anchor_links(container)
+        assert container.get_text(strip=True) == "Title"
+
+    def test_removes_gyph_paragraph(self):
+        html = '<h2>Title <a href="#t">¶</a></h2>'
+        container = BeautifulSoup(html, "lxml").find("h2")
+        strip_anchor_links(container)
+        assert container.get_text(strip=True) == "Title"
+
+    def test_removes_gyph_section(self):
+        html = '<h2>Title <a href="#t">§</a></h2>'
+        container = BeautifulSoup(html, "lxml").find("h2")
+        strip_anchor_links(container)
+        assert container.get_text(strip=True) == "Title"
+
+    def test_removes_empty_anchor(self):
+        html = '<h2>Title <a href="#t"></a></h2>'
+        container = BeautifulSoup(html, "lxml").find("h2")
+        strip_anchor_links(container)
+        assert container.get_text(strip=True) == "Title"
+
+    def test_removes_anchor_class(self):
+        html = '<h2>Title <a class="anchor" href="#t">#</a></h2>'
+        container = BeautifulSoup(html, "lxml").find("h2")
+        strip_anchor_links(container)
+        assert container.get_text(strip=True) == "Title"
+
+    def test_removes_headerlink_class(self):
+        html = '<h2>Title <a class="headerlink" href="#t">¶</a></h2>'
+        container = BeautifulSoup(html, "lxml").find("h2")
+        strip_anchor_links(container)
+        assert container.get_text(strip=True) == "Title"
+
+    def test_keeps_meaningful_link(self):
+        html = '<h2><a href="/page">Real Link</a></h2>'
+        container = BeautifulSoup(html, "lxml").find("h2")
+        strip_anchor_links(container)
+        assert container.get_text(strip=True) == "Real Link"
+        assert container.find("a") is not None
+
+
+class TestExtractTitle:
+    """extract_title returns the document title from the semantic path."""
+
+    def test_returns_head_title(self):
+        html = "<html><head><title>My Page</title></head><body><article><h1>Alt</h1></article></body></html>"
+        soup = BeautifulSoup(html, "lxml")
+        container = soup.find("article")
+        assert extract_title(soup, container) == "My Page"
+
+    def test_falls_back_to_first_heading(self):
+        html = "<html><head></head><body><article><h1>Doc Title</h1><p>Body</p></article></body></html>"
+        soup = BeautifulSoup(html, "lxml")
+        container = soup.find("article")
+        assert extract_title(soup, container) == "Doc Title"
+
+    def test_returns_none_when_no_title_or_heading(self):
+        html = "<html><head></head><body><article><p>Just text</p></article></body></html>"
+        soup = BeautifulSoup(html, "lxml")
+        container = soup.find("article")
+        assert extract_title(soup, container) is None
+
+    def test_returns_first_heading_in_document_order(self):
+        """When no <title>, the first heading in document order is returned (not the first <h1>)."""
+        html = (
+            "<html><head></head><body><article>"
+            "<h2>Section A</h2>"
+            "<p>Content</p>"
+            "<h1>Title</h1>"
+            "</article></body></html>"
+        )
+        soup = BeautifulSoup(html, "lxml")
+        container = soup.find("article")
+        assert extract_title(soup, container) == "Section A"
+
+
+# ===========================================================================
+# Integration: semantic extraction via extract_html
+# ===========================================================================
+
+FIXTURE_ARTICLE_HTML = """\
+<html>
+<head><title>Test README</title></head>
+<body>
+<nav>Site Menu</nav>
+<article>
+<h1>Project Name</h1>
+<p>Description of the project.</p>
+<h2>Getting Started</h2>
+<p>Run the following:</p>
+<pre><code>npm install</code></pre>
+<h2>Configuration</h2>
+<p>Edit your config.</p>
+</article>
+<footer>Site Footer</footer>
+</body>
+</html>
+"""
+
+
+def test_semantic_extraction_preserves_headings(httpx_mock, capsys):
+    """Article with h1/h2 headings produces markdown with heading syntax."""
+    httpx_mock.add_response(
+        url="https://example.com/readme",
+        text=FIXTURE_ARTICLE_HTML,
+        headers={"Content-Type": "text/html"},
+    )
+
+    exit_code = main([
+        "--url", "https://example.com/readme",
+        "--max-chars", "5000",
+        "--format", "markdown",
+    ])
+    output = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    content = output["content"]
+    assert "# Project Name" in content
+    assert "## Getting Started" in content
+    assert "## Configuration" in content
+    assert "npm install" in content
+    assert "Description of the project" in content
+    # Site chrome should be stripped
+    assert "Site Menu" not in content
+    assert "Site Footer" not in content
+
+
+def test_semantic_extraction_title(httpx_mock, capsys):
+    """Title is extracted from <title> in the semantic path."""
+    httpx_mock.add_response(
+        url="https://example.com/readme",
+        text=FIXTURE_ARTICLE_HTML,
+        headers={"Content-Type": "text/html"},
+    )
+
+    exit_code = main([
+        "--url", "https://example.com/readme",
+        "--max-chars", "5000",
+        "--format", "markdown",
+    ])
+    output = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert output["title"] == "Test README"
+
+
+FIXTURE_NO_SEMANTIC_HTML = """\
+<html>
+<head><title>Blog Post</title></head>
+<body>
+<div class="post">
+<h1>My Blog Post</h1>
+<p>Some interesting content here.</p>
+</div>
+</body>
+</html>
+"""
+
+
+def test_fallback_to_readability_when_no_semantic_container(httpx_mock, capsys):
+    """Page without article/main uses readability extraction."""
+    httpx_mock.add_response(
+        url="https://example.com/blog",
+        text=FIXTURE_NO_SEMANTIC_HTML,
+        headers={"Content-Type": "text/html"},
+    )
+
+    exit_code = main([
+        "--url", "https://example.com/blog",
+        "--max-chars", "5000",
+        "--format", "markdown",
+    ])
+    output = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    # Readability path may or may not preserve headings — the key is it doesn't crash
+    assert output["content"] is not None
+    assert len(output["content"]) > 0
+
+
+FIXTURE_EMPTY_ARTICLE_HTML = """\
+<html>
+<head><title>Empty</title></head>
+<body>
+<article></article>
+</body>
+</html>
+"""
+
+
+def test_fallback_to_readability_when_article_too_short(httpx_mock, capsys):
+    """Article with < 50 chars of text falls through to readability."""
+    httpx_mock.add_response(
+        url="https://example.com/empty",
+        text=FIXTURE_EMPTY_ARTICLE_HTML,
+        headers={"Content-Type": "text/html"},
+    )
+
+    exit_code = main([
+        "--url", "https://example.com/empty",
+        "--max-chars", "5000",
+        "--format", "markdown",
+    ])
+    output = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    # Should not crash — readability fallback handles empty article
+    assert output["content"] is not None
+
+
+# ===========================================================================
+# Regression: fixture-based extraction quality
+# ===========================================================================
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
+
+def test_github_readme_headings_preserved():
+    """GitHub-style article with anchor-icon <a> tags: headings are preserved, anchors stripped."""
+    html = (FIXTURES_DIR / "github_readme.html").read_text()
+    result = extract_html(html, "https://github.com/test/repo", "markdown")
+    content = result["content"]
+
+    # All five headings must appear as markdown headings
+    assert "# Docs" in content
+    assert "## Recommended Links" in content
+    assert "# Quick Start" in content
+    assert "## Neovim" in content
+    assert "## VSCode" in content
+    assert "## Zed" in content
+
+    # Anchor links must not leak into the output
+    assert "aria-label=" not in content
+    assert "octicon" not in content
+
+    # Content must be present
+    assert "markdown-oxide" in content
+    assert "cargo install" in content
+    assert "pacman -S" in content
+
+    # Title from <title> tag
+    assert result["title"] == "Feel-ix-343/markdown-oxide: PKM Markdown Language Server"
+
+
+def test_readthedocs_headings_preserved():
+    """Sphinx/readthedocs article with headerlink <a> tags: headings are preserved, anchors stripped."""
+    html = (FIXTURES_DIR / "readthedocs_page.html").read_text()
+    result = extract_html(html, "https://trafilatura.readthedocs.io/", "markdown")
+    content = result["content"]
+
+    # All headings must appear
+    assert "# With Python" in content
+    assert "## The Python programming language" in content
+    assert "## Step-by-step" in content
+    assert "### Quickstart" in content
+    assert "### Extraction functions" in content
+    assert "### Output" in content
+    assert "#### Examples" in content
+    assert "## Extraction settings" in content
+    assert "### Function parameters" in content
+
+    # Headerlink anchors must not leak
+    assert "¶" not in content
+    assert "headerlink" not in content
+    assert "Link to this heading" not in content
+
+    # Code blocks preserved
+    assert "trafilatura.extract" in content
+
+    # Title from <title> tag
+    assert result["title"] == "Usage with Python — trafilatura 2.1.0 documentation"
 
 
 # ===========================================================================
