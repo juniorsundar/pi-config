@@ -84,6 +84,15 @@ const WebFetchParams = Type.Object({
 			default: false,
 		}),
 	),
+	download: Type.Optional(
+		Type.Boolean({
+			description:
+				"If true, save the fetched binary file (image, PDF, etc.) to a local temporary " +
+				"path and return its path instead of extracting readable text. Pass the returned " +
+				"path to the read tool to view the file with a multimodal model. Default: false.",
+			default: false,
+		}),
+	),
 });
 
 const EXTENSION_DIR = __dirname;

@@ -10,10 +10,10 @@ Existing download behavior (image/PDF content-type allowlists, byte ceilings, te
 
 ### Acceptance criteria
 
-- [ ] `download` appears as an optional boolean parameter in the `web_fetch` tool schema registered by the TypeScript adapter
-- [ ] The parameter description matches the existing documented behavior (save binary files like images and PDFs to a local temp path)
-- [ ] Existing download tests continue to pass
-- [ ] A TypeScript adapter test verifies `download` is present in the registered tool schema
+- [x] `download` appears as an optional boolean parameter in the `web_fetch` tool schema registered by the TypeScript adapter
+- [x] The parameter description matches the existing documented behavior (save binary files like images and PDFs to a local temp path)
+- [x] Existing download tests continue to pass
+- [x] A TypeScript adapter test verifies `download` is present in the registered tool schema
 
 ### Blocked by
 
