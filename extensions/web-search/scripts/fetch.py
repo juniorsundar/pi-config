@@ -17,7 +17,7 @@ from typing import Any, Dict, List, Literal, Optional, Tuple
 import httpx
 from bs4 import BeautifulSoup, Tag
 
-from github import classify, fetch_github_resource, GitHubResource as _GitHubResource
+from github import classify, fetch_github_blob_content, fetch_github_tree, render_tree, GitHubResource as _GitHubResource
 from representation import (
     OutputFormat,
     ContentCategory,
@@ -373,6 +373,28 @@ def is_download_supported(content_type: Optional[str]) -> bool:
     return media_type in SUPPORTED_DOWNLOAD_TYPES
 
 
+def _is_binary_content(data: bytes) -> bool:
+    """Check whether *data* looks like binary content.
+
+    Uses two heuristics:
+    1. If the bytes cannot be decoded as UTF-8, they are binary.
+    2. If UTF-8 decoding succeeds but null bytes (``\x00``) are present,
+       the content is treated as binary.
+
+    Args:
+        data: Raw bytes to inspect.
+
+    Returns:
+        ``True`` if the data appears to be binary.
+    """
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError:
+        return True
+    # Null bytes are a reliable binary indicator
+    return "\x00" in text
+
+
 def media_type_of(content_type: Optional[str]) -> Optional[str]:
     """Return the lowercased media type without parameters, or None."""
     if not content_type:
@@ -647,54 +669,161 @@ def main(argv: Optional[List[str]] = None) -> int:
                 {"url": args.url},
             )
 
+        # Check for recognised GitHub resource — never fall back to HTML extraction
+        classified = classify(args.url)
+        if isinstance(classified, _GitHubResource):
+            if classified.type in ("repository_root", "tree"):
+                # Tree representation path (ticket 0053)
+                gh_result = fetch_github_tree(args.url)
+                if "error" in gh_result:
+                    print(json.dumps(gh_result, ensure_ascii=False))
+                    return 1
+                tree_data = gh_result.get("data", {})
+                source_truncated = gh_result.get("sourceTruncated", False)
+                tree_warnings = gh_result.get("warnings", [])
+                final_url = gh_result.get("finalUrl", args.url)
+                status_code = gh_result.get("statusCode", 200)
+
+                if args.raw:
+                    # Raw mode: return canonical GitHub API JSON
+                    body_str = tree_data.get("canonicalJson", "{}")
+                    effective_format = "raw"
+                else:
+                    # Readable mode: render tree to markdown/text
+                    effective_format = args.format or "markdown"
+                    body_str = render_tree(tree_data, effective_format)
+
+                content_type = "application/json" if args.raw else "text/plain; charset=utf-8"
+                fetched_bytes = len(body_str.encode("utf-8"))
+                pipeline_result = _pipeline_process(
+                    body=body_str.encode("utf-8"),
+                    content_type=content_type,
+                    url=args.url,
+                    output_format=effective_format if not args.raw else "text",
+                    max_chars=args.max_chars,
+                    raw=args.raw,
+                    source_truncated=source_truncated,
+                )
+                # Merge tree warnings with pipeline warnings
+                all_warnings = tree_warnings + (pipeline_result.warnings or [])
+                result = success_json(
+                    url=args.url,
+                    final_url=final_url,
+                    status_code=status_code,
+                    content_type=content_type,
+                    title=pipeline_result.title,
+                    output_format=effective_format,
+                    content=pipeline_result.content,
+                    truncated=pipeline_result.truncated,
+                    fetched_bytes=fetched_bytes,
+                    warnings=all_warnings,
+                    content_artifact_path=pipeline_result.content_artifact_path,
+                    source_truncated=pipeline_result.source_truncated or source_truncated,
+                )
+                print(json.dumps(result, ensure_ascii=False))
+                return 0
+            else:
+                # Blob resource path (Contents API) — fetch and decode file content
+                gh_result = fetch_github_blob_content(args.url)
+                if "error" in gh_result:
+                    print(json.dumps(gh_result, ensure_ascii=False))
+                    return 1
+
+                decoded_bytes = gh_result["data"]
+                content_type = gh_result["contentType"]
+                name = gh_result["name"]
+                final_url = gh_result.get("finalUrl", args.url)
+                status_code = gh_result.get("statusCode", 200)
+
+                if args.download:
+                    # Download mode: write decoded bytes to temp file
+                    if not is_download_supported(content_type):
+                        raise FetchError(
+                            f"Download is not supported for content type '{content_type}'. "
+                            f"Supported types: {', '.join(sorted(SUPPORTED_DOWNLOAD_TYPES))}.",
+                            {"url": args.url, "contentType": content_type},
+                        )
+
+                    if len(decoded_bytes) > args.max_bytes:
+                        raise FetchError(
+                            f"Content exceeds maximum download size of {args.max_bytes} bytes "
+                            f"(actual: {len(decoded_bytes)} bytes).",
+                            {"url": args.url, "byteSize": len(decoded_bytes), "maxBytes": args.max_bytes},
+                        )
+
+                    # SHA-1 is used purely as a content address for the temp file name
+                    sha1 = hashlib.sha1(decoded_bytes).hexdigest()  # noqa: S324
+                    extension = extension_for(content_type, name)
+                    file_name = f"web-fetch-{sha1[:12]}{extension}"
+                    target_dir = tempfile.gettempdir()
+                    target_path = str(Path(target_dir) / file_name)
+
+                    target = Path(target_path)
+                    if target.exists() and target.stat().st_size != len(decoded_bytes):
+                        # Collision: same-name but different size → add hash suffix
+                        target_path = str(
+                            Path(target_dir) / f"web-fetch-{sha1[:12]}-{sha1[:8]}{extension}"
+                        )
+                        target = Path(target_path)
+
+                    target.write_bytes(decoded_bytes)
+
+                    result = download_json(
+                        url=args.url,
+                        final_url=final_url,
+                        status_code=status_code,
+                        content_type=content_type,
+                        path=target_path,
+                        file_name=file_name,
+                        byte_size=len(decoded_bytes),
+                        sha1=sha1,
+                        warnings=[],
+                    )
+                else:
+                    # Text / raw mode: check for binary content
+                    if _is_binary_content(decoded_bytes):
+                        print(json.dumps(error_json(
+                            "Detected binary blob. Use `download: true` to obtain the file via the GitHub API.",
+                            args.url,
+                            {"url": args.url, "contentType": content_type, "name": name},
+                        )))
+                        return 1
+
+                    # Decode text and run through representation pipeline
+                    text = decoded_bytes.decode("utf-8")
+                    fetched_bytes = len(decoded_bytes)
+                    effective_format = "raw" if args.raw else (args.format or "markdown")
+                    pipeline_result = _pipeline_process(
+                        body=decoded_bytes,
+                        content_type=content_type,
+                        url=args.url,
+                        output_format=effective_format if not args.raw else "text",
+                        max_chars=args.max_chars,
+                        raw=args.raw,
+                    )
+                    result = success_json(
+                        url=args.url,
+                        final_url=final_url,
+                        status_code=status_code,
+                        content_type=content_type,
+                        title=pipeline_result.title,
+                        output_format=effective_format,
+                        content=pipeline_result.content,
+                        truncated=pipeline_result.truncated,
+                        fetched_bytes=fetched_bytes,
+                        warnings=pipeline_result.warnings,
+                        content_artifact_path=pipeline_result.content_artifact_path,
+                        source_truncated=pipeline_result.source_truncated,
+                    )
+
+                print(json.dumps(result, ensure_ascii=False))
+                return 0
+
         if args.download:
             result = run_download(
                 url=args.url,
                 timeout=float(args.timeout),
                 max_bytes=args.max_bytes,
-            )
-            print(json.dumps(result, ensure_ascii=False))
-            return 0
-
-        # Check for recognised GitHub resource — never fall back to HTML extraction
-        classified = classify(args.url)
-        if isinstance(classified, _GitHubResource):
-            gh_result = fetch_github_resource(args.url)
-            if "error" in gh_result:
-                print(json.dumps(gh_result, ensure_ascii=False))
-                return 1
-            # Success: pass API response data through representation pipeline
-            data = gh_result.get("data", {})
-            if isinstance(data, dict):
-                body = json.dumps(data, ensure_ascii=False)
-            else:
-                body = str(data)
-            content_type = gh_result.get("contentType", "application/json")
-            final_url = gh_result.get("finalUrl", args.url)
-            status_code = gh_result.get("statusCode", 200)
-            fetched_bytes = len(body.encode("utf-8"))
-            effective_format = "raw" if args.raw else (args.format or "markdown")
-            pipeline_result = _pipeline_process(
-                body=body,
-                content_type=content_type,
-                url=args.url,
-                output_format=effective_format if not args.raw else "text",
-                max_chars=args.max_chars,
-                raw=args.raw,
-            )
-            result = success_json(
-                url=args.url,
-                final_url=final_url,
-                status_code=status_code,
-                content_type=content_type,
-                title=pipeline_result.title,
-                output_format=effective_format,
-                content=pipeline_result.content,
-                truncated=pipeline_result.truncated,
-                fetched_bytes=fetched_bytes,
-                warnings=pipeline_result.warnings,
-                content_artifact_path=pipeline_result.content_artifact_path,
-                source_truncated=pipeline_result.source_truncated,
             )
             print(json.dumps(result, ensure_ascii=False))
             return 0

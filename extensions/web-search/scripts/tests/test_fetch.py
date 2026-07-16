@@ -839,6 +839,643 @@ class TestRawMode:
 # Integration: GitHub resource routing
 # ===========================================================================
 
+# ===========================================================================
+# GitHub tree representation (ticket 0053)
+# ===========================================================================
+
+class TestGitHubTreeRepositoryRoot:
+    """Repository-root URLs resolve default branch and return sorted tree."""
+
+    def test_repository_root_resolves_default_branch_tree(self, httpx_mock, capsys):
+        """A repository-root URL resolves the default branch and returns a
+        readable rendered tree."""
+        # 1. Repo metadata
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo",
+            status_code=200,
+            json={
+                "default_branch": "main",
+                "full_name": "owner/repo",
+                "description": "A test repo",
+                "private": False,
+            },
+        )
+        # 2. Default branch (to get commit SHA)
+        httpx_mock.add_response(
+            url=f"https://api.github.com/repos/owner/repo/commits/main",
+            status_code=200,
+            json={
+                "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            },
+        )
+        # 3. Recursive git tree
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/git/trees/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa?recursive=1",
+            status_code=200,
+            json={
+                "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "truncated": False,
+                "tree": [
+                    {"path": "README.md", "type": "blob", "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "mode": "100644"},
+                    {"path": "src/main.py", "type": "blob", "sha": "cccccccccccccccccccccccccccccccccccccccc", "mode": "100644"},
+                    {"path": "src/utils", "type": "tree", "sha": "dddddddddddddddddddddddddddddddddddddddd", "mode": "040000"},
+                    {"path": "src/utils/helper.py", "type": "blob", "sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "mode": "100644"},
+                ],
+            },
+        )
+
+        exit_code = main(["--url", "https://github.com/owner/repo", "--format", "markdown"])
+        captured = capsys.readouterr()
+        assert exit_code == 0, f"exit {exit_code}: {captured.out}"
+        output = json.loads(captured.out)
+
+        assert output["url"] == "https://github.com/owner/repo"
+        assert output["statusCode"] == 200
+        assert output["format"] == "markdown"
+        assert output["sourceTruncated"] is False
+        assert output["truncated"] is False
+        assert "title" in output
+        # Content should contain repo and sorted paths
+        content = output["content"]
+        assert "owner/repo" in content
+        # All entries present in sorted order
+        assert "README.md" in content
+        assert "src/main.py" in content
+        assert "src/utils/" in content or "src/utils" in content
+        assert "src/utils/helper.py" in content
+        # Verify lexicographic order in the output
+        readme_pos = content.index("README.md")
+        src_main_pos = content.index("src/main.py")
+        src_utils_pos = content.index("src/utils")
+        helper_pos = content.index("src/utils/helper.py")
+        assert readme_pos < src_main_pos
+        assert src_main_pos < src_utils_pos
+        assert src_utils_pos < helper_pos
+
+
+class TestGitHubTreeSubdirectory:
+    """Tree URLs resolve the longest valid ref and filter to a subdirectory."""
+
+    def test_tree_url_resolves_ref_and_filters_subdirectory(self, httpx_mock, capsys):
+        """A /tree/ URL with slash-containing ref resolves the longest valid
+        branch prefix and returns only descendants of the requested directory."""
+        _SHA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+        # 1. Repo metadata
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo",
+            status_code=200,
+            json={
+                "default_branch": "main",
+                "full_name": "owner/repo",
+                "description": "A test repo",
+                "private": False,
+            },
+        )
+        # 2. resolve_ref tries prefixes from longest to shortest
+        #    full_ref_str = "feature/long/src/lib" from url path
+        #    candidates: feature/long/src/lib, feature/long/src, feature/long, feature
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/branches/feature%2Flong%2Fsrc%2Flib",
+            status_code=404,
+        )
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/branches/feature%2Flong%2Fsrc",
+            status_code=404,
+        )
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/branches/feature%2Flong",
+            status_code=200,
+            json={"name": "feature/long", "commit": {"sha": _SHA}},
+        )
+        # resolve_ref returns ref="feature/long", path_remainder="src/lib"
+        # 3. fetch_github_tree gets commit SHA
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/commits/feature%2Flong",
+            status_code=200,
+            json={"sha": _SHA},
+        )
+        # 4. Recursive git tree — includes entries outside src/lib
+        httpx_mock.add_response(
+            url=f"https://api.github.com/repos/owner/repo/git/trees/{_SHA}?recursive=1",
+            status_code=200,
+            json={
+                "sha": _SHA,
+                "truncated": False,
+                "tree": [
+                    {"path": "README.md", "type": "blob", "sha": "b" * 40, "mode": "100644"},
+                    {"path": "src/main.py", "type": "blob", "sha": "c" * 40, "mode": "100644"},
+                    {"path": "src/lib/core.py", "type": "blob", "sha": "f" * 40, "mode": "100644"},
+                    {"path": "src/lib/utils.py", "type": "blob", "sha": "g" * 40, "mode": "100644"},
+                    {"path": "tests/test_main.py", "type": "blob", "sha": "h" * 40, "mode": "100644"},
+                ],
+            },
+        )
+
+        exit_code = main([
+            "--url", "https://github.com/owner/repo/tree/feature/long/src/lib",
+            "--format", "markdown",
+        ])
+        captured = capsys.readouterr()
+        assert exit_code == 0, f"exit {exit_code}: {captured.out}"
+        output = json.loads(captured.out)
+
+        assert output["statusCode"] == 200
+        assert output["format"] == "markdown"
+        content = output["content"]
+        # Must include entries within src/lib
+        assert "src/lib/core.py" in content
+        assert "src/lib/utils.py" in content
+        # Must NOT include entries outside src/lib
+        assert "README.md" not in content
+        assert "src/main.py" not in content
+        assert "tests/test_main.py" not in content
+
+    def test_tree_url_root_no_subdirectory(self, httpx_mock, capsys):
+        """A /tree/ URL where the slash-containing ref IS the entire path
+        (no subdirectory) returns all entries unfiltered."""
+        _SHA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+        # 1. Repo metadata
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo",
+            status_code=200,
+            json={
+                "default_branch": "main",
+                "full_name": "owner/repo",
+                "description": "A test repo",
+                "private": False,
+            },
+        )
+        # 2. resolve_ref: full_ref_str="feature/long" — resolves as entire ref
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/branches/feature%2Flong",
+            status_code=200,
+            json={"name": "feature/long", "commit": {"sha": _SHA}},
+        )
+        # resolve_ref returns ref="feature/long", path_remainder=None
+        # 3. fetch_github_tree gets commit SHA
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/commits/feature%2Flong",
+            status_code=200,
+            json={"sha": _SHA},
+        )
+        # 4. Recursive tree
+        httpx_mock.add_response(
+            url=f"https://api.github.com/repos/owner/repo/git/trees/{_SHA}?recursive=1",
+            status_code=200,
+            json={
+                "sha": _SHA,
+                "truncated": False,
+                "tree": [
+                    {"path": "README.md", "type": "blob", "sha": "b" * 40, "mode": "100644"},
+                    {"path": "src/lib/core.py", "type": "blob", "sha": "f" * 40, "mode": "100644"},
+                ],
+            },
+        )
+
+        exit_code = main([
+            "--url", "https://github.com/owner/repo/tree/feature/long",
+            "--format", "markdown",
+        ])
+        captured = capsys.readouterr()
+        assert exit_code == 0, f"exit {exit_code}: {captured.out}"
+        output = json.loads(captured.out)
+
+        assert output["statusCode"] == 200
+        content = output["content"]
+        # All entries should be present (no subdirectory filtering)
+        assert "README.md" in content
+        assert "src/lib/core.py" in content
+
+
+class TestGitHubTreeSorting:
+    """Markdown tree output is sorted and deterministic."""
+
+    def test_markdown_rendering_sorted_deterministic(self, httpx_mock, capsys):
+        """Markdown mode produces structured metadata, a fenced path listing,
+        and lexicographically sorted entries."""
+        _SHA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+        # 1. Repo metadata
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo",
+            status_code=200,
+            json={
+                "default_branch": "main",
+                "full_name": "owner/repo",
+                "description": "A test repo",
+                "private": False,
+            },
+        )
+        # 2. Default branch
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/commits/main",
+            status_code=200,
+            json={"sha": _SHA},
+        )
+        # 3. Recursive tree — unsorted from API
+        httpx_mock.add_response(
+            url=f"https://api.github.com/repos/owner/repo/git/trees/{_SHA}?recursive=1",
+            status_code=200,
+            json={
+                "sha": _SHA,
+                "truncated": False,
+                "tree": [
+                    {"path": "zzz/last.py", "type": "blob", "sha": "b" * 40, "mode": "100644"},
+                    {"path": "aaa/first.py", "type": "blob", "sha": "c" * 40, "mode": "100644"},
+                    {"path": "README.md", "type": "blob", "sha": "d" * 40, "mode": "100644"},
+                    {"path": "src/utils/helper.py", "type": "blob", "sha": "e" * 40, "mode": "100644"},
+                    {"path": "src/main.py", "type": "blob", "sha": "f" * 40, "mode": "100644"},
+                    {"path": "src/utils", "type": "tree", "sha": "g" * 40, "mode": "040000"},
+                ],
+            },
+        )
+
+        exit_code = main(["--url", "https://github.com/owner/repo", "--format", "markdown"])
+        captured = capsys.readouterr()
+        assert exit_code == 0, f"exit {exit_code}: {captured.out}"
+        output = json.loads(captured.out)
+        content = output["content"]
+
+        # Markdown structure
+        assert content.startswith("# Repository: owner/repo")
+        assert "- **Owner:** owner" in content
+        assert "- **Repository:** repo" in content
+        assert "- **Ref:** main" in content
+        assert "- **Default branch:** main" in content
+        assert "- **Entries:** 6" in content
+
+        # Fenced code block
+        assert "```" in content
+        fence_start = content.index("```")
+        fence_end = content.index("```", fence_start + 1)
+        listing = content[fence_start + 3:fence_end].strip()
+        lines = listing.split("\n")
+
+        # All 6 entries in sorted order
+        assert len(lines) == 6
+        assert lines[0] == "README.md"
+        assert lines[1] == "aaa/first.py"
+        assert lines[2] == "src/main.py"
+        assert lines[3] == "src/utils/"  # directories get trailing /
+        assert lines[4] == "src/utils/helper.py"
+        assert lines[5] == "zzz/last.py"
+
+
+class TestGitHubTreeTextMode:
+    """Text mode renders tree as plain text without Markdown fencing."""
+
+    def test_text_mode_produces_plain_output(self, httpx_mock, capsys):
+        """Text mode produces plain repository metadata and sorted paths
+        without Markdown headers or fenced code blocks."""
+        _SHA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo",
+            status_code=200,
+            json={"default_branch": "main", "full_name": "owner/repo"},
+        )
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/commits/main",
+            status_code=200,
+            json={"sha": _SHA},
+        )
+        httpx_mock.add_response(
+            url=f"https://api.github.com/repos/owner/repo/git/trees/{_SHA}?recursive=1",
+            status_code=200,
+            json={
+                "sha": _SHA,
+                "truncated": False,
+                "tree": [
+                    {"path": "README.md", "type": "blob", "sha": "b" * 40, "mode": "100644"},
+                    {"path": "src/main.py", "type": "blob", "sha": "c" * 40, "mode": "100644"},
+                ],
+            },
+        )
+
+        exit_code = main(["--url", "https://github.com/owner/repo", "--format", "text"])
+        captured = capsys.readouterr()
+        assert exit_code == 0, f"exit {exit_code}: {captured.out}"
+        output = json.loads(captured.out)
+
+        assert output["format"] == "text"
+        content = output["content"]
+
+        # No Markdown formatting
+        assert not content.startswith("#")
+        assert "```" not in content
+        # Plain metadata
+        assert "Repository: owner/repo" in content
+        assert "Owner: owner" in content
+        assert "Ref: main" in content
+        assert "Default branch: main" in content
+        assert "Entries: 2" in content
+        # Paths without Markdown formatting
+        assert "README.md" in content
+        assert "src/main.py" in content
+
+
+class TestGitHubTreeRawMode:
+    """Raw mode returns canonical GitHub API JSON."""
+
+    def test_raw_mode_returns_canonical_json(self, httpx_mock, capsys):
+        """Raw mode returns the canonical GitHub API JSON representation
+        of the git/trees response."""
+        _SHA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        api_tree = {
+            "sha": _SHA,
+            "truncated": False,
+            "tree": [
+                {"path": "README.md", "type": "blob", "sha": "b" * 40, "mode": "100644"},
+            ],
+        }
+
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo",
+            status_code=200,
+            json={"default_branch": "main", "full_name": "owner/repo"},
+        )
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/commits/main",
+            status_code=200,
+            json={"sha": _SHA},
+        )
+        httpx_mock.add_response(
+            url=f"https://api.github.com/repos/owner/repo/git/trees/{_SHA}?recursive=1",
+            status_code=200,
+            json=api_tree,
+        )
+
+        exit_code = main(["--url", "https://github.com/owner/repo", "--raw"])
+        captured = capsys.readouterr()
+        assert exit_code == 0, f"exit {exit_code}: {captured.out}"
+        output = json.loads(captured.out)
+
+        assert output["format"] == "raw"
+        assert output["sourceTruncated"] is False
+        content = output["content"]
+        # Content should be the canonical JSON (sorted keys)
+        parsed = json.loads(content)
+        assert parsed == api_tree
+
+
+class TestGitHubTreeEmpty:
+    """Empty trees are handled gracefully."""
+
+    def test_empty_tree_returns_graceful_output(self, httpx_mock, capsys):
+        """A valid empty GitHub tree returns repository metadata with an
+        empty listing, no error, and no source-truncation warning."""
+        _SHA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo",
+            status_code=200,
+            json={"default_branch": "main", "full_name": "owner/repo"},
+        )
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/commits/main",
+            status_code=200,
+            json={"sha": _SHA},
+        )
+        httpx_mock.add_response(
+            url=f"https://api.github.com/repos/owner/repo/git/trees/{_SHA}?recursive=1",
+            status_code=200,
+            json={
+                "sha": _SHA,
+                "truncated": False,
+                "tree": [],
+            },
+        )
+
+        exit_code = main(["--url", "https://github.com/owner/repo"])
+        captured = capsys.readouterr()
+        assert exit_code == 0, f"exit {exit_code}: {captured.out}"
+        output = json.loads(captured.out)
+
+        assert output["statusCode"] == 200
+        assert output["sourceTruncated"] is False
+        assert output["truncated"] is False
+        assert "error" not in output
+        content = output["content"]
+        assert "owner/repo" in content
+        assert "- **Entries:** 0" in content
+        assert "```" in content
+        # Should only have two fences (empty listing)
+        assert content.count("```") == 2
+        fence_start = content.index("```")
+        fence_end = content.index("```", fence_start + 1)
+        listing = content[fence_start + 3:fence_end].strip()
+        assert listing == "", f"expected empty listing, got: {listing!r}"
+
+
+
+class TestGitHubTreeBounds:
+    """Trees are bounded at 2,000 entries."""
+
+    def _mock_tree_with_count(self, httpx_mock, count, upstream_truncated=False):
+        """Set up API mocks returning a tree with *count* entries."""
+        _SHA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo",
+            status_code=200,
+            json={"default_branch": "main", "full_name": "owner/repo"},
+        )
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/commits/main",
+            status_code=200,
+            json={"sha": _SHA},
+        )
+        tree = [
+            {"path": f"file_{i:04d}.py", "type": "blob", "sha": chr(ord("a") + (i % 26)) * 40, "mode": "100644"}
+            for i in range(count)
+        ]
+        httpx_mock.add_response(
+            url=f"https://api.github.com/repos/owner/repo/git/trees/{_SHA}?recursive=1",
+            status_code=200,
+            json={
+                "sha": _SHA,
+                "truncated": upstream_truncated,
+                "tree": tree,
+            },
+        )
+
+    def test_exactly_2000_entries_no_truncation(self, httpx_mock, capsys):
+        """With exactly 2,000 entries all are displayed and no source
+        truncation is reported."""
+        self._mock_tree_with_count(httpx_mock, 2000)
+        exit_code = main(["--url", "https://github.com/owner/repo"])
+        captured = capsys.readouterr()
+        assert exit_code == 0, f"exit {exit_code}: {captured.out}"
+        output = json.loads(captured.out)
+
+        assert output["sourceTruncated"] is False
+        assert output["truncated"] is False
+        content = output["content"]
+        assert "- **Entries:** 2000" in content
+        assert "file_0000.py" in content
+        assert "file_1999.py" in content
+
+    def test_more_than_2000_entries_partial_tree(self, httpx_mock, capsys):
+        """With more than 2,000 entries, only the first 2,000 (sorted) are
+        shown and sourceTruncated is true with a warning."""
+        self._mock_tree_with_count(httpx_mock, 2500)
+        exit_code = main(["--url", "https://github.com/owner/repo"])
+        captured = capsys.readouterr()
+        assert exit_code == 0, f"exit {exit_code}: {captured.out}"
+        output = json.loads(captured.out)
+
+        assert output["sourceTruncated"] is True
+        content = output["content"]
+        assert "- **Entries:** 2000" in content
+        assert "file_0000.py" in content
+        assert "file_1999.py" in content
+        assert "file_2000.py" not in content
+        warnings_str = " ".join(output.get("warnings", []))
+        assert "exceeds" in warnings_str or "Showing the first" in warnings_str
+
+    def test_upstream_truncation_surfaced(self, httpx_mock, capsys):
+        """When GitHub's API returns truncated=true, sourceTruncated is
+        true even when well below 2,000 entries."""
+        self._mock_tree_with_count(httpx_mock, 50, upstream_truncated=True)
+        exit_code = main(["--url", "https://github.com/owner/repo"])
+        captured = capsys.readouterr()
+        assert exit_code == 0, f"exit {exit_code}: {captured.out}"
+        output = json.loads(captured.out)
+
+        assert output["sourceTruncated"] is True
+        assert output["truncated"] is False
+        content = output["content"]
+        assert "- **Entries:** 50" in content
+        warnings_str = " ".join(output.get("warnings", []))
+        assert "truncated" in warnings_str
+
+
+class TestGitHubTreeContentArtifact:
+    """Tree content artifacts preserve the full representation."""
+
+    def test_tree_content_artifact_present_when_preview_truncated(self, httpx_mock, capsys):
+        """When a tree preview is truncated by max_chars, contentArtifactPath
+        points to the complete sorted tree representation."""
+        _SHA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo",
+            status_code=200,
+            json={"default_branch": "main", "full_name": "owner/repo"},
+        )
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/commits/main",
+            status_code=200,
+            json={"sha": _SHA},
+        )
+        httpx_mock.add_response(
+            url=f"https://api.github.com/repos/owner/repo/git/trees/{_SHA}?recursive=1",
+            status_code=200,
+            json={
+                "sha": _SHA,
+                "truncated": False,
+                "tree": [
+                    {"path": f"file_{i:04d}.py", "type": "blob", "sha": "b" * 40, "mode": "100644"}
+                    for i in range(100)
+                ],
+            },
+        )
+
+        exit_code = main([
+            "--url", "https://github.com/owner/repo",
+            "--max-chars", "500",
+        ])
+        captured = capsys.readouterr()
+        assert exit_code == 0, f"exit {exit_code}: {captured.out}"
+        output = json.loads(captured.out)
+
+        assert output["truncated"] is True
+        assert "contentArtifactPath" in output
+        artifact_path = output["contentArtifactPath"]
+        assert os.path.exists(artifact_path), f"artifact not found: {artifact_path}"
+        # Artifact contains the full (non-truncated) tree
+        with open(artifact_path) as f:
+            full_content = f.read()
+        assert "file_0000.py" in full_content
+        assert "file_0099.py" in full_content
+        # sourceTruncated remains False (not a partial tree)
+        assert output["sourceTruncated"] is False
+
+
+class TestGitHubTreeAuth:
+    """GITHUB_TOKEN is sent to GitHub API hosts for tree fetches."""
+
+    def test_tree_fetch_sends_token_to_api(self, httpx_mock, capsys, monkeypatch):
+        """When GITHUB_TOKEN is set, all three API calls in the tree path
+        include Bearer auth."""
+        monkeypatch.setenv("GITHUB_TOKEN", "ghp_tree-token")
+        _SHA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo",
+            status_code=200,
+            json={"default_branch": "main", "full_name": "owner/repo"},
+        )
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/commits/main",
+            status_code=200,
+            json={"sha": _SHA},
+        )
+        httpx_mock.add_response(
+            url=f"https://api.github.com/repos/owner/repo/git/trees/{_SHA}?recursive=1",
+            status_code=200,
+            json={"sha": _SHA, "truncated": False, "tree": [{"path": "README.md", "type": "blob", "sha": "b" * 40, "mode": "100644"}]},
+        )
+
+        exit_code = main(["--url", "https://github.com/owner/repo"])
+        captured = capsys.readouterr()
+        assert exit_code == 0, f"exit {exit_code}: {captured.out}"
+
+        requests = httpx_mock.get_requests()
+        assert len(requests) == 3
+        for req in requests:
+            assert req.headers.get("Authorization") == "Bearer ghp_tree-token", \
+                f"missing token on {req.url}"
+
+
+
+class TestGitHubTreeWwwHost:
+    """www.github.com hostname is supported."""
+
+    def test_www_host_resolves_tree(self, httpx_mock, capsys):
+        """A www.github.com repository-root URL resolves and returns a
+        sorted tree."""
+        _SHA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo",
+            status_code=200,
+            json={"default_branch": "main", "full_name": "owner/repo"},
+        )
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/commits/main",
+            status_code=200,
+            json={"sha": _SHA},
+        )
+        httpx_mock.add_response(
+            url=f"https://api.github.com/repos/owner/repo/git/trees/{_SHA}?recursive=1",
+            status_code=200,
+            json={
+                "sha": _SHA,
+                "truncated": False,
+                "tree": [{"path": "README.md", "type": "blob", "sha": "b" * 40, "mode": "100644"}],
+            },
+        )
+
+        exit_code = main(["--url", "https://www.github.com/owner/repo"])
+        captured = capsys.readouterr()
+        assert exit_code == 0, f"exit {exit_code}: {captured.out}"
+        output = json.loads(captured.out)
+
+        assert output["statusCode"] == 200
+        assert "owner/repo" in output["content"]
+        assert "README.md" in output["content"]
+
+
 def test_github_blob_404_routed_through_api(httpx_mock, capsys):
     """A recognized GitHub blob URL that returns 404 is routed through the
     GitHub API and returns a structured error, not an HTML-extracted page."""
