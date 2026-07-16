@@ -5,7 +5,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from github import GitHubResource, NonSpecialized, ResolvedRef, classify, resolve_ref
+from github import GitHubResource, NonSpecialized, ResolvedRef, classify, fetch_github_resource, resolve_ref
 
 
 # ===========================================================================
@@ -419,3 +419,258 @@ class TestGithubToken:
         request = httpx_mock.get_request()
         assert request is not None
         assert request.headers.get("Authorization") == "Bearer ghp_env-token"
+
+
+# ===========================================================================
+# fetch_github_resource — structured error responses
+# ===========================================================================
+
+class TestFetchResource404:
+    """A recognized GitHub URL that fails with 404 returns a structured error."""
+
+    def test_unauthenticated_404_returns_structured_error(self, httpx_mock):
+        """An unauthenticated request that gets a 404 returns a structured error with status 404."""
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/missing/contents/README.md?ref=main",
+            status_code=404,
+            json={"message": "Not Found", "documentation_url": "https://docs.github.com/rest"},
+        )
+        result = fetch_github_resource("https://github.com/owner/missing/blob/main/README.md")
+        assert "error" in result
+        assert "url" in result
+        assert result["url"] == "https://github.com/owner/missing/blob/main/README.md"
+        details = result.get("details", {})
+        assert details.get("statusCode") == 404
+        assert details.get("authenticated") is False
+
+    def test_authenticated_404_returns_structured_error(self, httpx_mock):
+        """An authenticated request that gets a 404 returns a structured error with authenticated=True."""
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/missing/contents/README.md?ref=main",
+            status_code=404,
+            json={"message": "Not Found", "documentation_url": "https://docs.github.com/rest"},
+        )
+        result = fetch_github_resource(
+            "https://github.com/owner/missing/blob/main/README.md",
+            token="ghp_my-token",
+        )
+        assert "error" in result
+        details = result.get("details", {})
+        assert details.get("statusCode") == 404
+        assert details.get("authenticated") is True
+
+
+class TestFetchResource401:
+    """An unauthorized GitHub API response returns a structured 401 error."""
+
+    def test_unauthorized_returns_structured_error(self, httpx_mock):
+        """A 401 response returns a structured error with status 401."""
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/private/contents/README.md?ref=main",
+            status_code=401,
+            json={"message": "Bad credentials", "documentation_url": "https://docs.github.com/rest"},
+        )
+        result = fetch_github_resource(
+            "https://github.com/owner/private/blob/main/README.md",
+            token="ghp_bad-token",
+        )
+        assert "error" in result
+        details = result.get("details", {})
+        assert details.get("statusCode") == 401
+        assert details.get("authenticated") is True
+
+
+class TestFetchResource403:
+    """A forbidden GitHub API response returns a structured 403 error."""
+
+    def test_forbidden_returns_structured_error(self, httpx_mock):
+        """A 403 (non-rate-limit) response returns a structured error."""
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/restricted/contents/README.md?ref=main",
+            status_code=403,
+            json={"message": "Forbidden", "documentation_url": "https://docs.github.com/rest"},
+        )
+        result = fetch_github_resource(
+            "https://github.com/owner/restricted/blob/main/README.md",
+        )
+        assert "error" in result
+        details = result.get("details", {})
+        assert details.get("statusCode") == 403
+        # No rate-limit headers → no "remaining" key
+        assert "remaining" not in details
+        assert details.get("authenticated") is False
+
+
+class TestFetchResourceRateLimit:
+    """Rate-limited responses include quota metadata and are returned immediately."""
+
+    def test_429_with_quota_metadata(self, httpx_mock):
+        """A 429 response with rate-limit headers returns structured error with quota metadata."""
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/contents/README.md?ref=main",
+            status_code=429,
+            headers={
+                "x-ratelimit-remaining": "0",
+                "x-ratelimit-reset": "1700000000",
+            },
+            json={"message": "API rate limit exceeded", "documentation_url": "https://docs.github.com/rest"},
+        )
+        result = fetch_github_resource(
+            "https://github.com/owner/repo/blob/main/README.md",
+            token="ghp_my-token",
+        )
+        assert "error" in result
+        details = result.get("details", {})
+        assert details.get("statusCode") == 429
+        assert details.get("remaining") == 0
+        assert "resetAt" in details
+        assert details.get("authenticated") is True
+
+    def test_rate_limited_without_quota_metadata(self, httpx_mock):
+        """A rate-limited 429 without rate-limit headers still returns its status."""
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/contents/README.md?ref=main",
+            status_code=429,
+            json={"message": "API rate limit exceeded"},
+        )
+        result = fetch_github_resource(
+            "https://github.com/owner/repo/blob/main/README.md",
+        )
+        assert "error" in result
+        details = result.get("details", {})
+        assert details.get("statusCode") == 429
+        assert "remaining" not in details
+        assert "resetAt" not in details
+        assert details.get("authenticated") is False
+
+    def test_rate_limited_403_with_headers(self, httpx_mock):
+        """A rate-limited 403 with rate-limit headers is treated as rate-limited."""
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/contents/README.md?ref=main",
+            status_code=403,
+            headers={
+                "x-ratelimit-remaining": "0",
+                "x-ratelimit-reset": "1700000000",
+            },
+            json={"message": "Rate limit exceeded", "documentation_url": "https://docs.github.com/rest"},
+        )
+        result = fetch_github_resource(
+            "https://github.com/owner/repo/blob/main/README.md",
+            token="ghp_my-token",
+        )
+        assert "error" in result
+        details = result.get("details", {})
+        assert details.get("statusCode") == 403
+        assert details.get("remaining") == 0
+        assert "resetAt" in details
+        assert details.get("authenticated") is True
+
+
+class TestFetchResourceMalformedJSON:
+    """A GitHub API response with malformed JSON returns a structured failure."""
+
+    def test_malformed_json_returns_structured_error(self, httpx_mock):
+        """A 200 response with malformed JSON body returns a malformed-JSON error."""
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/contents/README.md?ref=main",
+            status_code=200,
+            headers={"content-type": "application/json"},
+            text="this is not json",
+        )
+        result = fetch_github_resource(
+            "https://github.com/owner/repo/blob/main/README.md",
+        )
+        assert "error" in result
+        assert "malformed json" in result["error"].lower()
+        details = result.get("details", {})
+        assert details.get("statusCode") == 200
+        assert details.get("authenticated") is False
+
+
+class TestFetchResource5xx:
+    """GitHub API server errors return structured failures."""
+
+    @pytest.mark.parametrize("status_code", [500, 502, 503])
+    def test_server_error_returns_structured_error(self, httpx_mock, status_code):
+        """A {status_code} response returns a structured error with that status."""
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/contents/README.md?ref=main",
+            status_code=status_code,
+            json={"message": "Server Error"},
+        )
+        result = fetch_github_resource(
+            "https://github.com/owner/repo/blob/main/README.md",
+        )
+        assert "error" in result
+        details = result.get("details", {})
+        assert details.get("statusCode") == status_code
+        assert details.get("authenticated") is False
+
+
+class TestFetchResourceUnexpectedMediaType:
+    """A GitHub API response with an unexpected media type returns a structured failure."""
+
+    def test_unexpected_media_type_returns_structured_error(self, httpx_mock):
+        """A 200 response with text/html instead of JSON returns an unexpected-media-type error."""
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/contents/README.md?ref=main",
+            status_code=200,
+            headers={"content-type": "text/html; charset=utf-8"},
+            text="<html><body>Not JSON</body></html>",
+        )
+        result = fetch_github_resource(
+            "https://github.com/owner/repo/blob/main/README.md",
+        )
+        assert "error" in result
+        assert "unexpected media type" in result["error"].lower()
+        details = result.get("details", {})
+        assert details.get("statusCode") == 200
+        assert "text/html" in details.get("contentType", "")
+
+    def test_malformed_json_still_caught_when_content_type_ok(self, httpx_mock):
+        """A response with application/json but non-JSON body returns a malformed-JSON error."""
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/contents/README.md?ref=main",
+            status_code=200,
+            headers={"content-type": "application/json; charset=utf-8"},
+            text="this is not json",
+        )
+        result = fetch_github_resource(
+            "https://github.com/owner/repo/blob/main/README.md",
+        )
+        assert "error" in result
+        assert "malformed json" in result["error"].lower()
+
+
+class TestFetchResourceSuccess:
+    """A successful GitHub API response returns the expected success shape."""
+
+    def test_success_returns_expected_shape(self, httpx_mock):
+        """A 200 response returns a dict with url, finalUrl, statusCode, contentType, and data."""
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/contents/README.md?ref=main",
+            status_code=200,
+            json={"name": "README.md", "content": "IyBQcm9qZWN0\n", "encoding": "base64"},
+        )
+        result = fetch_github_resource(
+            "https://github.com/owner/repo/blob/main/README.md",
+        )
+        assert "error" not in result
+        assert result.get("url") == "https://github.com/owner/repo/blob/main/README.md"
+        assert isinstance(result.get("statusCode"), int)
+        assert result["statusCode"] == 200
+        assert "finalUrl" in result
+        assert "contentType" in result
+        assert "data" in result
+        assert isinstance(result["data"], dict)
+        assert result["data"]["name"] == "README.md"
+
+
+class TestFetchResourceNonGitHub:
+    """A URL that is not a recognized GitHub resource returns an appropriate error."""
+
+    def test_non_github_host_returns_error(self):
+        """A non-github.com URL returns a 'not a recognised GitHub resource' error."""
+        result = fetch_github_resource("https://example.com/page")
+        assert "error" in result
+        assert "not a recognised" in result["error"].lower()

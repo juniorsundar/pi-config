@@ -833,3 +833,29 @@ class TestRawMode:
         assert exit_code == 0
         assert "<h1>Hello</h1>" in output["content"]
         assert output["format"] == "raw"
+
+
+# ===========================================================================
+# Integration: GitHub resource routing
+# ===========================================================================
+
+def test_github_blob_404_routed_through_api(httpx_mock, capsys):
+    """A recognized GitHub blob URL that returns 404 is routed through the
+    GitHub API and returns a structured error, not an HTML-extracted page."""
+    httpx_mock.add_response(
+        url="https://api.github.com/repos/owner/missing/contents/README.md?ref=main",
+        status_code=404,
+        json={"message": "Not Found", "documentation_url": "https://docs.github.com/rest"},
+    )
+    exit_code = main([
+        "--url", "https://github.com/owner/missing/blob/main/README.md",
+    ])
+    output = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 1
+    assert "error" in output
+    assert "url" in output
+    assert output["url"] == "https://github.com/owner/missing/blob/main/README.md"
+    details = output.get("details", {})
+    assert details.get("statusCode") == 404
+    assert details.get("authenticated") is False

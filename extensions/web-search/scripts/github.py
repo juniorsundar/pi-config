@@ -146,14 +146,20 @@ def _path_remainder(ref: str, full_ref: str) -> Optional[str]:
     return remainder if remainder else None
 
 
+def _resolve_token(token: Optional[str]) -> Optional[str]:
+    """Resolve the effective GITHUB_TOKEN from explicit arg or environment."""
+    return token if token is not None else os.environ.get("GITHUB_TOKEN")
+
+
 def _headers(token: Optional[str]) -> dict:
     """Build request headers, optionally adding GITHUB_TOKEN auth."""
+    effective = _resolve_token(token)
     headers = {
         "Accept": "application/vnd.github.v3+json",
         "User-Agent": "pi-agent/1.0",
     }
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
+    if effective:
+        headers["Authorization"] = f"Bearer {effective}"
     return headers
 
 
@@ -183,9 +189,7 @@ def resolve_ref(
     Raises:
         ValueError: When *full_ref* cannot be resolved.
     """
-    # Fall back to env var when token is not explicitly provided
-    if token is None:
-        token = os.environ.get("GITHUB_TOKEN")
+    token = _resolve_token(token)
 
     # --- Short-circuit: commit SHA ---
     sha = full_ref[:40]
@@ -228,3 +232,158 @@ def resolve_ref(
     raise ValueError(
         f"cannot resolve ref '{full_ref}' for {owner}/{repo}"
     )
+
+
+# ---------------------------------------------------------------------------
+# GitHub resource fetch (structured error handling)
+# ---------------------------------------------------------------------------
+
+
+def _build_api_url(resource: GitHubResource) -> str:
+    """Build the GitHub API URL for a recognised resource."""
+    if resource.type == "repository_root":
+        return f"{GITHUB_API}/repos/{resource.owner}/{resource.repo}"
+    # tree and blob both use the contents API; differences are handled
+    # by the caller based on the response shape.
+    path = resource.path or ""
+    url = f"{GITHUB_API}/repos/{resource.owner}/{resource.repo}/contents/{quote(path, safe='')}"
+    if resource.ref:
+        url += f"?ref={quote(resource.ref, safe='')}"
+    return url
+
+
+def _http_error_details(response: httpx.Response, authenticated: bool) -> dict:
+    """Build structured error details from an HTTP error response.
+
+    Extracts rate-limit metadata from headers when present.
+    """
+    details: dict = {
+        "statusCode": response.status_code,
+        "authenticated": authenticated,
+    }
+
+    # Rate-limit headers (present on 429 and sometimes on 403)
+    remaining = response.headers.get("x-ratelimit-remaining")
+    if remaining is not None:
+        details["remaining"] = int(remaining)
+    reset_epoch = response.headers.get("x-ratelimit-reset")
+    if reset_epoch is not None:
+        import datetime
+        details["resetAt"] = datetime.datetime.fromtimestamp(
+            int(reset_epoch), tz=datetime.UTC
+        ).isoformat()
+
+    return details
+
+
+def fetch_github_resource(url: str, *, token: Optional[str] = None) -> dict:
+    """Fetch a recognised GitHub resource through the GitHub API.
+
+    Classifies the URL and, if it is a recognised repository-root, tree,
+    or blob URL, makes the appropriate GitHub API call.  On success the
+    API response JSON is returned wrapped in a metadata dict.  On failure
+    a structured error dict is returned — **no** generic HTML extraction
+    fallback occurs.
+
+    Args:
+        url: The GitHub URL to fetch.
+        token: Optional ``GITHUB_TOKEN`` for authenticated requests.
+
+    Returns:
+        A dict representing the result.  Success shape:
+
+        .. code-block:: python
+
+            {
+                "url": str,
+                "finalUrl": str,
+                "statusCode": int,
+                "contentType": "application/json",
+                "data": dict | list,  # parsed API response
+            }
+
+        Error shape:
+
+        .. code-block:: python
+
+            {
+                "error": str,
+                "url": str,
+                "details": dict,
+            }
+    """
+    token = _resolve_token(token)
+    authenticated = token is not None
+
+    # 1. Classify URL
+    classified = classify(url)
+    if isinstance(classified, NonSpecialized):
+        return {
+            "error": f"Not a recognised GitHub resource: {classified.reason}",
+            "url": url,
+            "details": {},
+        }
+
+    # 2. Build API URL
+    api_url = _build_api_url(classified)
+
+    # 3. Make API call — reuse shared header builder
+    try:
+        response = httpx.get(api_url, headers=_headers(token), follow_redirects=True, timeout=20.0)
+    except Exception as exc:
+        return {
+            "error": f"GitHub API request failed: {exc}",
+            "url": url,
+            "details": {"authenticated": authenticated},
+        }
+
+    final_url = str(response.url)
+
+    # 4. Handle error responses
+    if response.status_code >= 400:
+        details = _http_error_details(response, authenticated)
+        return {
+            "error": f"GitHub API returned {response.status_code}: {response.reason_phrase}",
+            "url": url,
+            "details": details,
+        }
+
+    # 5. Check for unexpected media type (GitHub API always returns JSON)
+    response_content_type = response.headers.get("content-type", "")
+    if response_content_type and "json" not in response_content_type.lower():
+        # GitHub's API always returns JSON (application/json or vendor-scoped
+        # variants like application/vnd.github.v3+json). Anything else (HTML,
+        # plain text, binary) is unexpected.
+        return {
+            "error": f"GitHub API returned unexpected media type: {response_content_type}",
+            "url": url,
+            "details": {
+                "statusCode": response.status_code,
+                "contentType": response_content_type,
+                "authenticated": authenticated,
+            },
+        }
+
+    # 6. Validate JSON body
+    try:
+        data = response.json()
+    except Exception:
+        return {
+            "error": "GitHub API returned malformed JSON",
+            "url": url,
+            "details": {
+                "statusCode": response.status_code,
+                "contentType": response_content_type,
+                "authenticated": authenticated,
+            },
+        }
+
+    # 6. Success
+    content_type = response.headers.get("content-type", "application/json")
+    return {
+        "url": url,
+        "finalUrl": final_url,
+        "statusCode": response.status_code,
+        "contentType": content_type,
+        "data": data,
+    }

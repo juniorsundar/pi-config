@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Literal, Optional, Tuple
 import httpx
 from bs4 import BeautifulSoup, Tag
 
+from github import classify, fetch_github_resource, GitHubResource as _GitHubResource
 from representation import (
     OutputFormat,
     ContentCategory,
@@ -655,7 +656,50 @@ def main(argv: Optional[List[str]] = None) -> int:
             print(json.dumps(result, ensure_ascii=False))
             return 0
 
-        # Fetch
+        # Check for recognised GitHub resource — never fall back to HTML extraction
+        classified = classify(args.url)
+        if isinstance(classified, _GitHubResource):
+            gh_result = fetch_github_resource(args.url)
+            if "error" in gh_result:
+                print(json.dumps(gh_result, ensure_ascii=False))
+                return 1
+            # Success: pass API response data through representation pipeline
+            data = gh_result.get("data", {})
+            if isinstance(data, dict):
+                body = json.dumps(data, ensure_ascii=False)
+            else:
+                body = str(data)
+            content_type = gh_result.get("contentType", "application/json")
+            final_url = gh_result.get("finalUrl", args.url)
+            status_code = gh_result.get("statusCode", 200)
+            fetched_bytes = len(body.encode("utf-8"))
+            effective_format = "raw" if args.raw else (args.format or "markdown")
+            pipeline_result = _pipeline_process(
+                body=body,
+                content_type=content_type,
+                url=args.url,
+                output_format=effective_format if not args.raw else "text",
+                max_chars=args.max_chars,
+                raw=args.raw,
+            )
+            result = success_json(
+                url=args.url,
+                final_url=final_url,
+                status_code=status_code,
+                content_type=content_type,
+                title=pipeline_result.title,
+                output_format=effective_format,
+                content=pipeline_result.content,
+                truncated=pipeline_result.truncated,
+                fetched_bytes=fetched_bytes,
+                warnings=pipeline_result.warnings,
+                content_artifact_path=pipeline_result.content_artifact_path,
+                source_truncated=pipeline_result.source_truncated,
+            )
+            print(json.dumps(result, ensure_ascii=False))
+            return 0
+
+        # Fetch (generic, non-GitHub URL)
         fetch_result = fetch_response(
             url=args.url,
             timeout=float(args.timeout),
