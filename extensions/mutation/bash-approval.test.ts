@@ -42,12 +42,16 @@ describe("bash approval neovim integration", () => {
   afterEach(() => {
     setCurrentProfile("ask");
     delete process.env.PI_SUBAGENT_CHILD;
+    delete process.env.PI_PERMISSION_PROFILE;
     runNeovimWithArgsProcess.mockClear();
     commandExists.mockClear();
   });
 
   it("suspends and resumes the TUI when opening bash approval in Neovim", async () => {
-    const { pi, handlers } = makePi();
+    // Isolate from any PI_PERMISSION_PROFILE inherited from the environment.
+    delete process.env.PI_PERMISSION_PROFILE;
+    setCurrentProfile("ask");
+    const { pi, handlers, messages } = makePi();
     registerBashApproval(pi);
 
     const notify = vi.fn();

@@ -8,17 +8,17 @@ The TypeScript adapter correctly forwards all GitHub-specific result fields (tre
 
 ### Acceptance criteria
 
-- [ ] The TypeScript adapter forwards GitHub tree structure results including partial-tree warnings
-- [ ] The TypeScript adapter forwards GitHub blob content results
-- [ ] The TypeScript adapter forwards GitHub resolution failure results with structured error details
-- [ ] The TypeScript adapter forwards rate-limit metadata (remaining quota, reset time, authentication status)
-- [ ] The TypeScript adapter forwards `sourceTruncated` and `contentArtifactPath` for GitHub resources
-- [ ] The TypeScript adapter forwards warnings from GitHub operations
-- [ ] `GITHUB_TOKEN` is verified to be sent only to fixed GitHub API requests (credential confinement test)
-- [ ] `GITHUB_TOKEN` never appears in tool outputs or content artifacts (credential leak test)
-- [ ] `GITHUB_TOKEN` is not forwarded to metadata-provided or user-provided redirect URLs
-- [ ] Tests cover parameter forwarding, timeout selection, schema exposure, and result formatting for all GitHub resource types
-- [ ] Tests cover credential confinement, credential leak prevention, and host-restriction enforcement
+- [x] The TypeScript adapter forwards GitHub tree structure results including partial-tree warnings
+- [x] The TypeScript adapter forwards GitHub blob content results
+- [x] The TypeScript adapter forwards GitHub resolution failure results with structured error details
+- [x] The TypeScript adapter forwards rate-limit metadata (remaining quota, reset time, authentication status)
+- [x] The TypeScript adapter forwards `sourceTruncated` and `contentArtifactPath` for GitHub resources
+- [x] The TypeScript adapter forwards warnings from GitHub operations
+- [x] `GITHUB_TOKEN` is verified to be sent only to fixed GitHub API requests (credential confinement test)
+- [x] `GITHUB_TOKEN` never appears in tool outputs or content artifacts (credential leak test)
+- [x] `GITHUB_TOKEN` is not forwarded to metadata-provided or user-provided redirect URLs
+- [x] Tests cover parameter forwarding, timeout selection, schema exposure, and result formatting for all GitHub resource types
+- [x] Tests cover credential confinement, credential leak prevention, and host-restriction enforcement
 
 ### Blocked by
 

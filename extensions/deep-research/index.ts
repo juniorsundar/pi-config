@@ -56,6 +56,12 @@ export default function deepResearchExtension(pi: ExtensionAPI) {
   pi.events.on("subagents:spawn:provide", (data: unknown) => {
     spawnSubagent = data as SpawnSubagentFunction;
   });
+
+  // Request a spawnSubagent from pi-subagents. This supports load-order safety:
+  // if pi-subagents loads after deep-research, it can respond to this request by
+  // re-emitting "subagents:spawn:provide". Idempotent — safe even if pi-subagents
+  // already loaded and provided a spawner.
+  pi.events.emit("subagents:spawn:request", { requester: "deep-research" });
   
   // ── Tools ──────────────────────────────────────────────────────────
 

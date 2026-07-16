@@ -1006,7 +1006,10 @@ describe("deep-research command handler", () => {
       deepResearchExtension(freshPi);
       
       // Verify that deep-research emitted a request during initialization
-      expect(freshPi.events.emit).toHaveBeenCalledWith("subagents:spawn:request");
+      expect(freshPi.events.emit).toHaveBeenCalledWith(
+        "subagents:spawn:request",
+        expect.objectContaining({ requester: "deep-research" }),
+      );
       
       // Now simulate pi-subagents loading after deep-research by providing spawnSubagent
       const mockSpawnSubagent = vi.fn();
