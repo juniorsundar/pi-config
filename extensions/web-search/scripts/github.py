@@ -332,7 +332,7 @@ def fetch_github_resource(url: str, *, token: Optional[str] = None) -> dict:
 
     # 3. Make API call — reuse shared header builder
     try:
-        response = httpx.get(api_url, headers=_headers(token), follow_redirects=True, timeout=20.0)
+        response = httpx.get(api_url, headers=_headers(token), follow_redirects=False, timeout=20.0)
     except Exception as exc:
         return {
             "error": f"GitHub API request failed: {exc}",
@@ -453,7 +453,7 @@ def fetch_github_blob_content(
         response = httpx.get(
             api_url,
             headers=_headers(token),
-            follow_redirects=True,
+            follow_redirects=False,
             timeout=20.0,
         )
     except Exception as exc:
@@ -607,7 +607,7 @@ def fetch_github_tree(
     # 2. Fetch repo metadata for default_branch
     repo_api = f"{GITHUB_API}/repos/{owner}/{repo}"
     try:
-        resp = httpx.get(repo_api, headers=_headers(token), follow_redirects=True, timeout=20.0)
+        resp = httpx.get(repo_api, headers=_headers(token), follow_redirects=False, timeout=20.0)
     except Exception as exc:
         return {
             "error": f"GitHub API request failed: {exc}",
@@ -668,7 +668,7 @@ def fetch_github_tree(
     # 4. Get commit SHA from the ref (handles branches, tags, and commit SHAs)
     commit_url = f"{GITHUB_API}/repos/{owner}/{repo}/commits/{quote(ref, safe='')}"
     try:
-        resp = httpx.get(commit_url, headers=_headers(token), follow_redirects=True, timeout=20.0)
+        resp = httpx.get(commit_url, headers=_headers(token), follow_redirects=False, timeout=20.0)
     except Exception as exc:
         return {
             "error": f"GitHub API request failed: {exc}",
@@ -703,7 +703,7 @@ def fetch_github_tree(
     # 5. Fetch recursive git tree
     tree_url = f"{GITHUB_API}/repos/{owner}/{repo}/git/trees/{commit_sha}?recursive=1"
     try:
-        resp = httpx.get(tree_url, headers=_headers(token), follow_redirects=True, timeout=20.0)
+        resp = httpx.get(tree_url, headers=_headers(token), follow_redirects=False, timeout=20.0)
     except Exception as exc:
         return {
             "error": f"GitHub API request failed: {exc}",

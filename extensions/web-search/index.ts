@@ -36,6 +36,11 @@ interface FetchResponse {
 	sourceTruncated?: boolean;
 	error?: string;
 	details?: Record<string, unknown>;
+	data?: unknown;
+	path?: string;
+	fileName?: string;
+	byteSize?: number;
+	sha1?: string;
 }
 
 const WebSearchParams = Type.Object({
@@ -496,6 +501,9 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 					format: result.format,
 					contentArtifactPath: result.contentArtifactPath,
 					sourceTruncated: result.sourceTruncated,
+					warnings: result.warnings,
+					details: result.details,
+					data: result.data,
 					// Download-mode fields (only populated when download=true).
 					path: result.path,
 					fileName: result.fileName,
@@ -560,7 +568,21 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 					customType: "web-fetch-result",
 					content: text,
 					display: true,
-					details: { url, finalUrl: result.finalUrl, statusCode: result.statusCode, path: result.path, fileName: result.fileName, byteSize: result.byteSize, sha1: result.sha1, raw: result },
+					details: {
+						url,
+						finalUrl: result.finalUrl,
+						statusCode: result.statusCode,
+						contentArtifactPath: result.contentArtifactPath,
+						sourceTruncated: result.sourceTruncated,
+						warnings: result.warnings,
+						details: result.details,
+						data: result.data,
+						path: result.path,
+						fileName: result.fileName,
+						byteSize: result.byteSize,
+						sha1: result.sha1,
+						raw: result,
+					},
 				},
 				{ triggerTurn: true },
 			);

@@ -1496,3 +1496,43 @@ def test_github_blob_404_routed_through_api(httpx_mock, capsys):
     details = output.get("details", {})
     assert details.get("statusCode") == 404
     assert details.get("authenticated") is False
+
+
+def test_github_token_never_appears_in_tool_output(httpx_mock, capsys, monkeypatch):
+    """Credential values are not serialized into GitHub results."""
+    token = "ghp_secret-never-leak"
+    monkeypatch.setenv("GITHUB_TOKEN", token)
+    import base64
+    content = b"public content without credentials"
+    httpx_mock.add_response(
+        url="https://api.github.com/repos/owner/repo/contents/README.md?ref=main",
+        status_code=200,
+        json={
+            "name": "README.md",
+            "path": "README.md",
+            "content": base64.b64encode(content).decode(),
+            "encoding": "base64",
+            "size": len(content),
+        },
+    )
+
+    assert main(["--url", "https://github.com/owner/repo/blob/main/README.md"]) == 0
+    assert token not in capsys.readouterr().out
+
+
+def test_github_token_is_not_sent_to_non_api_redirect(httpx_mock, monkeypatch):
+    """API redirects cannot carry credentials to another host."""
+    token = "ghp_redirect-secret"
+    monkeypatch.setenv("GITHUB_TOKEN", token)
+    httpx_mock.add_response(
+        url="https://api.github.com/repos/owner/repo/contents/README.md?ref=main",
+        status_code=302,
+        headers={"location": "https://attacker.example/collect"},
+    )
+
+    from github import fetch_github_blob_content
+    result = fetch_github_blob_content("https://github.com/owner/repo/blob/main/README.md")
+    assert "error" in result
+    requests = httpx_mock.get_requests()
+    assert len(requests) == 1
+    assert requests[0].headers.get("Authorization") == f"Bearer {token}"

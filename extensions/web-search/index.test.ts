@@ -146,6 +146,82 @@ describe("web_fetch tool schema", () => {
     expect(download.description.toLowerCase()).toContain("temp");
   });
 
+  it("forwards GitHub result fields through the public tool result", async () => {
+    const mock = createMockPi();
+    webSearchExtension(mock.pi as any);
+    const tool = mock.tools.find((candidate) => candidate.name === "web_fetch") as any;
+    const githubResult = {
+      url: "https://github.com/acme/project/tree/main/src",
+      finalUrl: "https://github.com/acme/project/tree/main/src",
+      statusCode: 200,
+      contentType: "text/plain; charset=utf-8",
+      format: "markdown",
+      content: "# Repository: acme/project\\n\\n```\\nsrc/index.ts\\n```",
+      warnings: ["GitHub returned a partial tree."],
+      sourceTruncated: true,
+      contentArtifactPath: "/tmp/web-fetch-tree.txt",
+      data: {
+        owner: "acme",
+        repo: "project",
+        ref: "main",
+        path: "src",
+        entries: [{ path: "src/index.ts", type: "blob" }],
+      },
+      details: {
+        statusCode: 200,
+        authenticated: true,
+        remaining: 42,
+        resetAt: "2023-11-14T22:13:20+00:00",
+      },
+    };
+    mock.pi.exec.mockResolvedValue({
+      stdout: JSON.stringify(githubResult),
+      stderr: "",
+      code: 0,
+    });
+
+    const toolResult = await tool.execute("call-1", {
+      url: githubResult.url,
+    }, undefined, undefined);
+    const details = toolResult.details as Record<string, any>;
+
+    expect(details.warnings).toEqual(githubResult.warnings);
+    expect(details.sourceTruncated).toBe(true);
+    expect(details.contentArtifactPath).toBe(githubResult.contentArtifactPath);
+    expect(details.data).toEqual(githubResult.data);
+    expect(details.details).toEqual(githubResult.details);
+    expect(details.raw).toEqual(githubResult);
+    expect(toolResult.content[0].text).toContain("GitHub returned a partial tree.");
+  });
+
+  it("forwards parameters and selects the download timeout", async () => {
+    const mock = createMockPi();
+    webSearchExtension(mock.pi as any);
+    const tool = mock.tools.find((candidate) => candidate.name === "web_fetch") as any;
+    mock.pi.exec.mockResolvedValue({
+      stdout: JSON.stringify({ url: "https://github.com/acme/project/blob/main/logo.png", path: "/tmp/logo.png" }),
+      stderr: "",
+      code: 0,
+    });
+
+    await tool.execute("call-2", {
+      url: "https://github.com/acme/project/blob/main/logo.png",
+      maxChars: 1200,
+      format: "text",
+      raw: false,
+      download: true,
+    }, undefined, undefined);
+
+    expect(mock.pi.exec).toHaveBeenCalledWith(
+      "uv",
+      expect.arrayContaining([
+        "--url", "https://github.com/acme/project/blob/main/logo.png",
+        "--download",
+      ]),
+      expect.objectContaining({ timeout: 60_000 }),
+    );
+  });
+
   it("includes download as the last property after raw", () => {
     expect(webFetchTool).toBeDefined();
     const params = webFetchTool!.parameters as Record<string, any>;
