@@ -35,7 +35,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "0.80.8",
+  "lastChangelogVersion": "0.80.10",
   "packages": [
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",
