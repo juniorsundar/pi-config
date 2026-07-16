@@ -12,18 +12,18 @@ Authentication uses `GITHUB_TOKEN` when available, confined to fixed GitHub API 
 
 ### Acceptance criteria
 
-- [ ] Repository-root URLs resolve against the repository's default branch via the GitHub API
-- [ ] Tree URLs resolve against the identified ref and requested directory
-- [ ] Descendant paths are lexicographically sorted and deterministic across repeated calls
-- [ ] Markdown mode produces structured repository metadata plus a fenced path listing
-- [ ] Text mode produces plain metadata and paths
-- [ ] Raw mode returns the GitHub API JSON representation
-- [ ] Trees are bounded at 2,000 displayed entries
-- [ ] Trees exceeding the bound return a partial tree with `sourceTruncated: true` and an explicit warning
-- [ ] Empty trees are handled gracefully
-- [ ] Output goes through the preview/artifact pipeline (truncation produces a content artifact)
-- [ ] `GITHUB_TOKEN` is used when available, confined to fixed GitHub API hosts
-- [ ] Tests cover: default-branch resolution, subdirectory trees, deterministic sorting, Markdown and text rendering, raw JSON rendering, empty trees, exactly 2,000 entries, more than 2,000 entries, upstream-truncated trees
+[x] Repository-root URLs resolve against the repository's default branch via the GitHub API
+[x] Tree URLs resolve against the identified ref and requested directory
+[x] Descendant paths are lexicographically sorted and deterministic across repeated calls
+[x] Markdown mode produces structured repository metadata plus a fenced path listing
+[x] Text mode produces plain metadata and paths
+[x] Raw mode returns the GitHub API JSON representation
+[x] Trees are bounded at 2,000 displayed entries
+[x] Trees exceeding the bound return a partial tree with `sourceTruncated: true` and an explicit warning
+[x] Empty trees are handled gracefully
+[x] Output goes through the preview/artifact pipeline (truncation produces a content artifact)
+[x] `GITHUB_TOKEN` is used when available, confined to fixed GitHub API hosts
+[x] Tests cover: default-branch resolution, subdirectory trees, deterministic sorting, Markdown and text rendering, raw JSON rendering, empty trees, exactly 2,000 entries, more than 2,000 entries, upstream-truncated trees
 
 ### Blocked by
 

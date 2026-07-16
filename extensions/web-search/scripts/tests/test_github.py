@@ -867,6 +867,43 @@ class TestFetchBlobContentViaMain:
         output = json.loads(captured.out)
         assert "exceeds maximum" in output["error"].lower() or "byte" in output["error"].lower()
 
+    def test_blob_download_pdf(self, httpx_mock, capsys, monkeypatch):
+        """A PDF blob URL with --download downloads successfully."""
+        # Minimal PDF header bytes
+        content_bytes = b"%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n"
+        b64_content = base64.b64encode(content_bytes).decode()
+        sha1 = hashlib.sha1(content_bytes).hexdigest()
+
+        httpx_mock.add_response(
+            url="https://api.github.com/repos/owner/repo/contents/doc.pdf?ref=main",
+            status_code=200,
+            json={
+                "name": "doc.pdf",
+                "path": "doc.pdf",
+                "content": b64_content,
+                "encoding": "base64",
+                "size": len(content_bytes),
+            },
+        )
+
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as tmp:
+            monkeypatch.setattr(tempfile, "gettempdir", lambda: tmp)
+            exit_code = _fetch_main([
+                "--download",
+                "--url", "https://github.com/owner/repo/blob/main/doc.pdf",
+            ])
+            captured = capsys.readouterr()
+
+        assert exit_code == 0, captured.out
+        output = json.loads(captured.out)
+        assert output["contentType"] == "application/pdf"
+        assert output["sha1"] == sha1
+        assert output["fileName"].endswith(".pdf")
+        assert "path" in output
+
     def test_unicode_blob_decoded(self, httpx_mock, capsys):
         """Unicode content in a blob is decoded correctly."""
         content_bytes = "Hello ñáéíóú 中文 日本語 안녕하세요\n".encode("utf-8")

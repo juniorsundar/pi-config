@@ -10,16 +10,16 @@ Authentication uses `GITHUB_TOKEN` when available, confined to fixed GitHub API 
 
 ### Acceptance criteria
 
-- [ ] Text blob URLs return file content in readable mode (Markdown or text extraction applied)
-- [ ] Text blob URLs return decoded file source in raw mode (no extraction)
-- [ ] Detected binary blobs are rejected in readable and raw modes with a clear message guiding the agent to use `download: true`
-- [ ] Download mode obtains blob bytes through the GitHub API
-- [ ] Download mode applies existing byte-ceiling and supported media-type policies
-- [ ] Download mode returns the existing binary download metadata structure (local path, content type, size)
-- [ ] Unicode content is decoded correctly
-- [ ] Output goes through the preview/artifact pipeline for text modes
-- [ ] `GITHUB_TOKEN` is confined to fixed GitHub API hosts
-- [ ] Tests cover: public and authenticated text file fetch, raw source, readable text, Unicode content, missing files, unsupported binary blob rejection, supported image/PDF download, byte ceiling enforcement, content-addressed temporary download metadata
+[x] Text blob URLs return file content in readable mode (Markdown or text extraction applied)
+[x] Text blob URLs return decoded file source in raw mode (no extraction)
+[x] Detected binary blobs are rejected in readable and raw modes with a clear message guiding the agent to use `download: true`
+[x] Download mode obtains blob bytes through the GitHub API
+[x] Download mode applies existing byte-ceiling and supported media-type policies
+[x] Download mode returns the existing binary download metadata structure (local path, content type, size)
+[x] Unicode content is decoded correctly
+[x] Output goes through the preview/artifact pipeline for text modes
+[x] `GITHUB_TOKEN` is confined to fixed GitHub API hosts
+[x] Tests cover: public and authenticated text file fetch, raw source, readable text, Unicode content, missing files, unsupported binary blob rejection, supported image/PDF download, byte ceiling enforcement, content-addressed temporary download metadata
 
 ### Blocked by
 
