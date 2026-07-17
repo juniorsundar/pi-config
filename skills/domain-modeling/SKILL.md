@@ -37,7 +37,7 @@ If a `CONTEXT-MAP.md` exists at the root, the repo has multiple contexts. The ma
 │       └── docs/adr/
 ```
 
-Create files lazily — only when you have something to write. If no `CONTEXT.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed. When searching for existing files, look for both `CONTEXT.md` and `context.md` (case-insensitive); when creating, always use `CONTEXT.md` (uppercase).
+Create files lazily — only when you have something to write. If no `CONTEXT.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
 
 ## During the session
 
@@ -55,11 +55,11 @@ When domain relationships are being discussed, stress-test them with specific sc
 
 ### Cross-reference with code
 
-When the user states how something works, check whether the code agrees. If you find a contradiction, surface it: "Your code cancels entire Orders, but you just said partial cancellation is possible — which is right?" Use `read`, `grep`, `find`, or read-only `bash` — or dispatch a `scout` subagent for broader exploration — rather than guessing.
+When the user states how something works, check whether the code agrees. If you find a contradiction, surface it: "Your code cancels entire Orders, but you just said partial cancellation is possible — which is right?"
 
 ### Update CONTEXT.md inline
 
-When a term is resolved, update `CONTEXT.md` right there. Don't batch these up — capture them as they happen. Use the format in [../grill-with-docs/CONTEXT-FORMAT.md](../grill-with-docs/CONTEXT-FORMAT.md).
+When a term is resolved, update `CONTEXT.md` right there. Don't batch these up — capture them as they happen. Use the format in [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md).
 
 `CONTEXT.md` should be totally devoid of implementation details. Do not treat `CONTEXT.md` as a spec, a scratch pad, or a repository for implementation decisions. It is a glossary and nothing else.
 
@@ -71,12 +71,4 @@ Only offer to create an ADR when all three are true:
 2. **Surprising without context** — a future reader will wonder "why did they do it this way?"
 3. **The result of a real trade-off** — there were genuine alternatives and you picked one for specific reasons
 
-If any of the three is missing, skip the ADR. Use the format in [../grill-with-docs/ADR-FORMAT.md](../grill-with-docs/ADR-FORMAT.md).
-
-## Rules
-
-- This skill is the active discipline of *changing* the domain model, not just consuming it.
-- `CONTEXT.md` is a glossary, not a spec, scratch pad, or repository for implementation decisions.
-- When reading existing context files, look for both `CONTEXT.md` and `context.md` (case-insensitive). When creating, always use `CONTEXT.md` (uppercase).
-- Only offer ADRs when all three criteria are met (hard to reverse, surprising without context, real trade-off).
-- Use `read` over shelling out to `cat` for file contents.
+If any of the three is missing, skip the ADR. Use the format in [ADR-FORMAT.md](./ADR-FORMAT.md).
