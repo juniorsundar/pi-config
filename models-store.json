@@ -1390,7 +1390,7 @@
         "maxTokens": 65536
       }
     ],
-    "checkedAt": 1784269181810
+    "checkedAt": 1784287173894
   },
   "minimax": {
     "models": [
@@ -1453,7 +1453,7 @@
         "maxTokens": 128000
       }
     ],
-    "checkedAt": 1784269181873
+    "checkedAt": 1784287174069
   },
   "opencode-go": {
     "models": [
@@ -1846,7 +1846,7 @@
         "maxTokens": 65536
       }
     ],
-    "checkedAt": 1784269182053
+    "checkedAt": 1784287174387
   },
   "openai-codex": {
     "models": [
@@ -2084,6 +2084,6 @@
         }
       }
     ],
-    "checkedAt": 1784269182096
+    "checkedAt": 1784287173812
   }
 }
