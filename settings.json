@@ -1,5 +1,5 @@
 {
-  "defaultModel": "ollamacloud/glm-5.2",
+  "defaultModel": "cx/gpt-5.6-terra",
   "defaultProvider": "omniroute",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
