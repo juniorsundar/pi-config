@@ -1,7 +1,7 @@
 {
-  "defaultModel": "cx/gpt-5.6-terra",
+  "defaultModel": "cx/gpt-5.6-sol",
   "defaultProvider": "omniroute",
-  "defaultThinkingLevel": "high",
+  "defaultThinkingLevel": "medium",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
   "enableSkillCommands": true,
