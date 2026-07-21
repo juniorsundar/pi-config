@@ -1,7 +1,7 @@
 {
   "defaultModel": "cx/gpt-5.6-sol",
   "defaultProvider": "omniroute",
-  "defaultThinkingLevel": "medium",
+  "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
   "enableSkillCommands": true,
@@ -35,7 +35,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "0.80.10",
+  "lastChangelogVersion": "0.81.0",
   "packages": [
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",
