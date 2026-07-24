@@ -17,8 +17,6 @@
     "omniroute/cf/@cf/zai-org/glm-5.2",
     "omniroute/ollamacloud/glm-5.2",
     "omniroute/ollamacloud/glm-5.1",
-    "omniroute/kc/byteplus-coding/glm-5.1",
-    "omniroute/kc/byteplus-coding/dola-seed-2.0-code",
     "omniroute/mistral/mistral-large-latest",
     "omniroute/mistral/devstral-latest",
     "omniroute/mistral/codestral-latest",
@@ -35,7 +33,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "0.81.0",
+  "lastChangelogVersion": "0.81.1",
   "packages": [
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",
