@@ -2109,7 +2109,8 @@
           "max": "max"
         },
         "compat": {
-          "forceAdaptiveThinking": true
+          "forceAdaptiveThinking": true,
+          "supportsStrictTools": true
         }
       },
       {
@@ -2130,7 +2131,10 @@
           "cacheWrite": 1.25
         },
         "contextWindow": 200000,
-        "maxTokens": 64000
+        "maxTokens": 64000,
+        "compat": {
+          "supportsStrictTools": true
+        }
       },
       {
         "id": "claude-haiku-4-5-20251001",
@@ -2150,7 +2154,10 @@
           "cacheWrite": 1.25
         },
         "contextWindow": 200000,
-        "maxTokens": 64000
+        "maxTokens": 64000,
+        "compat": {
+          "supportsStrictTools": true
+        }
       },
       {
         "id": "claude-opus-4-1",
@@ -2170,7 +2177,10 @@
           "cacheWrite": 18.75
         },
         "contextWindow": 200000,
-        "maxTokens": 32000
+        "maxTokens": 32000,
+        "compat": {
+          "supportsStrictTools": true
+        }
       },
       {
         "id": "claude-opus-4-1-20250805",
@@ -2190,7 +2200,10 @@
           "cacheWrite": 18.75
         },
         "contextWindow": 200000,
-        "maxTokens": 32000
+        "maxTokens": 32000,
+        "compat": {
+          "supportsStrictTools": true
+        }
       },
       {
         "id": "claude-opus-4-5",
@@ -2210,7 +2223,10 @@
           "cacheWrite": 6.25
         },
         "contextWindow": 200000,
-        "maxTokens": 64000
+        "maxTokens": 64000,
+        "compat": {
+          "supportsStrictTools": true
+        }
       },
       {
         "id": "claude-opus-4-5-20251101",
@@ -2230,7 +2246,10 @@
           "cacheWrite": 6.25
         },
         "contextWindow": 200000,
-        "maxTokens": 64000
+        "maxTokens": 64000,
+        "compat": {
+          "supportsStrictTools": true
+        }
       },
       {
         "id": "claude-opus-4-6",
@@ -2255,7 +2274,8 @@
           "max": "max"
         },
         "compat": {
-          "forceAdaptiveThinking": true
+          "forceAdaptiveThinking": true,
+          "supportsStrictTools": true
         }
       },
       {
@@ -2283,7 +2303,8 @@
         },
         "compat": {
           "forceAdaptiveThinking": true,
-          "supportsTemperature": false
+          "supportsTemperature": false,
+          "supportsStrictTools": true
         }
       },
       {
@@ -2311,7 +2332,37 @@
         },
         "compat": {
           "forceAdaptiveThinking": true,
-          "supportsTemperature": false
+          "supportsTemperature": false,
+          "supportsStrictTools": true
+        }
+      },
+      {
+        "id": "claude-opus-5",
+        "name": "Claude Opus 5",
+        "api": "anthropic-messages",
+        "provider": "anthropic",
+        "baseUrl": "https://api.anthropic.com",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 5,
+          "output": 25,
+          "cacheRead": 0.5,
+          "cacheWrite": 6.25
+        },
+        "contextWindow": 1000000,
+        "maxTokens": 128000,
+        "thinkingLevelMap": {
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "compat": {
+          "forceAdaptiveThinking": true,
+          "supportsTemperature": false,
+          "supportsStrictTools": true
         }
       },
       {
@@ -2332,7 +2383,10 @@
           "cacheWrite": 3.75
         },
         "contextWindow": 1000000,
-        "maxTokens": 64000
+        "maxTokens": 64000,
+        "compat": {
+          "supportsStrictTools": true
+        }
       },
       {
         "id": "claude-sonnet-4-5-20250929",
@@ -2352,7 +2406,10 @@
           "cacheWrite": 3.75
         },
         "contextWindow": 1000000,
-        "maxTokens": 64000
+        "maxTokens": 64000,
+        "compat": {
+          "supportsStrictTools": true
+        }
       },
       {
         "id": "claude-sonnet-4-6",
@@ -2377,7 +2434,8 @@
           "max": "max"
         },
         "compat": {
-          "forceAdaptiveThinking": true
+          "forceAdaptiveThinking": true,
+          "supportsStrictTools": true
         }
       },
       {
@@ -2404,11 +2462,12 @@
           "max": "max"
         },
         "compat": {
-          "forceAdaptiveThinking": true
+          "forceAdaptiveThinking": true,
+          "supportsStrictTools": true
         }
       }
     ],
-    "checkedAt": 1784784888082,
-    "lastModified": 1784724547000
+    "checkedAt": 1785143391657,
+    "lastModified": 1784920506000
   }
 }

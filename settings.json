@@ -52,6 +52,6 @@
   "terminal": {
     "showTerminalProgress": true
   },
-  "theme": "atom-one-dark",
+  "theme": "light/dark",
   "treeFilterMode": "default"
 }
