@@ -1,5 +1,5 @@
 {
-  "defaultModel": "cx/gpt-5.5",
+  "defaultModel": "ollamacloud/glm-5.2",
   "defaultProvider": "omniroute",
   "defaultThinkingLevel": "medium",
   "doubleEscapeAction": "tree",
@@ -33,7 +33,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "0.82.1",
+  "lastChangelogVersion": "0.83.0",
   "packages": [
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",
