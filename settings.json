@@ -1,7 +1,7 @@
 {
-  "defaultModel": "ollamacloud/glm-5.2",
+  "defaultModel": "opencode-go/deepseek-v4-pro",
   "defaultProvider": "omniroute",
-  "defaultThinkingLevel": "medium",
+  "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
   "enableSkillCommands": true,
@@ -29,11 +29,11 @@
     "ollama/qwen3.6:35b",
     "ollama/ornith-1.0:35b"
   ],
-  "hideThinkingBlock": false,
+  "hideThinkingBlock": true,
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "0.83.0",
+  "lastChangelogVersion": "0.84.1",
   "packages": [
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",
