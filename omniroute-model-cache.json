@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-19T07:44:18.455Z",
+  "updatedAt": "2026-08-19T17:28:10.753Z",
   "base": "http://localhost:20128/v1",
   "models": [
     {
@@ -4466,22 +4466,6 @@
       "maxTokens": 262144
     },
     {
-      "id": "kc/poolside/laguna-s-2.1:free",
-      "name": "poolside/laguna-s-2.1:free",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 262144,
-      "maxTokens": 32768
-    },
-    {
       "id": "kc/tencent/hy3:free",
       "name": "tencent/hy3:free",
       "reasoning": true,
@@ -4496,6 +4480,22 @@
       },
       "contextWindow": 262144,
       "maxTokens": 128000
+    },
+    {
+      "id": "kc/poolside/laguna-s-2.1:free",
+      "name": "poolside/laguna-s-2.1:free",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 262144,
+      "maxTokens": 32768
     },
     {
       "id": "kc/anthropic/claude-sonnet-5",
@@ -4566,8 +4566,8 @@
       "maxTokens": 128000
     },
     {
-      "id": "kc/z-ai/glm-5.2",
-      "name": "z-ai/glm-5.2",
+      "id": "kc/z-ai/glm-5.3",
+      "name": "z-ai/glm-5.3",
       "reasoning": true,
       "input": [
         "text"
@@ -4614,22 +4614,6 @@
       },
       "contextWindow": 1048576,
       "maxTokens": 512000
-    },
-    {
-      "id": "kc/z-ai/glm-5.3",
-      "name": "z-ai/glm-5.3",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 131072
     },
     {
       "id": "kc/qwen/qwen3.8-27b",
@@ -4764,6 +4748,22 @@
       },
       "contextWindow": 500000,
       "maxTokens": 100000
+    },
+    {
+      "id": "kc/liquid/lfm-2.5-2.6b:free",
+      "name": "liquid/lfm-2.5-2.6b:free",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 8192
     },
     {
       "id": "kc/nvidia/nemotron-3.5-lightning",
@@ -5430,6 +5430,22 @@
       "maxTokens": 64000
     },
     {
+      "id": "kc/z-ai/glm-5.2",
+      "name": "z-ai/glm-5.2",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 131072
+    },
+    {
       "id": "kc/openrouter/fusion",
       "name": "openrouter/fusion",
       "reasoning": true,
@@ -6083,7 +6099,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 384000
+      "maxTokens": 393216
     },
     {
       "id": "kc/deepseek/deepseek-v4-flash",
@@ -6732,7 +6748,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 262144,
-      "maxTokens": 65536
+      "maxTokens": 262144
     },
     {
       "id": "kc/qwen/qwen3.5-27b",
@@ -9063,7 +9079,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 163840,
-      "maxTokens": 65536
+      "maxTokens": 163840
     },
     {
       "id": "kc/openai/o1-pro",
@@ -10525,7 +10541,7 @@
     },
     {
       "id": "kr/auto",
-      "name": "kr/auto",
+      "name": "auto",
       "reasoning": true,
       "input": [
         "text"
@@ -10558,7 +10574,7 @@
     },
     {
       "id": "kr/claude-sonnet-4",
-      "name": "kr/claude-sonnet-4",
+      "name": "claude-sonnet-4",
       "reasoning": true,
       "input": [
         "text",
@@ -11554,8 +11570,25 @@
       "maxTokens": 25600
     },
     {
-      "id": "ollamacloud/glm-5.2",
-      "name": "ollamacloud/glm-5.2",
+      "id": "ollamacloud/kimi-k3",
+      "name": "ollamacloud/kimi-k3",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 1048576
+    },
+    {
+      "id": "ollamacloud/minimax-m2.7",
+      "name": "ollamacloud/MiniMax M2.7",
       "reasoning": true,
       "input": [
         "text"
@@ -11566,12 +11599,12 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 1000000,
+      "contextWindow": 204800,
       "maxTokens": 131072
     },
     {
-      "id": "ollamacloud/deepseek-v4-pro:preview",
-      "name": "deepseek-v4-pro:preview",
+      "id": "ollamacloud/mistral-large-3:675b",
+      "name": "mistral-large-3:675b",
       "reasoning": true,
       "input": [
         "text"
@@ -11582,8 +11615,24 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 1000000,
-      "maxTokens": 384000
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "ollamacloud/glm-5.1",
+      "name": "GLM 5.1",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 200000,
+      "maxTokens": 128000
     },
     {
       "id": "ollamacloud/deepseek-v4-flash:preview",
@@ -11602,58 +11651,8 @@
       "maxTokens": 384000
     },
     {
-      "id": "ollamacloud/kimi-k3",
-      "name": "ollamacloud/kimi-k3",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 1048576
-    },
-    {
-      "id": "ollamacloud/gpt-oss:20b",
-      "name": "gpt-oss:20b",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 400000,
-      "maxTokens": 80000
-    },
-    {
-      "id": "ollamacloud/minimax-m3",
-      "name": "ollamacloud/MiniMax M3",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 512000
-    },
-    {
-      "id": "ollamacloud/nemotron-3-ultra",
-      "name": "nemotron-3-ultra",
+      "id": "ollamacloud/nemotron-3-nano:30b",
+      "name": "nemotron-3-nano:30b",
       "reasoning": true,
       "input": [
         "text"
@@ -11668,8 +11667,8 @@
       "maxTokens": 25600
     },
     {
-      "id": "ollamacloud/gemma4:31b",
-      "name": "ollamacloud/Gemma 4 31B",
+      "id": "ollamacloud/glm-5.2",
+      "name": "ollamacloud/glm-5.2",
       "reasoning": true,
       "input": [
         "text"
@@ -11680,28 +11679,12 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 128000,
-      "maxTokens": 25600
+      "contextWindow": 1000000,
+      "maxTokens": 131072
     },
     {
-      "id": "ollamacloud/nemotron-3-super",
-      "name": "NVIDIA Nemotron 3 Super",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "ollamacloud/kimi-k2.6",
-      "name": "ollamacloud/Kimi K2.6",
+      "id": "ollamacloud/kimi-k2.7-code",
+      "name": "ollamacloud/kimi-k2.7-code",
       "reasoning": true,
       "input": [
         "text",
@@ -11733,38 +11716,6 @@
       "maxTokens": 384000
     },
     {
-      "id": "ollamacloud/deepseek-v4-flash:0731",
-      "name": "deepseek-v4-flash:0731",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 384000
-    },
-    {
-      "id": "ollamacloud/nemotron-3-nano:30b",
-      "name": "nemotron-3-nano:30b",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
       "id": "ollamacloud/gpt-oss:120b",
       "name": "gpt-oss:120b",
       "reasoning": true,
@@ -11781,24 +11732,8 @@
       "maxTokens": 80000
     },
     {
-      "id": "ollamacloud/glm-5.1",
-      "name": "GLM 5.1",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "ollamacloud/kimi-k2.7-code",
-      "name": "ollamacloud/kimi-k2.7-code",
+      "id": "ollamacloud/kimi-k2.6",
+      "name": "ollamacloud/Kimi K2.6",
       "reasoning": true,
       "input": [
         "text",
@@ -11814,8 +11749,8 @@
       "maxTokens": 262144
     },
     {
-      "id": "ollamacloud/mistral-large-3:675b",
-      "name": "mistral-large-3:675b",
+      "id": "ollamacloud/deepseek-v4-flash:0731",
+      "name": "deepseek-v4-flash:0731",
       "reasoning": true,
       "input": [
         "text"
@@ -11826,8 +11761,24 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 128000,
-      "maxTokens": 25600
+      "contextWindow": 1000000,
+      "maxTokens": 384000
+    },
+    {
+      "id": "ollamacloud/gpt-oss:20b",
+      "name": "gpt-oss:20b",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 400000,
+      "maxTokens": 80000
     },
     {
       "id": "ollamacloud/qwen3.5:397b",
@@ -11846,8 +11797,8 @@
       "maxTokens": 25600
     },
     {
-      "id": "ollamacloud/minimax-m2.7",
-      "name": "ollamacloud/MiniMax M2.7",
+      "id": "ollamacloud/nemotron-3-ultra",
+      "name": "nemotron-3-ultra",
       "reasoning": true,
       "input": [
         "text"
@@ -11858,8 +11809,73 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 204800,
-      "maxTokens": 131072
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "ollamacloud/deepseek-v4-pro:preview",
+      "name": "deepseek-v4-pro:preview",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 384000
+    },
+    {
+      "id": "ollamacloud/gemma4:31b",
+      "name": "ollamacloud/Gemma 4 31B",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "ollamacloud/minimax-m3",
+      "name": "ollamacloud/MiniMax M3",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 512000
+    },
+    {
+      "id": "ollamacloud/nemotron-3-super",
+      "name": "NVIDIA Nemotron 3 Super",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
     },
     {
       "id": "opencode-go/minimax-m3",
@@ -12288,6 +12304,22 @@
     {
       "id": "opencode-go/muse-spark-1.2",
       "name": "opencode-go/muse-spark-1.2",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 200000,
+      "maxTokens": 40000
+    },
+    {
+      "id": "opencode-go/muse-spark-1.2-contributor",
+      "name": "muse-spark-1.2-contributor",
       "reasoning": true,
       "input": [
         "text"
@@ -13423,22 +13455,6 @@
       "maxTokens": 25600
     },
     {
-      "id": "kc/auto",
-      "name": "kc/auto",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
       "id": "kc/balanced",
       "name": "balanced",
       "reasoning": true,
@@ -13678,23 +13694,6 @@
       "reasoning": true,
       "input": [
         "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 40000
-    },
-    {
-      "id": "kc/claude-sonnet-4",
-      "name": "kc/claude-sonnet-4",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
       ],
       "cost": {
         "input": 0,
@@ -14712,22 +14711,6 @@
       },
       "contextWindow": 200000,
       "maxTokens": 128000
-    },
-    {
-      "id": "kc/glm-5.2",
-      "name": "kc/glm-5.2",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 131072
     },
     {
       "id": "kc/glm-5v-turbo",
@@ -15933,23 +15916,6 @@
       "maxTokens": 262144
     },
     {
-      "id": "kc/kimi-k2.7-code",
-      "name": "kc/kimi-k2.7-code",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 262144,
-      "maxTokens": 262144
-    },
-    {
       "id": "kc/kimi-latest",
       "name": "kimi-latest",
       "reasoning": true,
@@ -16096,6 +16062,22 @@
     {
       "id": "kc/lfm-2-24b-a2b",
       "name": "lfm-2-24b-a2b",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "kc/lfm-2.5-2.6b:free",
+      "name": "lfm-2.5-2.6b:free",
       "reasoning": true,
       "input": [
         "text"

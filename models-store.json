@@ -2103,9 +2103,17 @@
         },
         "contextWindow": 1000000,
         "maxTokens": 128000,
+        "thinkingLevelMap": {
+          "off": null,
+          "xhigh": "xhigh",
+          "max": "max"
+        },
         "compat": {
+          "forceAdaptiveThinking": true,
+          "supportsStrictTools": true,
           "allowedFallbackModels": [
             {
+              "provider": "anthropic",
               "model": "claude-opus-4-8",
               "cost": {
                 "input": 5,
@@ -2115,6 +2123,7 @@
               }
             },
             {
+              "provider": "anthropic",
               "model": "claude-opus-5",
               "cost": {
                 "input": 5,
@@ -2123,14 +2132,7 @@
                 "cacheWrite": 6.25
               }
             }
-          ],
-          "forceAdaptiveThinking": true,
-          "supportsStrictTools": true
-        },
-        "thinkingLevelMap": {
-          "off": null,
-          "xhigh": "xhigh",
-          "max": "max"
+          ]
         }
       },
       {
@@ -2329,9 +2331,17 @@
         },
         "contextWindow": 1000000,
         "maxTokens": 128000,
+        "thinkingLevelMap": {
+          "xhigh": "xhigh",
+          "max": "max"
+        },
         "compat": {
+          "forceAdaptiveThinking": true,
+          "supportsTemperature": false,
+          "supportsStrictTools": true,
           "allowedFallbackModels": [
             {
+              "provider": "anthropic",
               "model": "claude-opus-4-8",
               "cost": {
                 "input": 5,
@@ -2340,14 +2350,7 @@
                 "cacheWrite": 6.25
               }
             }
-          ],
-          "forceAdaptiveThinking": true,
-          "supportsTemperature": false,
-          "supportsStrictTools": true
-        },
-        "thinkingLevelMap": {
-          "xhigh": "xhigh",
-          "max": "max"
+          ]
         }
       },
       {
@@ -2452,8 +2455,8 @@
         }
       }
     ],
-    "checkedAt": 1787132125626,
-    "lastModified": 1787129754000,
-    "etag": "W/\"80f723aaaef7535264c97b56bb9d9c62\""
+    "checkedAt": 1787160491224,
+    "lastModified": 1787141921000,
+    "etag": "W/\"f6c149c048a0e6e85e35ce0a72c1d4ec\""
   }
 }

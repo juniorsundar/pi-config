@@ -1,6 +1,6 @@
 {
-  "defaultModel": "qwen3.8:27b",
-  "defaultProvider": "llamacpp",
+  "defaultModel": "opencode-go/muse-spark-1.2",
+  "defaultProvider": "omniroute",
   "defaultThinkingLevel": "medium",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
