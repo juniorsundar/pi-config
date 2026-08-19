@@ -1,7 +1,7 @@
 {
-  "defaultModel": "opencode-go/deepseek-v4-pro",
-  "defaultProvider": "omniroute",
-  "defaultThinkingLevel": "high",
+  "defaultModel": "qwen3.8:27b",
+  "defaultProvider": "llamacpp",
+  "defaultThinkingLevel": "medium",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
   "enableSkillCommands": true,
@@ -16,24 +16,23 @@
     "omniroute/kr/claude-haiku-4.5",
     "omniroute/cf/@cf/zai-org/glm-5.2",
     "omniroute/ollamacloud/glm-5.2",
-    "omniroute/ollamacloud/glm-5.1",
-    "omniroute/mistral/mistral-large-latest",
-    "omniroute/mistral/devstral-latest",
-    "omniroute/mistral/codestral-latest",
     "omniroute/opencode-go/mimo-v2.5-pro",
     "omniroute/opencode-go/mimo-v2.5",
     "omniroute/opencode-go/minimax-m3",
     "omniroute/opencode-go/deepseek-v4-pro",
     "omniroute/opencode-go/deepseek-v4-flash",
+    "omniroute/opencode-go/muse-spark-1.2",
     "ollama/gemma4:31b",
     "ollama/qwen3.6:35b",
-    "ollama/ornith-1.0:35b"
+    "ollama/ornith-1.0:35b",
+    "ollama/qwen3.8:27b",
+    "llamacpp/qwen3.8:27b"
   ],
-  "hideThinkingBlock": true,
+  "hideThinkingBlock": false,
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "0.84.1",
+  "lastChangelogVersion": "0.84.2",
   "packages": [
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",
@@ -43,7 +42,7 @@
   ],
   "shellCommandPrefix": "export DIRENV_LOG_FORMAT=''; if command -v direnv >/dev/null 2>&1; then eval \"$(direnv export bash 2>/dev/null)\"; fi",
   "deepresearch": {
-    "subagentModel": "ollama/gemma4:31b",
+    "subagentModel": "llamacpp/qwen3.8:27b",
     "orchestratorModel": "opencode-go/deepseek-v4-flash"
   },
   "searxng": {
@@ -53,5 +52,8 @@
     "showTerminalProgress": true
   },
   "theme": "light/dark",
-  "treeFilterMode": "default"
+  "treeFilterMode": "default",
+  "compaction": {
+    "enabled": false
+  }
 }

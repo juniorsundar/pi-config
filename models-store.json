@@ -2103,14 +2103,34 @@
         },
         "contextWindow": 1000000,
         "maxTokens": 128000,
+        "compat": {
+          "allowedFallbackModels": [
+            {
+              "model": "claude-opus-4-8",
+              "cost": {
+                "input": 5,
+                "output": 25,
+                "cacheRead": 0.5,
+                "cacheWrite": 6.25
+              }
+            },
+            {
+              "model": "claude-opus-5",
+              "cost": {
+                "input": 5,
+                "output": 25,
+                "cacheRead": 0.5,
+                "cacheWrite": 6.25
+              }
+            }
+          ],
+          "forceAdaptiveThinking": true,
+          "supportsStrictTools": true
+        },
         "thinkingLevelMap": {
           "off": null,
           "xhigh": "xhigh",
           "max": "max"
-        },
-        "compat": {
-          "forceAdaptiveThinking": true,
-          "supportsStrictTools": true
         }
       },
       {
@@ -2309,14 +2329,25 @@
         },
         "contextWindow": 1000000,
         "maxTokens": 128000,
-        "thinkingLevelMap": {
-          "xhigh": "xhigh",
-          "max": "max"
-        },
         "compat": {
+          "allowedFallbackModels": [
+            {
+              "model": "claude-opus-4-8",
+              "cost": {
+                "input": 5,
+                "output": 25,
+                "cacheRead": 0.5,
+                "cacheWrite": 6.25
+              }
+            }
+          ],
           "forceAdaptiveThinking": true,
           "supportsTemperature": false,
           "supportsStrictTools": true
+        },
+        "thinkingLevelMap": {
+          "xhigh": "xhigh",
+          "max": "max"
         }
       },
       {
@@ -2421,8 +2452,8 @@
         }
       }
     ],
-    "checkedAt": 1786616982743,
-    "lastModified": 1786004033000,
-    "etag": "W/\"2174ed7392c0d5376beba2c4ee0b170f\""
+    "checkedAt": 1787132125626,
+    "lastModified": 1787129754000,
+    "etag": "W/\"80f723aaaef7535264c97b56bb9d9c62\""
   }
 }
