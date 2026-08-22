@@ -2060,7 +2060,7 @@
         "maxTokens": 131072
       }
     ],
-    "checkedAt": 1787371958504,
+    "checkedAt": 1787402579014,
     "lastModified": 1787315397000,
     "etag": "W/\"3652c8924cfbb8c23736322bdb51b880\""
   },
@@ -2312,7 +2312,7 @@
         }
       }
     ],
-    "checkedAt": 1787371045070,
+    "checkedAt": 1787402579038,
     "lastModified": 1787315394000,
     "etag": "W/\"7572a78e60b78526600ed2a9b74b579d\""
   },
@@ -2692,5 +2692,38 @@
     "checkedAt": 1787160491224,
     "lastModified": 1787141921000,
     "etag": "W/\"f6c149c048a0e6e85e35ce0a72c1d4ec\""
+  },
+  "llama.cpp": {
+    "models": [
+      {
+        "id": "qwen3.8:27b",
+        "name": "qwen3.8:27b",
+        "api": "openai-completions",
+        "provider": "llama.cpp",
+        "baseUrl": "http://100.64.0.5:8080/v1",
+        "reasoning": false,
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "contextWindow": 131072,
+        "maxTokens": 131072,
+        "compat": {
+          "supportsStore": false,
+          "supportsDeveloperRole": false,
+          "supportsReasoningEffort": false,
+          "supportsUsageInStreaming": true,
+          "supportsStrictMode": false,
+          "maxTokensField": "max_tokens"
+        }
+      }
+    ],
+    "checkedAt": 1787405581786
   }
 }

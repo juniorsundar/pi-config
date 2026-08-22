@@ -1,7 +1,7 @@
 {
-  "defaultModel": "ox-alpha-free",
-  "defaultProvider": "opencode-go",
-  "defaultThinkingLevel": "high",
+  "defaultModel": "qwen3.8:27b",
+  "defaultProvider": "llama.cpp",
+  "defaultThinkingLevel": "low",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
   "enableSkillCommands": true,
@@ -19,11 +19,11 @@
     "opencode-go/deepseek-v4-flash",
     "opencode-go/muse-spark-1.2-contributor",
     "opencode-go/ox-alpha-free",
-    "llamacpp/qwen3.8:27b",
     "openai-codex/gpt-5.5",
     "openai-codex/gpt-5.6-sol",
     "openai-codex/gpt-5.6-terra",
-    "openai-codex/gpt-5.6-luna"
+    "openai-codex/gpt-5.6-luna",
+    "llama.cpp/qwen3.8:27b"
   ],
   "hideThinkingBlock": false,
   "images": {
