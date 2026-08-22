@@ -1,7 +1,7 @@
 {
-  "defaultModel": "minimax-m3",
-  "defaultProvider": "ollama-cloud",
-  "defaultThinkingLevel": "medium",
+  "defaultModel": "ox-alpha-free",
+  "defaultProvider": "opencode-go",
+  "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
   "enableSkillCommands": true,

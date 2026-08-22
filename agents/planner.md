@@ -3,7 +3,7 @@ name: planner
 description: Creates implementation plans from context and requirements
 tools: read, grep, find, ls, write
 thinking: high
-model: omniroute/ollamacloud/glm-5.2
+model: ollama-cloud/glm-5.2
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false

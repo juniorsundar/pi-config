@@ -2,7 +2,7 @@
 name: reviewer
 description: Review specialist for code diffs, plans, proposed solutions, codebase health, and PR/issue validation. Spawning task MUST include a review checklist or depth level (light / deep). Without one, default to light — 5 turns max, verify stated criteria only, then stop.
 tools: read, grep, find, ls, bash, edit, write
-model: omniroute/cx/gpt-5.4
+model: openai-codex/gpt-5.4
 thinking: high
 systemPromptMode: replace
 inheritProjectContext: true
