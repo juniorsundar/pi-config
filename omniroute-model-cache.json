@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-22T04:20:43.316Z",
+  "updatedAt": "2026-08-23T06:25:03.507Z",
   "base": "http://localhost:20128/v1",
   "models": [
     {
@@ -3434,6 +3434,22 @@
       "maxTokens": 131072
     },
     {
+      "id": "kc/tencent/hy-mt2-7b",
+      "name": "tencent/hy-mt2-7b",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 8192,
+      "maxTokens": 4096
+    },
+    {
       "id": "kc/qwen/qwen3.8-27b",
       "name": "qwen/qwen3.8-27b",
       "reasoning": true,
@@ -3663,7 +3679,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 131072,
-      "maxTokens": 131072
+      "maxTokens": 26215
     },
     {
       "id": "kc/meta/muse-spark-1.2",
@@ -3896,7 +3912,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 262144
+      "maxTokens": 209716
     },
     {
       "id": "kc/thinkingmachines/inkling:free",
@@ -5115,7 +5131,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 262144,
-      "maxTokens": 262144
+      "maxTokens": 52429
     },
     {
       "id": "kc/anthropic/claude-opus-4.7",
@@ -5634,7 +5650,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 262144,
-      "maxTokens": 65536
+      "maxTokens": 262144
     },
     {
       "id": "kc/qwen/qwen3.5-flash-02-23",
@@ -7683,7 +7699,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 131072,
-      "maxTokens": 8192
+      "maxTokens": 16384
     },
     {
       "id": "kc/qwen/qwen3-8b",

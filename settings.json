@@ -1,7 +1,7 @@
 {
-  "defaultModel": "qwen3.8:27b",
-  "defaultProvider": "llama.cpp",
-  "defaultThinkingLevel": "low",
+  "defaultModel": "kc/stealth/ox-alpha",
+  "defaultProvider": "omniroute",
+  "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
   "enableSkillCommands": true,
