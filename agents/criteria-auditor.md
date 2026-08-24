@@ -3,7 +3,7 @@ name: criteria-auditor
 description: Cross-references acceptance criteria from ticket/spec docs against test files and implementation. Emits a coverage matrix showing which criteria have dedicated tests and which are untested. Use after each TDD slice or after plan creation to catch missing test coverage before implementation.
 tools: read, grep, find, ls
 thinking: medium
-model: omniroute/opencode-go/minimax-m3
+model: opencode-go/minimax-m3
 systemPromptMode: replace
 inheritProjectContext: false
 inheritSkills: false
