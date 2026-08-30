@@ -2,6 +2,36 @@
   "providers": {
     "llama.cpp": {
       "modelOverrides": {
+        "ornith1.5:35b-a3b": {
+          "reasoning": true,
+          "contextWindow": 131072,
+          "maxTokens": 16384,
+          "input": [
+            "text",
+            "image"
+          ],
+          "thinkingLevelMap": {
+            "minimal": "low",
+            "low": "low",
+            "medium": "medium",
+            "high": "xhigh",
+            "xhigh": "xhigh",
+            "max": "xhigh"
+          },
+          "compat": {
+            "thinkingFormat": "chat-template",
+            "chatTemplateKwargs": {
+              "enable_thinking": {
+                "$var": "thinking.enabled"
+              },
+              "reasoning_effort": {
+                "$var": "thinking.effort"
+              },
+              "preserve_thinking": true
+            },
+            "thinkingTokenBudgetField": "thinking_budget_tokens"
+          }
+        },
         "qwen3.8:27b": {
           "reasoning": true,
           "contextWindow": 131072,
