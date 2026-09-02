@@ -1,6 +1,6 @@
 {
-  "defaultModel": "kc/stealth/ox-alpha",
-  "defaultProvider": "omniroute",
+  "defaultModel": "gpt-5.6-luna",
+  "defaultProvider": "openai-codex",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
@@ -10,6 +10,11 @@
     "omniroute/antigravity/claude-sonnet-4-6",
     "omniroute/kr/claude-sonnet-4.5",
     "omniroute/kr/claude-haiku-4.5",
+    "omniroute/cc/claude-fable-5",
+    "omniroute/cc/claude-opus-5",
+    "omniroute/cc/claude-opus-4-8",
+    "omniroute/cc/claude-sonnet-5",
+    "omniroute/cc/claude-sonnet-4-6",
     "openai-codex/gpt-5.6-sol",
     "openai-codex/gpt-5.6-terra",
     "openai-codex/gpt-5.6-luna",
@@ -31,8 +36,7 @@
     "ollama-cloud/minimax-m2.7",
     "ollama-cloud/minimax-m3",
     "ollama-cloud/kimi-k2.7-code",
-    "llama.cpp/qwen3.8:27b",
-    "ornith1.5:35b-a3b"
+    "llama.cpp/qwen3.8:27b"
   ],
   "hideThinkingBlock": false,
   "images": {
