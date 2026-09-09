@@ -62,7 +62,7 @@
   "terminal": {
     "showTerminalProgress": true
   },
-  "theme": "light/dark",
+  "theme": "dark",
   "treeFilterMode": "default",
   "compaction": {
     "enabled": false
