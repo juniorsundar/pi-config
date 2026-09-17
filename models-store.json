@@ -2270,7 +2270,7 @@
         "maxTokens": 131072
       }
     ],
-    "checkedAt": 1789644781334,
+    "checkedAt": 1789664669057,
     "lastModified": 1789639746000,
     "etag": "W/\"b949ea60fd96ecc3ac173ae8614d3979\""
   },
@@ -2505,7 +2505,7 @@
         }
       }
     ],
-    "checkedAt": 1789644781333,
+    "checkedAt": 1789664669033,
     "lastModified": 1789639744000,
     "etag": "W/\"611b646eb8fe726a315a1544235fa980\""
   },
@@ -2910,13 +2910,13 @@
         }
       }
     ],
-    "checkedAt": 1789644781817,
+    "checkedAt": 1789664669192,
     "lastModified": 1789639720000,
     "etag": "W/\"55c75c28bdf0cb4bb15080d80f87acb3\""
   },
   "llama.cpp": {
     "models": [],
-    "checkedAt": 1789646725727
+    "checkedAt": 1789667285987
   },
   "openrouter": {
     "models": [
@@ -12675,13 +12675,13 @@
           "text"
         ],
         "cost": {
-          "input": 0.5,
-          "output": 2,
-          "cacheRead": 0.1,
+          "input": 0.43,
+          "output": 1.75,
+          "cacheRead": 0.08,
           "cacheWrite": 0
         },
-        "contextWindow": 202752,
-        "maxTokens": 131072,
+        "contextWindow": 198000,
+        "maxTokens": 16384,
         "compat": {
           "supportsDeveloperRole": false,
           "thinkingFormat": "openrouter",
@@ -13664,8 +13664,8 @@
         }
       }
     ],
-    "checkedAt": 1789644781335,
-    "lastModified": 1789639747000,
-    "etag": "W/\"ce07a3c2f0016c92d05dfa79a7d2b635\""
+    "checkedAt": 1789664669031,
+    "lastModified": 1789648060000,
+    "etag": "W/\"b656d21cd5501ac14e694f2099504227\""
   }
 }

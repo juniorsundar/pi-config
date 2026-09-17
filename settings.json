@@ -50,7 +50,8 @@
     "npm:@juicesharp/rpiv-ask-user-question",
     "git:github.com/juniorsundar/my-pi-mono",
     "git:github.com/inouemoby/pi-ollama-cloud",
-    "git:github.com/DietrichGebert/ponytail"
+    "git:github.com/DietrichGebert/ponytail",
+    "npm:pi-mcp-adapter"
   ],
   "shellCommandPrefix": "export DIRENV_LOG_FORMAT=''; if command -v direnv >/dev/null 2>&1; then eval \"$(direnv export bash 2>/dev/null)\"; fi",
   "deepresearch": {
