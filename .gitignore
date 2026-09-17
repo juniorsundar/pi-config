@@ -10,3 +10,4 @@
 /trust.json
 **/__pycache__
 /kilo-model-cache.json
+/mcp-cache.json
