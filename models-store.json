@@ -2252,7 +2252,7 @@
         }
       }
     ],
-    "checkedAt": 1789728881403,
+    "checkedAt": 1789744779204,
     "lastModified": 1789728267000,
     "etag": "W/\"f4171f848c30f4fcefc03369183bdbe3\""
   },
@@ -2487,7 +2487,7 @@
         }
       }
     ],
-    "checkedAt": 1789728881366,
+    "checkedAt": 1789744779125,
     "lastModified": 1789639744000,
     "etag": "W/\"611b646eb8fe726a315a1544235fa980\""
   },
@@ -2892,13 +2892,13 @@
         }
       }
     ],
-    "checkedAt": 1789728881356,
+    "checkedAt": 1789744779133,
     "lastModified": 1789639720000,
     "etag": "W/\"55c75c28bdf0cb4bb15080d80f87acb3\""
   },
   "llama.cpp": {
     "models": [],
-    "checkedAt": 1789742396377
+    "checkedAt": 1789744778878
   },
   "openrouter": {
     "models": [
@@ -13689,7 +13689,7 @@
         }
       }
     ],
-    "checkedAt": 1789728881377,
+    "checkedAt": 1789744779160,
     "lastModified": 1789728268000,
     "etag": "W/\"1b69bc47167e7e7bf7db18f9c7bf2a9e\""
   }

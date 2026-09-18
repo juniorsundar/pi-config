@@ -40,7 +40,6 @@ Avoid delegation when the task is a tiny one-file edit, purely explanatory, requ
 Illustrative chains:
 
 * Unknown code path: `scout` → `planner` → `worker` → `reviewer`
-* Complex feature: `context-builder` → `planner` → `oracle` → `worker` → `reviewer`
 
 Use only the agents that add value.
 
