@@ -1,7 +1,7 @@
 ---
 name: image-reader
-description: Multimodal vision specialist — reads images via ollama/gemma4:31b and returns a structured visual description. Use when the orchestrator or main model cannot process images directly and a faithful description (or OCR) is needed.
-model: llama.cpp/qwen3.8:27b
+description: Multimodal vision specialist — reads images and returns a structured visual description. Use when the orchestrator or main model cannot process images directly and a faithful description (or OCR) is needed.
+model: opencode-go/deepseek-v4-flash-vision-exp
 tools: read, web_fetch, write
 thinking: low
 systemPromptMode: replace
