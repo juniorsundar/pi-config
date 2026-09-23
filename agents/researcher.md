@@ -3,7 +3,7 @@ name: researcher
 description: Autonomous web researcher — searches, evaluates, and synthesizes a focused research brief
 tools: read, write, web_search, web_fetch
 thinking: medium
-model: ollama-cloud/glm-5.3-flash
+model: opencode-go/muse-spark-1.3-contributor
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
