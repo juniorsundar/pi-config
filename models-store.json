@@ -20,6 +20,7 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens"
         },
         "contextWindow": 200000,
@@ -52,6 +53,16 @@
           "off": null,
           "xhigh": "xhigh",
           "max": "max"
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -81,6 +92,16 @@
           "off": null,
           "xhigh": "xhigh",
           "max": "max"
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -101,7 +122,17 @@
           "cacheWrite": 1.25
         },
         "contextWindow": 200000,
-        "maxTokens": 64000
+        "maxTokens": 64000,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       },
       {
         "id": "claude-opus-4-5",
@@ -121,7 +152,17 @@
           "cacheWrite": 6.25
         },
         "contextWindow": 200000,
-        "maxTokens": 64000
+        "maxTokens": 64000,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       },
       {
         "id": "claude-opus-4-6",
@@ -147,6 +188,16 @@
         },
         "compat": {
           "forceAdaptiveThinking": true
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -175,6 +226,16 @@
         "compat": {
           "forceAdaptiveThinking": true,
           "supportsTemperature": false
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -204,6 +265,16 @@
         "thinkingLevelMap": {
           "xhigh": "xhigh",
           "max": "max"
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -233,6 +304,55 @@
         "thinkingLevelMap": {
           "xhigh": "xhigh",
           "max": "max"
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
+      },
+      {
+        "id": "claude-opus-5-5",
+        "name": "Claude Opus 5.5",
+        "api": "anthropic-messages",
+        "provider": "opencode",
+        "baseUrl": "https://opencode.ai/zen",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 4,
+          "output": 20,
+          "cacheRead": 0.2,
+          "cacheWrite": 5
+        },
+        "contextWindow": 1000000,
+        "maxTokens": 128000,
+        "compat": {
+          "supportsMidConvoSystemMessages": true,
+          "forceAdaptiveThinking": true,
+          "supportsTemperature": false
+        },
+        "thinkingLevelMap": {
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -253,7 +373,17 @@
           "cacheWrite": 3.75
         },
         "contextWindow": 200000,
-        "maxTokens": 64000
+        "maxTokens": 64000,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       },
       {
         "id": "claude-sonnet-4-5",
@@ -273,7 +403,17 @@
           "cacheWrite": 3.75
         },
         "contextWindow": 200000,
-        "maxTokens": 64000
+        "maxTokens": 64000,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       },
       {
         "id": "claude-sonnet-4-6",
@@ -299,6 +439,16 @@
         },
         "compat": {
           "forceAdaptiveThinking": true
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -326,6 +476,16 @@
         },
         "compat": {
           "forceAdaptiveThinking": true
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -347,6 +507,7 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens",
           "supportsLongCacheRetention": false,
           "requiresReasoningContentOnAssistantMessages": true
@@ -383,6 +544,7 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens",
           "requiresReasoningContentOnAssistantMessages": true
         },
@@ -396,6 +558,16 @@
           "high": "high",
           "xhigh": null,
           "max": "max"
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -417,6 +589,7 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens",
           "supportsLongCacheRetention": false,
           "requiresReasoningContentOnAssistantMessages": true
@@ -431,6 +604,52 @@
           "high": "high",
           "xhigh": null,
           "max": "max"
+        }
+      },
+      {
+        "id": "deepseek-v4.1-flash",
+        "name": "DeepSeek V4.1 Flash",
+        "api": "openai-completions",
+        "provider": "opencode",
+        "baseUrl": "https://opencode.ai/zen/v1",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 0.3,
+          "output": 1.2,
+          "cacheRead": 0.006,
+          "cacheWrite": 0
+        },
+        "compat": {
+          "supportsStore": false,
+          "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
+          "maxTokensField": "max_tokens",
+          "requiresReasoningContentOnAssistantMessages": true
+        },
+        "contextWindow": 1000000,
+        "maxTokens": 384000,
+        "thinkingLevelMap": {
+          "off": null,
+          "minimal": null,
+          "low": "low",
+          "medium": null,
+          "high": "high",
+          "xhigh": null,
+          "max": "max"
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -460,7 +679,17 @@
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
-        "maxTokens": 65536
+        "maxTokens": 65536,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       },
       {
         "id": "gemini-3.1-pro",
@@ -489,7 +718,17 @@
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
-        "maxTokens": 65536
+        "maxTokens": 65536,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       },
       {
         "id": "gemini-3.5-flash",
@@ -518,7 +757,17 @@
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
-        "maxTokens": 65536
+        "maxTokens": 65536,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       },
       {
         "id": "gemini-3.5-flash-lite",
@@ -547,7 +796,17 @@
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
-        "maxTokens": 65536
+        "maxTokens": 65536,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       },
       {
         "id": "gemini-3.6-flash",
@@ -576,7 +835,17 @@
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
-        "maxTokens": 65536
+        "maxTokens": 65536,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       },
       {
         "id": "gemini-3.7-flash",
@@ -605,7 +874,17 @@
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
-        "maxTokens": 65536
+        "maxTokens": 65536,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       },
       {
         "id": "gemini-3.8-flash",
@@ -634,7 +913,17 @@
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
-        "maxTokens": 65536
+        "maxTokens": 65536,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       },
       {
         "id": "glm-5",
@@ -655,6 +944,7 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens"
         },
         "contextWindow": 204800,
@@ -679,6 +969,7 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens"
         },
         "contextWindow": 204800,
@@ -703,6 +994,7 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens"
         },
         "contextWindow": 1000000,
@@ -736,6 +1028,7 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens"
         },
         "contextWindow": 1000000,
@@ -770,6 +1063,7 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens"
         },
         "contextWindow": 1000000,
@@ -782,6 +1076,16 @@
           "high": "high",
           "xhigh": null,
           "max": "max"
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -815,6 +1119,16 @@
           "high": "high",
           "xhigh": null,
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -848,6 +1162,16 @@
           "high": "high",
           "xhigh": null,
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -881,6 +1205,16 @@
           "high": "high",
           "xhigh": null,
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -914,6 +1248,16 @@
           "high": "high",
           "xhigh": null,
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -947,6 +1291,16 @@
           "high": "high",
           "xhigh": null,
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -980,6 +1334,16 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1013,6 +1377,16 @@
           "high": "high",
           "xhigh": null,
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1046,6 +1420,16 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1079,6 +1463,16 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1112,6 +1506,16 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1147,6 +1551,16 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1182,6 +1596,16 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1215,6 +1639,16 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1250,6 +1684,16 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1285,6 +1729,16 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1318,6 +1772,16 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1353,6 +1817,16 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": "max"
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1388,6 +1862,16 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": "max"
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1423,6 +1907,16 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": "max"
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1458,6 +1952,106 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": "max"
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
+      },
+      {
+        "id": "gpt-6-luna",
+        "name": "GPT-6 Luna",
+        "api": "openai-responses",
+        "provider": "opencode",
+        "baseUrl": "https://opencode.ai/zen/v1",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 0.1,
+          "output": 0.5,
+          "cacheRead": 0.01,
+          "cacheWrite": 0.125
+        },
+        "compat": {
+          "sessionAffinityFormat": "openai-nosession",
+          "supportsOpenAIGrammarTools": true,
+          "supportsMidConvoSystemMessages": true,
+          "supportsAdditionalTools": true
+        },
+        "contextWindow": 1050000,
+        "maxTokens": 128000,
+        "thinkingLevelMap": {
+          "off": "none",
+          "minimal": null,
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
+      },
+      {
+        "id": "gpt-6-sol",
+        "name": "GPT-6 Sol",
+        "api": "openai-responses",
+        "provider": "opencode",
+        "baseUrl": "https://opencode.ai/zen/v1",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 2,
+          "output": 10,
+          "cacheRead": 0.2,
+          "cacheWrite": 2.5
+        },
+        "compat": {
+          "sessionAffinityFormat": "openai-nosession",
+          "supportsOpenAIGrammarTools": true,
+          "supportsMidConvoSystemMessages": true,
+          "supportsAdditionalTools": true
+        },
+        "contextWindow": 1050000,
+        "maxTokens": 128000,
+        "thinkingLevelMap": {
+          "off": "none",
+          "minimal": null,
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1490,6 +2084,16 @@
           "high": "high",
           "xhigh": null,
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1522,6 +2126,58 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
+      },
+      {
+        "id": "grok-4.7",
+        "name": "Grok 4.7 (30% Off)",
+        "api": "openai-responses",
+        "provider": "opencode",
+        "baseUrl": "https://opencode.ai/zen/v1",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 1.4,
+          "output": 4.2,
+          "cacheRead": 0.35,
+          "cacheWrite": 0
+        },
+        "compat": {
+          "sessionAffinityFormat": "openai-nosession"
+        },
+        "contextWindow": 500000,
+        "maxTokens": 500000,
+        "thinkingLevelMap": {
+          "off": null,
+          "minimal": null,
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1552,6 +2208,16 @@
           "minimal": null,
           "low": null,
           "medium": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1574,11 +2240,22 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens",
           "supportsLongCacheRetention": false
         },
         "contextWindow": 262144,
-        "maxTokens": 65536
+        "maxTokens": 65536,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       },
       {
         "id": "kimi-k2.6",
@@ -1600,13 +2277,24 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "thinkingFormat": "deepseek",
           "supportsReasoningEffort": false,
           "maxTokensField": "max_tokens",
           "supportsLongCacheRetention": false
         },
         "contextWindow": 262144,
-        "maxTokens": 65536
+        "maxTokens": 65536,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       },
       {
         "id": "kimi-k2.7-code",
@@ -1628,10 +2316,21 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens"
         },
         "contextWindow": 262144,
-        "maxTokens": 262144
+        "maxTokens": 262144,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       },
       {
         "id": "kimi-k3",
@@ -1653,6 +2352,7 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens",
           "supportsMidConvoSystemMessages": true,
           "supportsMidConvoToolAdditions": true
@@ -1667,6 +2367,16 @@
           "high": null,
           "xhigh": null,
           "max": "max"
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1688,14 +2398,15 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens"
         },
         "contextWindow": 262144,
         "maxTokens": 32768
       },
       {
-        "id": "mimo-v2.5-free",
-        "name": "MiMo V2.5 Free",
+        "id": "mimo-v2.6-flash-free",
+        "name": "MiMo-V2.6-Flash Free",
         "api": "openai-completions",
         "provider": "opencode",
         "baseUrl": "https://opencode.ai/zen/v1",
@@ -1713,10 +2424,21 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens"
         },
         "contextWindow": 200000,
-        "maxTokens": 32000
+        "maxTokens": 32000,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       },
       {
         "id": "minimax-m2.5",
@@ -1737,6 +2459,7 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens"
         },
         "contextWindow": 204800,
@@ -1761,6 +2484,7 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens",
           "supportsLongCacheRetention": false
         },
@@ -1787,10 +2511,21 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens"
         },
         "contextWindow": 512000,
-        "maxTokens": 128000
+        "maxTokens": 128000,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       },
       {
         "id": "muse-spark-1.2",
@@ -1822,6 +2557,16 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1854,6 +2599,16 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1885,7 +2640,17 @@
           "medium": "medium",
           "high": "high",
           "xhigh": "xhigh",
-          "max": "max"
+          "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1918,6 +2683,16 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": null
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
         }
       },
       {
@@ -1939,6 +2714,7 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens"
         },
         "contextWindow": 1000000,
@@ -1963,6 +2739,7 @@
         "compat": {
           "supportsStore": false,
           "supportsDeveloperRole": false,
+          "supportsStrictMode": true,
           "maxTokensField": "max_tokens"
         },
         "contextWindow": 262144,
@@ -1986,7 +2763,17 @@
           "cacheWrite": 0.25
         },
         "contextWindow": 262144,
-        "maxTokens": 65536
+        "maxTokens": 65536,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       },
       {
         "id": "qwen3.6-plus",
@@ -2006,12 +2793,52 @@
           "cacheWrite": 0.625
         },
         "contextWindow": 262144,
-        "maxTokens": 65536
+        "maxTokens": 65536,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
+      },
+      {
+        "id": "qwen3.8-flash",
+        "name": "Qwen3.8 Flash",
+        "api": "anthropic-messages",
+        "provider": "opencode",
+        "baseUrl": "https://opencode.ai/zen",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 0.15,
+          "output": 0.47,
+          "cacheRead": 0.016,
+          "cacheWrite": 0.2
+        },
+        "contextWindow": 1000000,
+        "maxTokens": 131072,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
       }
     ],
-    "checkedAt": 1789914173981,
-    "lastModified": 1789728266000,
-    "etag": "W/\"c2a70140e68c6ed5101e338554fe5a1b\""
+    "checkedAt": 1790195463753,
+    "lastModified": 1790167138000,
+    "etag": "W/\"991b580fd280916334404f8d0ab7b5b7\""
   },
   "minimax": {
     "models": [
@@ -3170,7 +3997,7 @@
         }
       }
     ],
-    "checkedAt": 1790142718846,
+    "checkedAt": 1790195463762,
     "lastModified": 1790028946000,
     "etag": "W/\"ced500f3d4855617ae90476fd69793dc\""
   },
@@ -3563,7 +4390,7 @@
         }
       }
     ],
-    "checkedAt": 1790142718804,
+    "checkedAt": 1790195463862,
     "lastModified": 1790105581000,
     "etag": "W/\"8cccd87cd4980e40933b6ce647c3a69e\""
   },
@@ -4250,8 +5077,46 @@
     "etag": "W/\"1d76d724462428d422ad7bed8b04d474\""
   },
   "llama.cpp": {
-    "models": [],
-    "checkedAt": 1789744778878
+    "models": [
+      {
+        "id": "qwen3.8-27b",
+        "name": "qwen3.8-27b",
+        "api": "openai-completions",
+        "provider": "llama.cpp",
+        "baseUrl": "http://100.64.0.3:8080/v1",
+        "reasoning": true,
+        "thinkingLevelMap": {
+          "off": "off",
+          "minimal": null,
+          "low": null,
+          "medium": "medium",
+          "high": null,
+          "xhigh": null
+        },
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "contextWindow": 262144,
+        "maxTokens": 262144,
+        "compat": {
+          "supportsStore": false,
+          "supportsDeveloperRole": false,
+          "supportsReasoningEffort": false,
+          "supportsUsageInStreaming": true,
+          "supportsStrictMode": false,
+          "maxTokensField": "max_tokens",
+          "thinkingFormat": "qwen-chat-template"
+        }
+      }
+    ],
+    "checkedAt": 1790195968723
   },
   "openrouter": {
     "models": [
@@ -4274,7 +5139,7 @@
           "cacheRead": 0.2,
           "cacheWrite": 0
         },
-        "contextWindow": 1048576,
+        "contextWindow": 131072,
         "maxTokens": 32768,
         "compat": {
           "supportsDeveloperRole": false,
@@ -4302,7 +5167,7 @@
           "cacheRead": 0.75,
           "cacheWrite": 0
         },
-        "contextWindow": 1048576,
+        "contextWindow": 131072,
         "maxTokens": 32768,
         "compat": {
           "supportsDeveloperRole": false,
@@ -4330,7 +5195,7 @@
           "cacheRead": 0.18,
           "cacheWrite": 0
         },
-        "contextWindow": 1048576,
+        "contextWindow": 131072,
         "maxTokens": 32768,
         "compat": {
           "supportsDeveloperRole": false,
@@ -5929,6 +6794,42 @@
         }
       },
       {
+        "id": "cohere/command-a-plus",
+        "name": "Cohere: Command A+",
+        "api": "openai-completions",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "provider": "openrouter",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 0.3,
+          "output": 1.5,
+          "cacheRead": 0.15,
+          "cacheWrite": 0
+        },
+        "contextWindow": 192000,
+        "maxTokens": 64000,
+        "compat": {
+          "supportsDeveloperRole": false,
+          "thinkingFormat": "openrouter",
+          "supportsStrictMode": true,
+          "sendSessionAffinityHeaders": true
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
+      },
+      {
         "id": "cohere/command-r-08-2024",
         "name": "Cohere: Command R (08-2024)",
         "api": "openai-completions",
@@ -6229,9 +7130,9 @@
           "text"
         ],
         "cost": {
-          "input": 0.049,
-          "output": 0.098,
-          "cacheRead": 0.0098,
+          "input": 0.088606,
+          "output": 0.177212,
+          "cacheRead": 0.017721,
           "cacheWrite": 0
         },
         "contextWindow": 1024000,
@@ -6345,9 +7246,9 @@
           "text"
         ],
         "cost": {
-          "input": 0.895578,
-          "output": 1.791156,
-          "cacheRead": 0.074632,
+          "input": 0.95526,
+          "output": 1.91052,
+          "cacheRead": 0.079605,
           "cacheWrite": 0
         },
         "contextWindow": 1024000,
@@ -6380,12 +7281,12 @@
           "text"
         ],
         "cost": {
-          "input": 0.66,
-          "output": 1.98,
-          "cacheRead": 0.022,
+          "input": 0.498696,
+          "output": 1.496088,
+          "cacheRead": 0.016623,
           "cacheWrite": 0
         },
-        "contextWindow": 1048576,
+        "contextWindow": 1024000,
         "maxTokens": 384000,
         "compat": {
           "supportsDeveloperRole": false,
@@ -10179,13 +11080,13 @@
           "text"
         ],
         "cost": {
-          "input": 0.07,
+          "input": 0.08,
           "output": 0.2,
           "cacheRead": 0.04,
           "cacheWrite": 0
         },
         "contextWindow": 262144,
-        "maxTokens": 235929,
+        "maxTokens": 131072,
         "compat": {
           "supportsDeveloperRole": false,
           "thinkingFormat": "openrouter",
@@ -16162,9 +17063,9 @@
           "text"
         ],
         "cost": {
-          "input": 0.0825,
-          "output": 0.33,
-          "cacheRead": 0.020625,
+          "input": 0.132,
+          "output": 0.528,
+          "cacheRead": 0.033,
           "cacheWrite": 0
         },
         "contextWindow": 262144,
@@ -16458,6 +17359,40 @@
               "jpegQuality": 80
             }
           }
+        }
+      },
+      {
+        "id": "upstage/solar-mini4",
+        "name": "Upstage: Solar Mini 4",
+        "api": "openai-completions",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "provider": "openrouter",
+        "reasoning": true,
+        "thinkingLevelMap": {
+          "off": "none",
+          "minimal": "minimal",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "input": [
+          "text"
+        ],
+        "cost": {
+          "input": 0.05,
+          "output": 0.2,
+          "cacheRead": 0.005,
+          "cacheWrite": 0
+        },
+        "contextWindow": 524288,
+        "maxTokens": 131072,
+        "compat": {
+          "supportsDeveloperRole": false,
+          "thinkingFormat": "openrouter",
+          "supportsStrictMode": true,
+          "sendSessionAffinityHeaders": true
         }
       },
       {
@@ -17323,9 +18258,9 @@
           "text"
         ],
         "cost": {
-          "input": 0.6538,
-          "output": 2.0548,
-          "cacheRead": 0.12142,
+          "input": 0.84,
+          "output": 2.64,
+          "cacheRead": 0.156,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
@@ -17738,9 +18673,9 @@
           "image"
         ],
         "cost": {
-          "input": 0.12,
-          "output": 0.48,
-          "cacheRead": 0.0036,
+          "input": 0.1,
+          "output": 0.5,
+          "cacheRead": 0.01,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
@@ -17782,13 +18717,13 @@
           "text"
         ],
         "cost": {
-          "input": 0.39996,
-          "output": 1.19988,
-          "cacheRead": 0.012726,
+          "input": 0.4,
+          "output": 4.3,
+          "cacheRead": 0.033,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
-        "maxTokens": 393216,
+        "maxTokens": 384000,
         "compat": {
           "supportsDeveloperRole": false,
           "thinkingFormat": "openrouter",
@@ -17816,9 +18751,9 @@
           "text"
         ],
         "cost": {
-          "input": 0.03,
-          "output": 0.8,
-          "cacheRead": 0.008,
+          "input": 0.038,
+          "output": 0.55,
+          "cacheRead": 0.0228,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
@@ -18263,7 +19198,7 @@
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
-        "maxTokens": 943718,
+        "maxTokens": 131072,
         "compat": {
           "supportsDeveloperRole": false,
           "thinkingFormat": "openrouter",
@@ -18301,9 +19236,9 @@
           "text"
         ],
         "cost": {
-          "input": 0.6538,
-          "output": 2.0548,
-          "cacheRead": 0.12142,
+          "input": 0.5625,
+          "output": 2.5,
+          "cacheRead": 0.125,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
@@ -18316,8 +19251,8 @@
         }
       }
     ],
-    "checkedAt": 1790142718888,
-    "lastModified": 1790105585000,
-    "etag": "W/\"a173dea3072ec738f43b7640f994f88f\""
+    "checkedAt": 1790195463947,
+    "lastModified": 1790167141000,
+    "etag": "W/\"b8e30a82da4170655b46dc4a6b1dffba\""
   }
 }
