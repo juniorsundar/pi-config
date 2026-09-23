@@ -1,7 +1,7 @@
 ---
 name: r-plan
 description: Deep-research planning specialist — reads the question and produces a structured research plan with areas, initial search angles, and likely hard parts
-model: ollama/gemma4:31b
+model: opencode-go/muse-spark-1.3-contributor
 tools: read, write
 thinking: low
 systemPromptMode: replace

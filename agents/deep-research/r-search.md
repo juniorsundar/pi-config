@@ -1,7 +1,7 @@
 ---
 name: r-search
 description: Deep-research search specialist — searches the web with multiple query angles and returns ranked results with relevance assessments
-model: ollama/gemma4:31b
+model: opencode-go/muse-spark-1.3-contributor
 tools: web_search
 thinking: low
 systemPromptMode: replace

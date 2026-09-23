@@ -1,7 +1,7 @@
 ---
 name: r-verify
 description: Deep-research verifier — cross-references findings for consistency and factual accuracy
-model: ollama/gemma4:31b
+model: opencode-go/muse-spark-1.3-contributor
 tools: web_search, web_fetch, read, write
 thinking: low
 systemPromptMode: replace

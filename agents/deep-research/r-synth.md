@@ -1,7 +1,7 @@
 ---
 name: r-synth
 description: Deep-research synthesizer — reads all accumulated state and produces a final polished research synthesis
-model: ollama/gemma4:31b
+model: opencode-go/muse-spark-1.3-contributor
 tools: read, write
 thinking: low
 systemPromptMode: replace

@@ -1,7 +1,7 @@
 ---
 name: r-learn
 description: Deep-research learning specialist — fetches and extracts key information from URLs, producing structured findings with source citations
-model: ollama/gemma4:31b
+model: opencode-go/muse-spark-1.3-contributor
 tools: web_fetch, read, write
 thinking: low
 systemPromptMode: replace

@@ -1,7 +1,7 @@
 ---
 name: r-gap
 description: Deep-research gap analyst — reads the current state and identifies what's missing, conflicting, or insufficiently supported
-model: ollama/gemma4:31b
+model: opencode-go/muse-spark-1.3-contributor
 tools: read, write
 thinking: low
 systemPromptMode: replace
