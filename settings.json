@@ -15,6 +15,7 @@
     "omniroute/cc/claude-opus-4-8",
     "omniroute/cc/claude-sonnet-5-5",
     "omniroute/cc/claude-sonnet-5",
+    "openai-codex/gpt-6.1-sol",
     "openai-codex/gpt-6-astra",
     "openai-codex/gpt-6-sol",
     "openai-codex/gpt-6-luna",
@@ -37,7 +38,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "0.87.1",
+  "lastChangelogVersion": "0.99.1",
   "packages": [
     "npm:@juicesharp/rpiv-todo",
     "npm:@juicesharp/rpiv-ask-user-question",
