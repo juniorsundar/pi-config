@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "serena": {
+      "command": "uvx",
+      "args": [
+        "-p",
+        "3.13",
+        "serena-agent@1.7.0",
+        "start-mcp-server",
+        "--context=ide",
+        "--project-from-cwd"
+      ],
+      "requestTimeoutMs": 120000,
+      "directTools": true
+    },
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "bearerTokenStore": true,
+      "directTools": true
+    },
+    "tasknotes": {
+      "url": "http://127.0.0.1:2020/mcp",
+      "headers": {
+        "Authorization": "Bearer NNAo5eHcO7H2u5Dhdn89ao5R-5YR1Rln3dh_spSyUBo"
+      },
+      "exposure": "direct"
+    }
+  }
+}
