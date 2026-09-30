@@ -4253,7 +4253,7 @@
         "type": "chat"
       }
     ],
-    "checkedAt": 1790712584915,
+    "checkedAt": 1790745770309,
     "lastModified": 1790706987000,
     "etag": "W/\"d0bb2d7a14d487e6781662eac220a692\""
   },
@@ -4709,7 +4709,7 @@
         "type": "chat"
       }
     ],
-    "checkedAt": 1790712585386,
+    "checkedAt": 1790745770345,
     "lastModified": 1790706982000,
     "etag": "W/\"8003e3819641342fe5725e65d6bea0fb\""
   },
@@ -5460,9 +5460,9 @@
         "type": "chat"
       }
     ],
-    "checkedAt": 1790674838957,
-    "lastModified": 1790671123000,
-    "etag": "W/\"71c17a51b322391f0f80077152bb3748\""
+    "checkedAt": 1790745770782,
+    "lastModified": 1790706929000,
+    "etag": "W/\"3442ece5a2e978b487a859a8a172062c\""
   },
   "llama.cpp": {
     "models": [
@@ -22373,7 +22373,7 @@
         "contextWindow": 524288
       }
     ],
-    "checkedAt": 1790712584749,
+    "checkedAt": 1790745770315,
     "lastModified": 1790706989000,
     "etag": "W/\"e521fc76ce0ad412e7180c6dbd2b5795\""
   }
