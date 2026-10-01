@@ -13,6 +13,7 @@
 /mcp-cache.json
 /mcp-onboarding.json
 /.serena
-/pi-blackhole
 /mcp-adapter.json
 /mcp-auth.json
+/pi-blackhole/*-pending.json
+/pi-blackhole/*-pending.stale.json
