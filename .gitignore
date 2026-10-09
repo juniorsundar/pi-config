@@ -17,3 +17,5 @@
 /mcp-auth.json
 /pi-blackhole/*-pending.json
 /pi-blackhole/*-pending.stale.json
+/bin
+/install
