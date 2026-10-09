@@ -6,8 +6,10 @@
   "enableInstallTelemetry": false,
   "enableSkillCommands": true,
   "enabledModels": [
-    "omniroute/antigravity/claude-opus-4-6-thinking",
-    "omniroute/antigravity/claude-sonnet-4-6",
+    "omniroute/antigravity/gemini-3.8-flash-tiered",
+    "omniroute/antigravity/claude-opus-5-5-high",
+    "omniroute/antigravity/claude-sonnet-5-5-high",
+    "omniroute/antigravity/gemini-3.1-pro-high",
     "omniroute/kr/claude-sonnet-4.5",
     "omniroute/kr/claude-haiku-4.5",
     "omniroute/cc/claude-fable-5-1",
