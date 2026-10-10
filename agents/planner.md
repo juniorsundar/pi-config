@@ -3,7 +3,7 @@ name: planner
 description: Creates implementation plans from context and requirements
 tools: read, grep, find, ls, write
 thinking: high
-model: opencode-go/mimo-v2.6-pro
+model: opencode-go/deepseek-v4.1-flash
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
