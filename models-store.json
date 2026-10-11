@@ -3460,7 +3460,7 @@
         "contextWindow": 32000
       }
     ],
-    "checkedAt": 1791616977236,
+    "checkedAt": 1791719248026,
     "lastModified": 1791549733000,
     "etag": "W/\"84be4c58929c816d7869ae822c0a9cc8\""
   },
@@ -4774,7 +4774,7 @@
         "type": "chat"
       }
     ],
-    "checkedAt": 1791616977168,
+    "checkedAt": 1791719248274,
     "lastModified": 1791549736000,
     "etag": "W/\"634a55fb553c1d2d83305159b8bfd5cc\""
   },
@@ -5230,7 +5230,7 @@
         "type": "chat"
       }
     ],
-    "checkedAt": 1791616977423,
+    "checkedAt": 1791719248030,
     "lastModified": 1790706982000,
     "etag": "W/\"8003e3819641342fe5725e65d6bea0fb\""
   },
@@ -6034,7 +6034,7 @@
         "contextWindow": 131072
       }
     ],
-    "checkedAt": 1791616987664
+    "checkedAt": 1791719258126
   },
   "openrouter": {
     "models": [
@@ -24160,7 +24160,7 @@
         "contextWindow": 524288
       }
     ],
-    "checkedAt": 1791616977196,
+    "checkedAt": 1791719247993,
     "lastModified": 1791549738000,
     "etag": "W/\"2bdfb200bda810f9d479fb0d1591a05f\""
   }

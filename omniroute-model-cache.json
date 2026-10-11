@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-10T07:22:56.525Z",
+  "updatedAt": "2026-10-11T06:18:06.795Z",
   "base": "http://localhost:20128/v1",
   "models": [
     {
@@ -364,8 +364,7 @@
       "name": "auto/subscription",
       "reasoning": true,
       "input": [
-        "text",
-        "image"
+        "text"
       ],
       "cost": {
         "input": 0,
@@ -373,8 +372,8 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 1048576,
-      "maxTokens": 128000
+      "contextWindow": 128000,
+      "maxTokens": 8192
     },
     {
       "id": "auto/thrifty",
@@ -2644,25 +2643,8 @@
       "maxTokens": 64000
     },
     {
-      "id": "antigravity/gemini-3.1-pro-low",
-      "name": "Gemini 3.1 Pro (Low)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65535
-    },
-    {
-      "id": "antigravity/claude-sonnet-5-5-medium",
-      "name": "antigravity/claude-sonnet-5-5-medium",
+      "id": "antigravity/claude-opus-5-5-low",
+      "name": "antigravity/claude-opus-5-5-low",
       "reasoning": true,
       "input": [
         "text",
@@ -2678,12 +2660,11 @@
       "maxTokens": 128000
     },
     {
-      "id": "antigravity/gemini-3.1-pro-high",
-      "name": "gemini-3.1-pro-high",
+      "id": "antigravity/gpt-oss-120b-medium",
+      "name": "GPT-OSS 120B (Medium)",
       "reasoning": true,
       "input": [
-        "text",
-        "image"
+        "text"
       ],
       "cost": {
         "input": 0,
@@ -2691,127 +2672,8 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 1048576,
-      "maxTokens": 65535
-    },
-    {
-      "id": "antigravity/claude-opus-5-5-medium",
-      "name": "antigravity/claude-opus-5-5-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "antigravity/claude-opus-5-5-high",
-      "name": "antigravity/claude-opus-5-5-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "antigravity/gemini-3.1-flash-lite",
-      "name": "Gemini 3.1 Flash Lite",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65535
-    },
-    {
-      "id": "antigravity/gemini-3.8-flash-tiered",
-      "name": "gemini-3.8-flash-tiered",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
-    },
-    {
-      "id": "antigravity/gemini-pro-agent",
-      "name": "Gemini 3.1 Pro (High)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65535
-    },
-    {
-      "id": "antigravity/gemini-3.5-flash-lite",
-      "name": "gemini-3.5-flash-lite",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 65535
-    },
-    {
-      "id": "antigravity/gemini-3.6-flash-tiered",
-      "name": "gemini-3.6-flash-tiered",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 65536
+      "contextWindow": 131072,
+      "maxTokens": 32768
     },
     {
       "id": "antigravity/claude-sonnet-5-5-high",
@@ -2848,6 +2710,40 @@
       "maxTokens": 65536
     },
     {
+      "id": "antigravity/claude-opus-5-5-high",
+      "name": "antigravity/claude-opus-5-5-high",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "antigravity/gemini-3.8-flash-tiered",
+      "name": "gemini-3.8-flash-tiered",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
       "id": "antigravity/claude-sonnet-5-5-low",
       "name": "antigravity/claude-sonnet-5-5-low",
       "reasoning": true,
@@ -2865,11 +2761,12 @@
       "maxTokens": 128000
     },
     {
-      "id": "antigravity/gpt-oss-120b-medium",
-      "name": "GPT-OSS 120B (Medium)",
+      "id": "antigravity/gemini-3.5-flash-lite",
+      "name": "gemini-3.5-flash-lite",
       "reasoning": true,
       "input": [
-        "text"
+        "text",
+        "image"
       ],
       "cost": {
         "input": 0,
@@ -2877,12 +2774,12 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 131072,
-      "maxTokens": 32768
+      "contextWindow": 1000000,
+      "maxTokens": 65535
     },
     {
-      "id": "antigravity/claude-opus-5-5-low",
-      "name": "antigravity/claude-opus-5-5-low",
+      "id": "antigravity/claude-sonnet-5-5-medium",
+      "name": "antigravity/claude-sonnet-5-5-medium",
       "reasoning": true,
       "input": [
         "text",
@@ -2896,6 +2793,91 @@
       },
       "contextWindow": 1000000,
       "maxTokens": 128000
+    },
+    {
+      "id": "antigravity/gemini-3.1-pro-low",
+      "name": "Gemini 3.1 Pro (Low)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "antigravity/gemini-3.1-flash-lite",
+      "name": "Gemini 3.1 Flash Lite",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65535
+    },
+    {
+      "id": "antigravity/claude-opus-5-5-medium",
+      "name": "antigravity/claude-opus-5-5-medium",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "antigravity/gemini-3.1-pro-high",
+      "name": "gemini-3.1-pro-high",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65535
+    },
+    {
+      "id": "antigravity/gemini-pro-agent",
+      "name": "Gemini 3.1 Pro (High)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
     },
     {
       "id": "kc/kilo-auto/efficient",
@@ -3633,7 +3615,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 943718
+      "maxTokens": 393216
     },
     {
       "id": "kc/~deepseek/deepseek-flash-latest",
@@ -4200,7 +4182,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1000000,
-      "maxTokens": 131072
+      "maxTokens": 235929
     },
     {
       "id": "kc/google/gemini-3.7-flash",
@@ -4332,7 +4314,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 262144,
-      "maxTokens": 131072
+      "maxTokens": 235929
     },
     {
       "id": "kc/nvidia/nemotron-3.5-lightning:free",
@@ -5455,7 +5437,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 262144,
-      "maxTokens": 235929
+      "maxTokens": 65536
     },
     {
       "id": "kc/qwen/qwen3.6-27b",
@@ -7906,7 +7888,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 40960,
-      "maxTokens": 36864
+      "maxTokens": 16384
     },
     {
       "id": "kc/qwen/qwen3-32b",
@@ -20580,22 +20562,6 @@
     {
       "id": "opencode-zen/jev-1.13-free",
       "name": "jev-1.13-free",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 40000
-    },
-    {
-      "id": "opencode-zen/test",
-      "name": "test",
       "reasoning": true,
       "input": [
         "text"
