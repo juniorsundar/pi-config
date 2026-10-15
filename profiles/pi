@@ -1,0 +1,28 @@
+#!/bin/sh
+# Tracked entrypoint; the Pi-managed launcher in ../bin/pi remains untouched.
+case "$0" in
+  */*) launcher=$0 ;;
+  *) launcher=$(command -v "$0") || exit 127 ;;
+esac
+while [ -L "$launcher" ]; do
+  target=$(readlink "$launcher") || exit 1
+  case "$target" in
+    /*) launcher=$target ;;
+    *) launcher=${launcher%/*}/$target ;;
+  esac
+done
+agent_dir=$(cd "${launcher%/*}/.." && pwd -P) || exit 1
+real_pi=$agent_dir/bin/pi
+if [ "${1-}" != profiles ]; then
+  exec "$real_pi" "$@"
+fi
+shift
+node_bin=$(command -v node 2>/dev/null)
+if [ -z "$node_bin" ]; then
+  node_bin=${XDG_DATA_HOME:-$HOME/.local/share}/pi-node/current/bin/node
+fi
+if [ ! -x "$node_bin" ]; then
+  printf 'Pi profiles requires Node.js (or Pi-managed Node.js).\n' >&2
+  exit 1
+fi
+exec "$node_bin" "$agent_dir/profiles/cli.mjs" "$@"

@@ -19,3 +19,11 @@
 /pi-blackhole/*-pending.stale.json
 /bin
 /install
+/profiles/*/auth.json
+/profiles/*/mcp-auth.json
+/profiles/*/mcp-cache.json
+/profiles/*/mcp-onboarding.json
+/profiles/*/models-store.json
+/profiles/*/trust.json
+/profiles/*/sessions/
+/profiles/*/cache/
