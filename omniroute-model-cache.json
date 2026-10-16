@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-14T11:38:09.062Z",
+  "updatedAt": "2026-10-16T02:33:47.527Z",
   "base": "http://localhost:20128/v1",
   "models": [
     {
@@ -364,8 +364,7 @@
       "name": "auto/subscription",
       "reasoning": true,
       "input": [
-        "text",
-        "image"
+        "text"
       ],
       "cost": {
         "input": 0,
@@ -373,8 +372,8 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 1048576,
-      "maxTokens": 128000
+      "contextWindow": 128000,
+      "maxTokens": 8192
     },
     {
       "id": "auto/thrifty",
@@ -2677,8 +2676,8 @@
       "maxTokens": 128000
     },
     {
-      "id": "antigravity/gemini-3.1-flash-lite",
-      "name": "Gemini 3.1 Flash Lite",
+      "id": "antigravity/gemini-3.5-flash-lite",
+      "name": "gemini-3.5-flash-lite",
       "reasoning": true,
       "input": [
         "text",
@@ -2690,7 +2689,7 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 1048576,
+      "contextWindow": 1000000,
       "maxTokens": 65535
     },
     {
@@ -2711,6 +2710,23 @@
       "maxTokens": 128000
     },
     {
+      "id": "antigravity/gemini-3.8-flash-tiered",
+      "name": "gemini-3.8-flash-tiered",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
       "id": "antigravity/gemini-3-flash",
       "name": "gemini-3-flash",
       "reasoning": false,
@@ -2728,8 +2744,8 @@
       "maxTokens": 65536
     },
     {
-      "id": "antigravity/claude-opus-5-5-high",
-      "name": "antigravity/claude-opus-5-5-high",
+      "id": "antigravity/claude-opus-5-5-low",
+      "name": "antigravity/claude-opus-5-5-low",
       "reasoning": true,
       "input": [
         "text",
@@ -2762,8 +2778,8 @@
       "maxTokens": 128000
     },
     {
-      "id": "antigravity/gemini-3.5-flash-lite",
-      "name": "gemini-3.5-flash-lite",
+      "id": "antigravity/claude-opus-5-5-high",
+      "name": "antigravity/claude-opus-5-5-high",
       "reasoning": true,
       "input": [
         "text",
@@ -2776,7 +2792,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1000000,
-      "maxTokens": 65535
+      "maxTokens": 128000
     },
     {
       "id": "antigravity/claude-sonnet-5-5-medium",
@@ -2796,25 +2812,8 @@
       "maxTokens": 128000
     },
     {
-      "id": "antigravity/claude-opus-5-5-low",
-      "name": "antigravity/claude-opus-5-5-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "antigravity/gemini-3.8-flash-tiered",
-      "name": "gemini-3.8-flash-tiered",
+      "id": "antigravity/gemini-3.1-flash-lite",
+      "name": "Gemini 3.1 Flash Lite",
       "reasoning": true,
       "input": [
         "text",
@@ -2827,7 +2826,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 65536
+      "maxTokens": 65535
     },
     {
       "id": "gh/claude-fable-5",
@@ -5113,7 +5112,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 943718
+      "maxTokens": 943717
     },
     {
       "id": "kc/~unbiased/pareto-latest",
@@ -5247,7 +5246,7 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 1000000,
+      "contextWindow": 1048576,
       "maxTokens": 64000
     },
     {
@@ -7575,7 +7574,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 262144,
-      "maxTokens": 65536
+      "maxTokens": 235929
     },
     {
       "id": "kc/qwen/qwen3.6-27b",
@@ -7807,7 +7806,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 204800,
-      "maxTokens": 131072
+      "maxTokens": 128000
     },
     {
       "id": "kc/google/gemma-4-26b-a4b-it",
@@ -8428,7 +8427,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 204800,
-      "maxTokens": 128000
+      "maxTokens": 32768
     },
     {
       "id": "kc/z-ai/glm-5",
@@ -8444,7 +8443,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 204800,
-      "maxTokens": 128000
+      "maxTokens": 131072
     },
     {
       "id": "kc/anthropic/claude-opus-4.6",
@@ -9551,7 +9550,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 131072,
-      "maxTokens": 117964
+      "maxTokens": 65536
     },
     {
       "id": "kc/openai/gpt-oss-20b",
@@ -22713,22 +22712,6 @@
       "maxTokens": 40000
     },
     {
-      "id": "opencode-zen/ling-3.1-flash-free",
-      "name": "ling-3.1-flash-free",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 40000
-    },
-    {
       "id": "opencode-zen/cat-jam-free",
       "name": "cat-jam-free",
       "reasoning": true,
@@ -22844,6 +22827,22 @@
     {
       "id": "opencode-zen/longcat-2.5-preview-free",
       "name": "longcat-2.5-preview-free",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 200000,
+      "maxTokens": 40000
+    },
+    {
+      "id": "opencode-zen/deepseek-v4.1-flash-free",
+      "name": "deepseek-v4.1-flash-free",
       "reasoning": true,
       "input": [
         "text"
@@ -26057,22 +26056,6 @@
     {
       "id": "mistral/mistral-ocr-3",
       "name": "mistral-ocr-3",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "mistral/mistral-ocr-4-0",
-      "name": "mistral-ocr-4-0",
       "reasoning": true,
       "input": [
         "text"
