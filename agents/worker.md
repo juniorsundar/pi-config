@@ -1,6 +1,7 @@
 ---
 name: worker
 description: Implementation agent for normal tasks and approved execution plans
+model: opencode-go/deepseek-v4.1-flash
 thinking: high
 systemPromptMode: replace
 inheritProjectContext: true
