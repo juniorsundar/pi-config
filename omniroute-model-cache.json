@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-16T02:33:47.527Z",
+  "updatedAt": "2026-10-19T16:51:41.022Z",
   "base": "http://localhost:20128/v1",
   "models": [
     {
@@ -962,7 +962,7 @@
     },
     {
       "id": "kr/claude-haiku-4.5-low",
-      "name": "kr/claude-haiku-4.5-low",
+      "name": "claude-haiku-4.5-low",
       "reasoning": true,
       "input": [
         "text",
@@ -979,7 +979,7 @@
     },
     {
       "id": "kr/claude-haiku-4.5-medium",
-      "name": "kr/claude-haiku-4.5-medium",
+      "name": "claude-haiku-4.5-medium",
       "reasoning": true,
       "input": [
         "text",
@@ -996,7 +996,7 @@
     },
     {
       "id": "kr/claude-haiku-4.5-high",
-      "name": "kr/claude-haiku-4.5-high",
+      "name": "claude-haiku-4.5-high",
       "reasoning": true,
       "input": [
         "text",
@@ -1165,7 +1165,7 @@
     },
     {
       "id": "cc/claude-opus-4-8",
-      "name": "cc/Claude Opus 4.8",
+      "name": "Claude Opus 4.8",
       "reasoning": true,
       "input": [
         "text",
@@ -1182,7 +1182,7 @@
     },
     {
       "id": "cc/claude-opus-4-7",
-      "name": "cc/Claude Opus 4.7",
+      "name": "Claude Opus 4.7",
       "reasoning": true,
       "input": [
         "text",
@@ -1216,7 +1216,7 @@
     },
     {
       "id": "cc/claude-opus-4-6",
-      "name": "cc/Claude Opus 4.6",
+      "name": "Claude Opus 4.6",
       "reasoning": true,
       "input": [
         "text",
@@ -1352,7 +1352,7 @@
     },
     {
       "id": "cc/claude-opus-5-5-low",
-      "name": "claude-opus-5-5 (Low)",
+      "name": "cc/claude-opus-5-5-low",
       "reasoning": true,
       "input": [
         "text",
@@ -1369,7 +1369,7 @@
     },
     {
       "id": "cc/claude-opus-5-5-medium",
-      "name": "claude-opus-5-5 (Medium)",
+      "name": "cc/claude-opus-5-5-medium",
       "reasoning": true,
       "input": [
         "text",
@@ -1386,7 +1386,7 @@
     },
     {
       "id": "cc/claude-opus-5-5-high",
-      "name": "claude-opus-5-5 (High)",
+      "name": "cc/claude-opus-5-5-high",
       "reasoning": true,
       "input": [
         "text",
@@ -1403,7 +1403,7 @@
     },
     {
       "id": "cc/claude-opus-5-5-xhigh",
-      "name": "claude-opus-5-5 (XHigh)",
+      "name": "cc/claude-opus-5-5-xhigh",
       "reasoning": true,
       "input": [
         "text",
@@ -2100,7 +2100,7 @@
     },
     {
       "id": "no-think/cc/claude-opus-5-5",
-      "name": "claude-opus-5-5 (no thinking)",
+      "name": "no-think/claude-opus-5-5",
       "reasoning": true,
       "input": [
         "text",
@@ -2287,7 +2287,7 @@
     },
     {
       "id": "cc/claude-fable-5-max",
-      "name": "cc/claude-fable-5-max",
+      "name": "claude-fable-5-max",
       "reasoning": true,
       "input": [
         "text",
@@ -2643,143 +2643,8 @@
       "maxTokens": 64000
     },
     {
-      "id": "antigravity/gpt-oss-120b-medium",
-      "name": "GPT-OSS 120B (Medium)",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 131072,
-      "maxTokens": 32768
-    },
-    {
-      "id": "antigravity/claude-sonnet-5-5-low",
-      "name": "antigravity/claude-sonnet-5-5-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "antigravity/gemini-3.5-flash-lite",
-      "name": "gemini-3.5-flash-lite",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 65535
-    },
-    {
       "id": "antigravity/claude-opus-5-5-medium",
       "name": "antigravity/claude-opus-5-5-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "antigravity/gemini-3.8-flash-tiered",
-      "name": "gemini-3.8-flash-tiered",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
-    },
-    {
-      "id": "antigravity/gemini-3-flash",
-      "name": "gemini-3-flash",
-      "reasoning": false,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
-    },
-    {
-      "id": "antigravity/claude-opus-5-5-low",
-      "name": "antigravity/claude-opus-5-5-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "antigravity/claude-sonnet-5-5-high",
-      "name": "antigravity/claude-sonnet-5-5-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "antigravity/claude-opus-5-5-high",
-      "name": "antigravity/claude-opus-5-5-high",
       "reasoning": true,
       "input": [
         "text",
@@ -2812,6 +2677,141 @@
       "maxTokens": 128000
     },
     {
+      "id": "antigravity/claude-opus-5-5-high",
+      "name": "antigravity/claude-opus-5-5-high",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "antigravity/gemini-3.5-flash-lite",
+      "name": "gemini-3.5-flash-lite",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 65535
+    },
+    {
+      "id": "antigravity/gpt-oss-120b-medium",
+      "name": "GPT-OSS 120B (Medium)",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 131072,
+      "maxTokens": 32768
+    },
+    {
+      "id": "antigravity/gemini-3.8-flash-tiered",
+      "name": "gemini-3.8-flash-tiered",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "antigravity/claude-sonnet-5-5-low",
+      "name": "antigravity/claude-sonnet-5-5-low",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "antigravity/claude-opus-5-5-low",
+      "name": "antigravity/claude-opus-5-5-low",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "antigravity/gemini-3-flash",
+      "name": "gemini-3-flash",
+      "reasoning": false,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "antigravity/claude-sonnet-5-5-high",
+      "name": "antigravity/claude-sonnet-5-5-high",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000
+    },
+    {
       "id": "antigravity/gemini-3.1-flash-lite",
       "name": "Gemini 3.1 Flash Lite",
       "reasoning": true,
@@ -2827,2142 +2827,6 @@
       },
       "contextWindow": 1048576,
       "maxTokens": 65535
-    },
-    {
-      "id": "gh/claude-fable-5",
-      "name": "gh/Claude Fable 5",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-5",
-      "name": "gh/Claude Opus 5",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.8-fast",
-      "name": "Claude Opus 4.8 (fast mode)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.8",
-      "name": "gh/Claude Opus 4.8",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.7",
-      "name": "gh/Claude Opus 4.7",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.6",
-      "name": "gh/Claude Opus 4.6",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-sonnet-4.6",
-      "name": "gh/Claude Sonnet 4.6",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.5",
-      "name": "claude-opus-4-5-20251101",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-sonnet-5",
-      "name": "gh/Claude Sonnet 5",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-sonnet-4.5",
-      "name": "gh/Claude Sonnet 4.5",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 32000
-    },
-    {
-      "id": "gh/claude-haiku-4.5",
-      "name": "gh/Claude Haiku 4.5",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 32000
-    },
-    {
-      "id": "gh/gemini-3.1-pro-preview",
-      "name": "gh/Gemini 3.1 Pro",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/gemini-3.7-flash",
-      "name": "gh/Gemini 3.7 Flash",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/gemini-3.6-flash",
-      "name": "Gemini 3.6 Flash",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/gemini-3.5-flash",
-      "name": "Gemini 3.5 Flash",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/gpt-5.6-sol",
-      "name": "gh/GPT-5.6 Sol",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.6-terra",
-      "name": "gh/GPT-5.6 Terra",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.6-luna",
-      "name": "gh/GPT-5.6 Luna",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.5",
-      "name": "gh/GPT-5.5",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.4",
-      "name": "gh/GPT-5.4",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.4-mini",
-      "name": "GPT-5.4 mini",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 400000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.4-nano",
-      "name": "GPT-5.4 nano",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 400000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.3-codex",
-      "name": "GPT-5.3-Codex",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 400000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5-mini",
-      "name": "GPT-5 mini",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 264000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/gpt-4o-2024-11-20",
-      "name": "GPT-4o",
-      "reasoning": false,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 16384
-    },
-    {
-      "id": "gh/gpt-4o-mini",
-      "name": "GPT-4o mini",
-      "reasoning": false,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 4096
-    },
-    {
-      "id": "gh/kimi-k2.7-code",
-      "name": "gh/Kimi K2.7 Code",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 256000,
-      "maxTokens": 32000
-    },
-    {
-      "id": "gh/mai-code-1-flash",
-      "name": "MAI-Code-1-Flash",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 256000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/mai-code-1.1-flash",
-      "name": "MAI-Code-1.1-Flash",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 256000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/mai-code-1-flash-picker",
-      "name": "MAI-Code-1-Flash (picker)",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 256000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/grok-4.6",
-      "name": "gh/Grok 4.6",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 500000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/grok-4.5",
-      "name": "Grok 4.5",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 500000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/oswe-vscode-prime",
-      "name": "Raptor mini",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 264000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-fable-5-low",
-      "name": "gh/claude-fable-5-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/claude-fable-5-medium",
-      "name": "gh/claude-fable-5-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/claude-fable-5-high",
-      "name": "gh/claude-fable-5-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/claude-fable-5-xhigh",
-      "name": "gh/claude-fable-5-xhigh",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/claude-opus-5-low",
-      "name": "gh/claude-opus-5-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/claude-opus-5-medium",
-      "name": "gh/claude-opus-5-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/claude-opus-5-high",
-      "name": "gh/claude-opus-5-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/claude-opus-5-xhigh",
-      "name": "gh/claude-opus-5-xhigh",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/claude-opus-4.8-fast-low",
-      "name": "gh/claude-opus-4.8-fast-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.8-fast-medium",
-      "name": "gh/claude-opus-4.8-fast-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.8-fast-high",
-      "name": "gh/claude-opus-4.8-fast-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.8-fast-xhigh",
-      "name": "gh/claude-opus-4.8-fast-xhigh",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.8-low",
-      "name": "gh/claude-opus-4.8-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.8-medium",
-      "name": "gh/claude-opus-4.8-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.8-high",
-      "name": "gh/claude-opus-4.8-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.8-xhigh",
-      "name": "gh/claude-opus-4.8-xhigh",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.7-low",
-      "name": "gh/claude-opus-4.7-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.7-medium",
-      "name": "gh/claude-opus-4.7-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.7-high",
-      "name": "gh/claude-opus-4.7-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.7-xhigh",
-      "name": "gh/claude-opus-4.7-xhigh",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.6-low",
-      "name": "gh/claude-opus-4.6-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.6-medium",
-      "name": "gh/claude-opus-4.6-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.6-high",
-      "name": "gh/claude-opus-4.6-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-sonnet-4.6-low",
-      "name": "gh/claude-sonnet-4.6-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-sonnet-4.6-medium",
-      "name": "gh/claude-sonnet-4.6-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-sonnet-4.6-high",
-      "name": "gh/claude-sonnet-4.6-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-sonnet-5-low",
-      "name": "gh/claude-sonnet-5-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/claude-sonnet-5-medium",
-      "name": "gh/claude-sonnet-5-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/claude-sonnet-5-high",
-      "name": "gh/claude-sonnet-5-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/claude-sonnet-5-xhigh",
-      "name": "gh/claude-sonnet-5-xhigh",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/claude-sonnet-4.5-low",
-      "name": "gh/claude-sonnet-4.5-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 32000
-    },
-    {
-      "id": "gh/claude-sonnet-4.5-medium",
-      "name": "gh/claude-sonnet-4.5-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 32000
-    },
-    {
-      "id": "gh/claude-sonnet-4.5-high",
-      "name": "gh/claude-sonnet-4.5-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 32000
-    },
-    {
-      "id": "gh/claude-haiku-4.5-low",
-      "name": "gh/claude-haiku-4.5-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 32000
-    },
-    {
-      "id": "gh/claude-haiku-4.5-medium",
-      "name": "gh/claude-haiku-4.5-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 32000
-    },
-    {
-      "id": "gh/claude-haiku-4.5-high",
-      "name": "gh/claude-haiku-4.5-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 32000
-    },
-    {
-      "id": "no-think/gh/claude-opus-5",
-      "name": "no-think/claude-opus-5",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.8-fast",
-      "name": "no-think/claude-opus-4.8-fast",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.8",
-      "name": "no-think/claude-opus-4.8",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.7",
-      "name": "no-think/claude-opus-4.7",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.6",
-      "name": "no-think/claude-opus-4.6",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-sonnet-4.6",
-      "name": "no-think/claude-sonnet-4.6",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-sonnet-5",
-      "name": "no-think/claude-sonnet-5",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-sonnet-4.5",
-      "name": "no-think/claude-sonnet-4.5",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-haiku-4.5",
-      "name": "no-think/claude-haiku-4.5",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "gh/claude-fable-5-max",
-      "name": "gh/claude-fable-5-max",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/claude-opus-5-max",
-      "name": "claude-opus-5-max",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/claude-opus-4.8-fast-max",
-      "name": "claude-opus-4.8-fast-max",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.8-max",
-      "name": "claude-opus-4.8-max",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.7-max",
-      "name": "claude-opus-4.7-max",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.6-max",
-      "name": "claude-opus-4.6-max",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
-      "id": "gh/claude-opus-4.5-low",
-      "name": "claude-opus-4.5-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 32000
-    },
-    {
-      "id": "gh/claude-opus-4.5-medium",
-      "name": "claude-opus-4.5-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 32000
-    },
-    {
-      "id": "gh/claude-opus-4.5-high",
-      "name": "claude-opus-4.5-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 32000
-    },
-    {
-      "id": "gh/gpt-5.6-sol-low",
-      "name": "gh/gpt-5.6-sol-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.6-sol-medium",
-      "name": "gh/gpt-5.6-sol-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.6-sol-high",
-      "name": "gh/gpt-5.6-sol-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.6-sol-xhigh",
-      "name": "gh/gpt-5.6-sol-xhigh",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.6-sol-max",
-      "name": "gh/gpt-5.6-sol-max",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.6-terra-low",
-      "name": "gh/gpt-5.6-terra-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.6-terra-medium",
-      "name": "gh/gpt-5.6-terra-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.6-terra-high",
-      "name": "gh/gpt-5.6-terra-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.6-terra-xhigh",
-      "name": "gh/gpt-5.6-terra-xhigh",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.6-terra-max",
-      "name": "gh/gpt-5.6-terra-max",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.6-luna-low",
-      "name": "gh/gpt-5.6-luna-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.6-luna-medium",
-      "name": "gh/gpt-5.6-luna-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.6-luna-high",
-      "name": "gh/gpt-5.6-luna-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.6-luna-xhigh",
-      "name": "gh/gpt-5.6-luna-xhigh",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "gh/gpt-5.6-luna-max",
-      "name": "gh/gpt-5.6-luna-max",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "no-think/gh/claude-opus-5-low",
-      "name": "no-think/claude-opus-5-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-5-medium",
-      "name": "no-think/claude-opus-5-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-5-high",
-      "name": "no-think/claude-opus-5-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-5-xhigh",
-      "name": "no-think/claude-opus-5-xhigh",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-5-max",
-      "name": "no-think/claude-opus-5-max",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.8-fast-low",
-      "name": "no-think/claude-opus-4.8-fast-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.8-fast-medium",
-      "name": "no-think/claude-opus-4.8-fast-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.8-fast-high",
-      "name": "no-think/claude-opus-4.8-fast-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.8-fast-xhigh",
-      "name": "no-think/claude-opus-4.8-fast-xhigh",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.8-fast-max",
-      "name": "no-think/claude-opus-4.8-fast-max",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.8-low",
-      "name": "no-think/claude-opus-4.8-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.8-medium",
-      "name": "no-think/claude-opus-4.8-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.8-high",
-      "name": "no-think/claude-opus-4.8-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.8-xhigh",
-      "name": "no-think/claude-opus-4.8-xhigh",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.8-max",
-      "name": "no-think/claude-opus-4.8-max",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.7-low",
-      "name": "no-think/claude-opus-4.7-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.7-medium",
-      "name": "no-think/claude-opus-4.7-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.7-high",
-      "name": "no-think/claude-opus-4.7-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.7-xhigh",
-      "name": "no-think/claude-opus-4.7-xhigh",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.7-max",
-      "name": "no-think/claude-opus-4.7-max",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.6-low",
-      "name": "no-think/claude-opus-4.6-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.6-medium",
-      "name": "no-think/claude-opus-4.6-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.6-high",
-      "name": "no-think/claude-opus-4.6-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "no-think/gh/claude-opus-4.6-max",
-      "name": "no-think/claude-opus-4.6-max",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
     },
     {
       "id": "kc/kilo-auto/efficient",
@@ -4998,8 +2862,25 @@
       "maxTokens": 32768
     },
     {
-      "id": "kc/nvidia/nemotron-3-ultra-550b-a55b:free",
-      "name": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "id": "kc/nvidia/nemotron-3.5-super-vl:free",
+      "name": "nvidia/nemotron-3.5-super-vl:free",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 131072
+    },
+    {
+      "id": "kc/reflection/beam-free",
+      "name": "reflection/beam-free",
       "reasoning": true,
       "input": [
         "text"
@@ -5010,8 +2891,8 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 1000000,
-      "maxTokens": 65536
+      "contextWindow": 1048576,
+      "maxTokens": 131072
     },
     {
       "id": "kc/stealth/glyph-cluster",
@@ -5112,7 +2993,158 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 943717
+      "maxTokens": 943718
+    },
+    {
+      "id": "kc/deepseek/deepseek-v4.1-flash-1017",
+      "name": "deepseek/deepseek-v4.1-flash-1017",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 393216
+    },
+    {
+      "id": "kc/elorian/glimpse",
+      "name": "elorian/glimpse",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 262144,
+      "maxTokens": 256000
+    },
+    {
+      "id": "kc/xingchen-agi/xing4.0-29b-a4b:free",
+      "name": "xingchen-agi/xing4.0-29b-a4b:free",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 262144,
+      "maxTokens": 235929
+    },
+    {
+      "id": "kc/reflection/beam-1.0-501b-a23b",
+      "name": "reflection/beam-1.0-501b-a23b",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 943718
+    },
+    {
+      "id": "kc/moondream/moondream3-preview",
+      "name": "moondream/moondream3-preview",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 32000,
+      "maxTokens": 4096
+    },
+    {
+      "id": "kc/moondream/moondream3.1-9b-a2b",
+      "name": "moondream/moondream3.1-9b-a2b",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 32000,
+      "maxTokens": 4096
+    },
+    {
+      "id": "kc/meta/muse-spark-open",
+      "name": "meta/muse-spark-open",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 943718
+    },
+    {
+      "id": "kc/nvidia/nemotron-3.5-super-vl",
+      "name": "nvidia/nemotron-3.5-super-vl",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 235929
+    },
+    {
+      "id": "kc/unbiased/pareto-26.10",
+      "name": "unbiased/pareto-26.10",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 131072
     },
     {
       "id": "kc/~unbiased/pareto-latest",
@@ -5128,7 +3160,7 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 262144,
+      "contextWindow": 1048576,
       "maxTokens": 131072
     },
     {
@@ -5179,7 +3211,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 65536
+      "maxTokens": 943718
     },
     {
       "id": "kc/scaledown/summarize",
@@ -5315,23 +3347,6 @@
       },
       "contextWindow": 262144,
       "maxTokens": 235929
-    },
-    {
-      "id": "kc/unbiased/pareto-26.10-preview",
-      "name": "unbiased/pareto-26.10-preview",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 131072
     },
     {
       "id": "kc/openai/gpt-6.1-sol-pro",
@@ -6219,7 +4234,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 131072
+      "maxTokens": 943718
     },
     {
       "id": "kc/tencent/hy-mt2-7b",
@@ -6369,7 +4384,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 393216
+      "maxTokens": 384000
     },
     {
       "id": "kc/x-ai/grok-4.6",
@@ -7203,6 +5218,22 @@
       "maxTokens": 182520
     },
     {
+      "id": "kc/nvidia/nemotron-3-ultra-550b-a55b:free",
+      "name": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 65536
+    },
+    {
       "id": "kc/qwen/qwen3.7-plus",
       "name": "Qwen3.7 Plus",
       "reasoning": true,
@@ -7472,7 +5503,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 65536
+      "maxTokens": 943718
     },
     {
       "id": "kc/~moonshotai/kimi-latest",
@@ -7591,7 +5622,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 262144,
-      "maxTokens": 81920
+      "maxTokens": 65536
     },
     {
       "id": "kc/openai/gpt-5.5-pro",
@@ -8242,7 +6273,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 262144,
-      "maxTokens": 16384
+      "maxTokens": 235929
     },
     {
       "id": "kc/qwen/qwen3.5-27b",
@@ -8259,7 +6290,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 262144,
-      "maxTokens": 81920
+      "maxTokens": 65536
     },
     {
       "id": "kc/qwen/qwen3.5-122b-a10b",
@@ -8938,7 +6969,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 163840,
-      "maxTokens": 147456
+      "maxTokens": 65536
     },
     {
       "id": "kc/anthropic/claude-opus-4.5",
@@ -9401,7 +7432,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 262144,
-      "maxTokens": 235929
+      "maxTokens": 16384
     },
     {
       "id": "kc/moonshotai/kimi-k2-0905",
@@ -9824,8 +7855,8 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 81920,
-      "maxTokens": 38000
+      "contextWindow": 262144,
+      "maxTokens": 131072
     },
     {
       "id": "kc/mistralai/mistral-small-3.2-24b-instruct",
@@ -9943,23 +7974,6 @@
       },
       "contextWindow": 163840,
       "maxTokens": 32768
-    },
-    {
-      "id": "kc/anthropic/claude-sonnet-4",
-      "name": "anthropic/claude-sonnet-4",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 64000
     },
     {
       "id": "kc/mistralai/mistral-medium-3",
@@ -10177,7 +8191,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1310720,
-      "maxTokens": 117964
+      "maxTokens": 16384
     },
     {
       "id": "kc/deepseek/deepseek-chat-v3-0324",
@@ -10636,7 +8650,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 131072,
-      "maxTokens": 32768
+      "maxTokens": 16384
     },
     {
       "id": "kc/amazon/nova-lite-v1",
@@ -10815,7 +8829,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 131072,
-      "maxTokens": 117964
+      "maxTokens": 72000
     },
     {
       "id": "kc/qwen/qwen-2.5-72b-instruct",
@@ -11358,23 +9372,6 @@
       "maxTokens": 128000
     },
     {
-      "id": "kc/stepfun/step-5-preview-free",
-      "name": "stepfun/step-5-preview-free",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000
-    },
-    {
       "id": "kc/kilo-auto/frontier",
       "name": "kilo-auto/frontier",
       "reasoning": true,
@@ -11625,38 +9622,6 @@
     {
       "id": "kc/aion-2.0",
       "name": "aion-2.0",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "kc/aion-3.0",
-      "name": "aion-3.0",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "kc/aion-3.0-mini",
-      "name": "aion-3.0-mini",
       "reasoning": true,
       "input": [
         "text"
@@ -12945,6 +10910,22 @@
       "maxTokens": 128000
     },
     {
+      "id": "kc/glm-5.2",
+      "name": "glm-5.2",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 131072
+    },
+    {
       "id": "kc/glm-5v-turbo",
       "name": "glm-5v-turbo",
       "reasoning": true,
@@ -13974,22 +11955,6 @@
       "maxTokens": 25600
     },
     {
-      "id": "kc/hy3",
-      "name": "hy3",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
       "id": "kc/hy3-preview",
       "name": "hy3-preview",
       "reasoning": true,
@@ -14004,22 +11969,6 @@
       },
       "contextWindow": 262144,
       "maxTokens": 262144
-    },
-    {
-      "id": "kc/hy3:free",
-      "name": "hy3:free",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
     },
     {
       "id": "kc/inflection-3-pi",
@@ -14040,22 +11989,6 @@
     {
       "id": "kc/inflection-3-productivity",
       "name": "inflection-3-productivity",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "kc/intellect-3",
-      "name": "intellect-3",
       "reasoning": true,
       "input": [
         "text"
@@ -14152,6 +12085,23 @@
     {
       "id": "kc/kimi-k2.5",
       "name": "kc/kimi-k2.5",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 262144,
+      "maxTokens": 262144
+    },
+    {
+      "id": "kc/kimi-k2.7-code",
+      "name": "kimi-k2.7-code",
       "reasoning": true,
       "input": [
         "text",
@@ -14313,22 +12263,6 @@
     {
       "id": "kc/lfm-2-24b-a2b",
       "name": "lfm-2-24b-a2b",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "kc/lfm-2.5-2.6b:free",
-      "name": "lfm-2.5-2.6b:free",
       "reasoning": true,
       "input": [
         "text"
@@ -15183,22 +13117,6 @@
     {
       "id": "kc/nemotron-3.5-content-safety:free",
       "name": "nemotron-3.5-content-safety:free",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 25600
-    },
-    {
-      "id": "kc/nex-n2-mini",
-      "name": "nex-n2-mini",
       "reasoning": true,
       "input": [
         "text"
@@ -17848,7 +15766,7 @@
     },
     {
       "id": "kc/claude-opus-4.6-low",
-      "name": "kc/claude-opus-4.6-low",
+      "name": "claude-opus-4.6-low",
       "reasoning": true,
       "input": [
         "text",
@@ -17865,7 +15783,7 @@
     },
     {
       "id": "kc/claude-opus-4.6-medium",
-      "name": "kc/claude-opus-4.6-medium",
+      "name": "claude-opus-4.6-medium",
       "reasoning": true,
       "input": [
         "text",
@@ -17882,7 +15800,7 @@
     },
     {
       "id": "kc/claude-opus-4.6-high",
-      "name": "kc/claude-opus-4.6-high",
+      "name": "claude-opus-4.6-high",
       "reasoning": true,
       "input": [
         "text",
@@ -17899,7 +15817,7 @@
     },
     {
       "id": "kc/claude-opus-4.7-low",
-      "name": "kc/claude-opus-4.7-low",
+      "name": "claude-opus-4.7-low",
       "reasoning": true,
       "input": [
         "text",
@@ -17916,7 +15834,7 @@
     },
     {
       "id": "kc/claude-opus-4.7-medium",
-      "name": "kc/claude-opus-4.7-medium",
+      "name": "claude-opus-4.7-medium",
       "reasoning": true,
       "input": [
         "text",
@@ -17933,7 +15851,7 @@
     },
     {
       "id": "kc/claude-opus-4.7-high",
-      "name": "kc/claude-opus-4.7-high",
+      "name": "claude-opus-4.7-high",
       "reasoning": true,
       "input": [
         "text",
@@ -17950,7 +15868,7 @@
     },
     {
       "id": "kc/claude-opus-4.7-xhigh",
-      "name": "kc/claude-opus-4.7-xhigh",
+      "name": "claude-opus-4.7-xhigh",
       "reasoning": true,
       "input": [
         "text",
@@ -17967,7 +15885,7 @@
     },
     {
       "id": "kc/claude-opus-4.8-low",
-      "name": "kc/claude-opus-4.8-low",
+      "name": "claude-opus-4.8-low",
       "reasoning": true,
       "input": [
         "text",
@@ -17984,7 +15902,7 @@
     },
     {
       "id": "kc/claude-opus-4.8-medium",
-      "name": "kc/claude-opus-4.8-medium",
+      "name": "claude-opus-4.8-medium",
       "reasoning": true,
       "input": [
         "text",
@@ -18001,7 +15919,7 @@
     },
     {
       "id": "kc/claude-opus-4.8-high",
-      "name": "kc/claude-opus-4.8-high",
+      "name": "claude-opus-4.8-high",
       "reasoning": true,
       "input": [
         "text",
@@ -18018,7 +15936,7 @@
     },
     {
       "id": "kc/claude-opus-4.8-xhigh",
-      "name": "kc/claude-opus-4.8-xhigh",
+      "name": "claude-opus-4.8-xhigh",
       "reasoning": true,
       "input": [
         "text",
@@ -18035,7 +15953,7 @@
     },
     {
       "id": "kc/claude-opus-4.8-fast-low",
-      "name": "kc/claude-opus-4.8-fast-low",
+      "name": "claude-opus-4.8-fast-low",
       "reasoning": true,
       "input": [
         "text",
@@ -18052,7 +15970,7 @@
     },
     {
       "id": "kc/claude-opus-4.8-fast-medium",
-      "name": "kc/claude-opus-4.8-fast-medium",
+      "name": "claude-opus-4.8-fast-medium",
       "reasoning": true,
       "input": [
         "text",
@@ -18069,7 +15987,7 @@
     },
     {
       "id": "kc/claude-opus-4.8-fast-high",
-      "name": "kc/claude-opus-4.8-fast-high",
+      "name": "claude-opus-4.8-fast-high",
       "reasoning": true,
       "input": [
         "text",
@@ -18086,7 +16004,7 @@
     },
     {
       "id": "kc/claude-opus-4.8-fast-xhigh",
-      "name": "kc/claude-opus-4.8-fast-xhigh",
+      "name": "claude-opus-4.8-fast-xhigh",
       "reasoning": true,
       "input": [
         "text",
@@ -18154,7 +16072,7 @@
     },
     {
       "id": "kc/claude-sonnet-4.6-low",
-      "name": "kc/claude-sonnet-4.6-low",
+      "name": "claude-sonnet-4.6-low",
       "reasoning": true,
       "input": [
         "text",
@@ -18171,7 +16089,7 @@
     },
     {
       "id": "kc/claude-sonnet-4.6-medium",
-      "name": "kc/claude-sonnet-4.6-medium",
+      "name": "claude-sonnet-4.6-medium",
       "reasoning": true,
       "input": [
         "text",
@@ -18188,7 +16106,7 @@
     },
     {
       "id": "kc/claude-sonnet-4.6-high",
-      "name": "kc/claude-sonnet-4.6-high",
+      "name": "claude-sonnet-4.6-high",
       "reasoning": true,
       "input": [
         "text",
@@ -20767,7 +18685,7 @@
     },
     {
       "id": "oc/hy3-free",
-      "name": "oc/HY3 Free",
+      "name": "HY3 Free",
       "reasoning": true,
       "input": [
         "text"
@@ -21509,7 +19427,7 @@
     },
     {
       "id": "aug/gpt5.4",
-      "name": "aug/GPT-5.4",
+      "name": "GPT-5.4",
       "reasoning": true,
       "input": [
         "text"
@@ -21541,7 +19459,7 @@
     },
     {
       "id": "aug/gpt5.5",
-      "name": "aug/GPT-5.5",
+      "name": "GPT-5.5",
       "reasoning": true,
       "input": [
         "text"
@@ -22728,6 +20646,22 @@
       "maxTokens": 40000
     },
     {
+      "id": "opencode-zen/ll-alpha-free",
+      "name": "ll-alpha-free",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 200000,
+      "maxTokens": 40000
+    },
+    {
       "id": "opencode-zen/mimo-v2.6-flash-free",
       "name": "mimo-v2.6-flash-free",
       "reasoning": true,
@@ -22777,6 +20711,22 @@
       "maxTokens": 131072
     },
     {
+      "id": "opencode-zen/nemotron-3.5-super-vl-free",
+      "name": "nemotron-3.5-super-vl-free",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 200000,
+      "maxTokens": 40000
+    },
+    {
       "id": "opencode-zen/nemotron-3.5-lightning-free",
       "name": "Nemotron 3.5 Lightning Free",
       "reasoning": true,
@@ -22795,22 +20745,6 @@
     {
       "id": "opencode-zen/jev-1.13-free",
       "name": "jev-1.13-free",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 40000
-    },
-    {
-      "id": "opencode-zen/step-5-preview-free",
-      "name": "step-5-preview-free",
       "reasoning": true,
       "input": [
         "text"
@@ -22855,6 +20789,23 @@
       },
       "contextWindow": 200000,
       "maxTokens": 40000
+    },
+    {
+      "id": "opencode-zen/glm-5.3-flash-free",
+      "name": "glm-5.3-flash-free",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 131072
     },
     {
       "id": "opencode-zen/space-bunny-free",
@@ -23761,7 +21712,7 @@
     },
     {
       "id": "opencode-zen/grok-4.6",
-      "name": "opencode-zen/Grok 4.6",
+      "name": "Grok 4.6",
       "reasoning": true,
       "input": [
         "text"
@@ -24036,22 +21987,6 @@
       },
       "contextWindow": 1000000,
       "maxTokens": 65536
-    },
-    {
-      "id": "opencode-zen/hy3-free",
-      "name": "opencode-zen/HY3 Free",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 200000,
-      "maxTokens": 40000
     },
     {
       "id": "opencode-zen/claude-fable-5-low",
@@ -24548,7 +22483,7 @@
     },
     {
       "id": "opencode-zen/claude-opus-5-5-xhigh",
-      "name": "claude-opus-5-5-xhigh",
+      "name": "opencode-zen/claude-opus-5-5-xhigh",
       "reasoning": true,
       "input": [
         "text",
@@ -25218,7 +23153,7 @@
     },
     {
       "id": "opencode-zen/gpt-5.6-luna-low",
-      "name": "opencode-zen/gpt-5.6-luna-low",
+      "name": "gpt-5.6-luna-low",
       "reasoning": true,
       "input": [
         "text",
@@ -25235,7 +23170,7 @@
     },
     {
       "id": "opencode-zen/gpt-5.6-luna-medium",
-      "name": "opencode-zen/gpt-5.6-luna-medium",
+      "name": "gpt-5.6-luna-medium",
       "reasoning": true,
       "input": [
         "text",
@@ -25252,7 +23187,7 @@
     },
     {
       "id": "opencode-zen/gpt-5.6-luna-high",
-      "name": "opencode-zen/gpt-5.6-luna-high",
+      "name": "gpt-5.6-luna-high",
       "reasoning": true,
       "input": [
         "text",
@@ -25269,7 +23204,7 @@
     },
     {
       "id": "opencode-zen/gpt-5.6-luna-xhigh",
-      "name": "opencode-zen/gpt-5.6-luna-xhigh",
+      "name": "gpt-5.6-luna-xhigh",
       "reasoning": true,
       "input": [
         "text",
@@ -25286,7 +23221,7 @@
     },
     {
       "id": "opencode-zen/gpt-5.6-luna-max",
-      "name": "opencode-zen/gpt-5.6-luna-max",
+      "name": "gpt-5.6-luna-max",
       "reasoning": true,
       "input": [
         "text",
@@ -25303,7 +23238,7 @@
     },
     {
       "id": "opencode-zen/gpt-5.6-sol-low",
-      "name": "opencode-zen/gpt-5.6-sol-low",
+      "name": "gpt-5.6-sol-low",
       "reasoning": true,
       "input": [
         "text",
@@ -25320,7 +23255,7 @@
     },
     {
       "id": "opencode-zen/gpt-5.6-sol-medium",
-      "name": "opencode-zen/gpt-5.6-sol-medium",
+      "name": "gpt-5.6-sol-medium",
       "reasoning": true,
       "input": [
         "text",
@@ -25337,7 +23272,7 @@
     },
     {
       "id": "opencode-zen/gpt-5.6-sol-high",
-      "name": "opencode-zen/gpt-5.6-sol-high",
+      "name": "gpt-5.6-sol-high",
       "reasoning": true,
       "input": [
         "text",
@@ -25354,7 +23289,7 @@
     },
     {
       "id": "opencode-zen/gpt-5.6-sol-xhigh",
-      "name": "opencode-zen/gpt-5.6-sol-xhigh",
+      "name": "gpt-5.6-sol-xhigh",
       "reasoning": true,
       "input": [
         "text",
@@ -25371,7 +23306,7 @@
     },
     {
       "id": "opencode-zen/gpt-5.6-sol-max",
-      "name": "opencode-zen/gpt-5.6-sol-max",
+      "name": "gpt-5.6-sol-max",
       "reasoning": true,
       "input": [
         "text",
@@ -25388,7 +23323,7 @@
     },
     {
       "id": "opencode-zen/gpt-5.6-terra-low",
-      "name": "opencode-zen/gpt-5.6-terra-low",
+      "name": "gpt-5.6-terra-low",
       "reasoning": true,
       "input": [
         "text",
@@ -25405,7 +23340,7 @@
     },
     {
       "id": "opencode-zen/gpt-5.6-terra-medium",
-      "name": "opencode-zen/gpt-5.6-terra-medium",
+      "name": "gpt-5.6-terra-medium",
       "reasoning": true,
       "input": [
         "text",
@@ -25422,7 +23357,7 @@
     },
     {
       "id": "opencode-zen/gpt-5.6-terra-high",
-      "name": "opencode-zen/gpt-5.6-terra-high",
+      "name": "gpt-5.6-terra-high",
       "reasoning": true,
       "input": [
         "text",
@@ -25439,7 +23374,7 @@
     },
     {
       "id": "opencode-zen/gpt-5.6-terra-xhigh",
-      "name": "opencode-zen/gpt-5.6-terra-xhigh",
+      "name": "gpt-5.6-terra-xhigh",
       "reasoning": true,
       "input": [
         "text",
@@ -25456,7 +23391,7 @@
     },
     {
       "id": "opencode-zen/gpt-5.6-terra-max",
-      "name": "opencode-zen/gpt-5.6-terra-max",
+      "name": "gpt-5.6-terra-max",
       "reasoning": true,
       "input": [
         "text",
@@ -26988,6 +24923,22 @@
       "maxTokens": 25600
     },
     {
+      "id": "cf/@cf/daily-co/phonellm-mini-alpha-2",
+      "name": "@cf/daily-co/phonellm-mini-alpha-2",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
       "id": "cf/@cf/qwen/qwen3.8-27b",
       "name": "@cf/qwen/qwen3.8-27b",
       "reasoning": true,
@@ -27152,6 +25103,695 @@
       "id": "cf/@cf/deepgram/aura-2-en",
       "name": "@cf/deepgram/aura-2-en",
       "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/deepgram/aura-1",
+      "name": "deepgram/aura-1",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/deepgram/aura-2-en",
+      "name": "deepgram/aura-2-en",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/deepgram/aura-2-es",
+      "name": "deepgram/aura-2-es",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/baai/bge-base-en-v1.5",
+      "name": "baai/bge-base-en-v1.5",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/baai/bge-large-en-v1.5",
+      "name": "baai/bge-large-en-v1.5",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/baai/bge-m3",
+      "name": "baai/bge-m3",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/baai/bge-reranker-base",
+      "name": "baai/bge-reranker-base",
+      "reasoning": false,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/baai/bge-small-en-v1.5",
+      "name": "baai/bge-small-en-v1.5",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/huggingface/distilbert-sst-2-int8",
+      "name": "huggingface/distilbert-sst-2-int8",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/lykon/dreamshaper-8-lcm",
+      "name": "lykon/dreamshaper-8-lcm",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/google/embeddinggemma-300m",
+      "name": "google/embeddinggemma-300m",
+      "reasoning": false,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/deepgram/flux",
+      "name": "deepgram/flux",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/black-forest-labs/flux-1-schnell",
+      "name": "black-forest-labs/flux-1-schnell",
+      "reasoning": false,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/black-forest-labs/flux-2-dev",
+      "name": "black-forest-labs/flux-2-dev",
+      "reasoning": false,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/black-forest-labs/flux-2-klein-4b",
+      "name": "black-forest-labs/flux-2-klein-4b",
+      "reasoning": false,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/black-forest-labs/flux-2-klein-9b",
+      "name": "black-forest-labs/flux-2-klein-9b",
+      "reasoning": false,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/google/gemma-2b-it-lora",
+      "name": "google/gemma-2b-it-lora",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/google/gemma-7b-it-lora",
+      "name": "google/gemma-7b-it-lora",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/aisingapore/gemma-sea-lion-v4-27b-it",
+      "name": "aisingapore/gemma-sea-lion-v4-27b-it",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/ai4bharat/indictrans2-en-indic-1B",
+      "name": "ai4bharat/indictrans2-en-indic-1B",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/meta-llama/llama-2-7b-chat-hf-lora",
+      "name": "meta-llama/llama-2-7b-chat-hf-lora",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/meta/llama-3.1-8b-instruct-fp8",
+      "name": "meta/llama-3.1-8b-instruct-fp8",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/meta/llama-4-scout-17b-16e-instruct",
+      "name": "meta/llama-4-scout-17b-16e-instruct",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/meta/llama-guard-3-8b",
+      "name": "meta/llama-guard-3-8b",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/llava-hf/llava-1.5-7b-hf",
+      "name": "llava-hf/llava-1.5-7b-hf",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/leonardo/lucid-origin",
+      "name": "leonardo/lucid-origin",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/meta/m2m100-1.2b",
+      "name": "meta/m2m100-1.2b",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/myshell-ai/melotts",
+      "name": "myshell-ai/melotts",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/nvidia/nemotron-3-120b-a12b",
+      "name": "nvidia/nemotron-3-120b-a12b",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/deepgram/nova-3",
+      "name": "deepgram/nova-3",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/leonardo/phoenix-1.0",
+      "name": "leonardo/phoenix-1.0",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/pfnet/plamo-embedding-1b",
+      "name": "pfnet/plamo-embedding-1b",
+      "reasoning": false,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/qwen/qwen3-30b-a3b-fp8",
+      "name": "qwen/qwen3-30b-a3b-fp8",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/qwen/qwen3-embedding-0.6b",
+      "name": "qwen/qwen3-embedding-0.6b",
+      "reasoning": false,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/microsoft/resnet-50",
+      "name": "microsoft/resnet-50",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/pipecat-ai/smart-turn-v2",
+      "name": "pipecat-ai/smart-turn-v2",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/runwayml/stable-diffusion-v1-5-img2img",
+      "name": "runwayml/stable-diffusion-v1-5-img2img",
+      "reasoning": false,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/runwayml/stable-diffusion-v1-5-inpainting",
+      "name": "runwayml/stable-diffusion-v1-5-inpainting",
+      "reasoning": false,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "name": "stabilityai/stable-diffusion-xl-base-1.0",
+      "reasoning": false,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/bytedance/stable-diffusion-xl-lightning",
+      "name": "bytedance/stable-diffusion-xl-lightning",
+      "reasoning": false,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/openai/whisper",
+      "name": "openai/whisper",
+      "reasoning": false,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/openai/whisper-large-v3-turbo",
+      "name": "openai/whisper-large-v3-turbo",
+      "reasoning": false,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 128000,
+      "maxTokens": 25600
+    },
+    {
+      "id": "cf/openai/whisper-tiny-en",
+      "name": "openai/whisper-tiny-en",
+      "reasoning": false,
       "input": [
         "text"
       ],
