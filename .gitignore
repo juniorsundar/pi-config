@@ -27,3 +27,4 @@
 /profiles/*/trust.json
 /profiles/*/sessions/
 /profiles/*/cache/
+/claude-bridge.json
