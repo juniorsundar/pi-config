@@ -9,12 +9,6 @@
     "omniroute/antigravity/gemini-3.8-flash-tiered",
     "omniroute/antigravity/claude-opus-5-5-high",
     "omniroute/antigravity/claude-sonnet-5-5-high",
-    "omniroute/cc/claude-fable-5-1",
-    "omniroute/cc/claude-fable-5",
-    "omniroute/cc/claude-opus-5-5",
-    "omniroute/cc/claude-opus-5",
-    "omniroute/cc/claude-sonnet-5-5",
-    "omniroute/cc/claude-sonnet-5",
     "openai/gpt-6.1-sol",
     "openai/gpt-6-astra",
     "openai/gpt-6-sol",
@@ -34,7 +28,14 @@
     "omniroute/ds-web/deepseek-v4-pro",
     "omniroute/ds-web/deepseek-v4-pro-think",
     "omniroute/ds-web/deepseek-v4-flash",
-    "omniroute/ds-web/deepseek-v4-flash-think"
+    "omniroute/ds-web/deepseek-v4-flash-think",
+    "zai/glm-5.3",
+    "zai/glm-5.3-flash",
+    "claude-bridge/claude-fable-5-1",
+    "claude-bridge/claude-fable-5",
+    "claude-bridge/claude-opus-5-5",
+    "claude-bridge/claude-sonnet-5-5",
+    "claude-bridge/claude-haiku-5-5"
   ],
   "hideThinkingBlock": true,
   "images": {
@@ -48,7 +49,8 @@
     "npm:pi-blackhole",
     "git:github.com/juicesharp/rpiv-mono",
     "git:github.com/juniorsundar/my-pi-mono",
-    "git:github.com/juniorsundar/writer-skills"
+    "git:github.com/juniorsundar/writer-skills",
+    "npm:pi-claude-bridge"
   ],
   "shellCommandPrefix": "export DIRENV_LOG_FORMAT=''; if command -v direnv >/dev/null 2>&1; then eval \"$(direnv export bash 2>/dev/null)\"; fi",
   "deepresearch": {
