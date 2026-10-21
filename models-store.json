@@ -4719,7 +4719,7 @@
     ],
     "lastModified": 1792413813000,
     "etag": "W/\"1e37e59ef19c05423fd17cbf1c168d92\"",
-    "checkedAt": 1792428701715
+    "checkedAt": 1792576194812
   },
   "openai-codex": {
     "models": [
@@ -25098,52 +25098,6 @@
         "type": "chat"
       },
       {
-        "id": "gpt-5.2-chat-latest",
-        "name": "GPT-5.2 Chat",
-        "api": "openai-responses",
-        "provider": "openai",
-        "baseUrl": "https://api.openai.com/v1",
-        "reasoning": true,
-        "input": [
-          "text",
-          "image"
-        ],
-        "cost": {
-          "input": 1.75,
-          "output": 14,
-          "cacheRead": 0.175,
-          "cacheWrite": 0
-        },
-        "contextWindow": 128000,
-        "maxTokens": 16384,
-        "thinkingLevelMap": {
-          "off": null,
-          "minimal": null,
-          "low": null,
-          "medium": "medium",
-          "high": null,
-          "xhigh": "xhigh",
-          "max": null
-        },
-        "compat": {
-          "supportsStrictMode": true,
-          "supportsOpenAIGrammarTools": true
-        },
-        "inputLimits": {
-          "maxRequestBytes": 536870912,
-          "images": {
-            "maxPerRequest": 1500,
-            "resize": {
-              "maxWidth": 2000,
-              "maxHeight": 2000,
-              "maxBytes": 4718592,
-              "jpegQuality": 80
-            }
-          }
-        },
-        "type": "chat"
-      },
-      {
         "id": "gpt-5.2-pro",
         "name": "GPT-5.2 Pro",
         "api": "openai-responses",
@@ -25170,47 +25124,6 @@
           "high": "high",
           "xhigh": "xhigh",
           "max": null
-        },
-        "compat": {
-          "supportsStrictMode": true,
-          "supportsOpenAIGrammarTools": true
-        },
-        "inputLimits": {
-          "maxRequestBytes": 536870912,
-          "images": {
-            "maxPerRequest": 1500,
-            "resize": {
-              "maxWidth": 2000,
-              "maxHeight": 2000,
-              "maxBytes": 4718592,
-              "jpegQuality": 80
-            }
-          }
-        },
-        "type": "chat"
-      },
-      {
-        "id": "gpt-5.3-chat-latest",
-        "name": "GPT-5.3 Chat (latest)",
-        "api": "openai-responses",
-        "provider": "openai",
-        "baseUrl": "https://api.openai.com/v1",
-        "reasoning": false,
-        "input": [
-          "text",
-          "image"
-        ],
-        "cost": {
-          "input": 1.75,
-          "output": 14,
-          "cacheRead": 0.175,
-          "cacheWrite": 0
-        },
-        "contextWindow": 128000,
-        "maxTokens": 16384,
-        "thinkingLevelMap": {
-          "off": null,
-          "xhigh": "xhigh"
         },
         "compat": {
           "supportsStrictMode": true,
@@ -26495,8 +26408,274 @@
         "contextWindow": 922000
       }
     ],
-    "lastModified": 1792071787000,
-    "etag": "W/\"66ade7f4bebf0ce0a7650e47031e58dd\"",
-    "checkedAt": 1792428784603
+    "lastModified": 1792571009000,
+    "etag": "W/\"29918974afd6f0245e01383446ccae49\"",
+    "checkedAt": 1792576194710
+  },
+  "zai": {
+    "models": [
+      {
+        "id": "glm-4.7",
+        "name": "GLM-4.7",
+        "api": "openai-completions",
+        "provider": "zai",
+        "baseUrl": "https://api.z.ai/api/coding/paas/v4",
+        "reasoning": true,
+        "input": [
+          "text"
+        ],
+        "cost": {
+          "input": 0.6,
+          "output": 2.2,
+          "cacheRead": 0.11,
+          "cacheWrite": 0
+        },
+        "compat": {
+          "supportsStore": false,
+          "supportsDeveloperRole": false,
+          "supportsReasoningEffort": false,
+          "maxTokensField": "max_tokens",
+          "thinkingFormat": "zai",
+          "supportsStrictMode": true,
+          "zaiToolStream": true
+        },
+        "contextWindow": 204800,
+        "maxTokens": 131072,
+        "type": "chat"
+      },
+      {
+        "id": "glm-5-turbo",
+        "name": "GLM-5-Turbo",
+        "api": "openai-completions",
+        "provider": "zai",
+        "baseUrl": "https://api.z.ai/api/coding/paas/v4",
+        "reasoning": true,
+        "input": [
+          "text"
+        ],
+        "cost": {
+          "input": 1.2,
+          "output": 4,
+          "cacheRead": 0.24,
+          "cacheWrite": 0
+        },
+        "compat": {
+          "supportsStore": false,
+          "supportsDeveloperRole": false,
+          "supportsReasoningEffort": false,
+          "maxTokensField": "max_tokens",
+          "thinkingFormat": "zai",
+          "supportsStrictMode": true,
+          "zaiToolStream": true
+        },
+        "contextWindow": 200000,
+        "maxTokens": 131072,
+        "type": "chat"
+      },
+      {
+        "id": "glm-5.2",
+        "name": "GLM-5.2",
+        "api": "openai-completions",
+        "provider": "zai",
+        "baseUrl": "https://api.z.ai/api/coding/paas/v4",
+        "reasoning": true,
+        "thinkingLevelMap": {
+          "off": "none",
+          "minimal": null,
+          "low": null,
+          "medium": null,
+          "high": "high",
+          "xhigh": null,
+          "max": "max"
+        },
+        "input": [
+          "text"
+        ],
+        "cost": {
+          "input": 1.4,
+          "output": 4.4,
+          "cacheRead": 0.26,
+          "cacheWrite": 0
+        },
+        "compat": {
+          "supportsStore": false,
+          "supportsDeveloperRole": false,
+          "supportsReasoningEffort": true,
+          "maxTokensField": "max_tokens",
+          "thinkingFormat": "zai",
+          "supportsStrictMode": true,
+          "zaiToolStream": true
+        },
+        "contextWindow": 1000000,
+        "maxTokens": 131072,
+        "type": "chat"
+      },
+      {
+        "id": "glm-5.2-highspeed",
+        "name": "GLM-5.2 Highspeed",
+        "api": "openai-completions",
+        "provider": "zai",
+        "baseUrl": "https://api.z.ai/api/coding/paas/v4",
+        "reasoning": true,
+        "thinkingLevelMap": {
+          "off": "none",
+          "minimal": null,
+          "low": null,
+          "medium": null,
+          "high": "high",
+          "xhigh": null,
+          "max": "max"
+        },
+        "input": [
+          "text"
+        ],
+        "cost": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "compat": {
+          "supportsStore": false,
+          "supportsDeveloperRole": false,
+          "supportsReasoningEffort": true,
+          "maxTokensField": "max_tokens",
+          "thinkingFormat": "zai",
+          "supportsStrictMode": true,
+          "zaiToolStream": true
+        },
+        "contextWindow": 1000000,
+        "maxTokens": 131072,
+        "type": "chat"
+      },
+      {
+        "id": "glm-5.3",
+        "name": "GLM-5.3",
+        "api": "openai-completions",
+        "provider": "zai",
+        "baseUrl": "https://api.z.ai/api/coding/paas/v4",
+        "reasoning": true,
+        "thinkingLevelMap": {
+          "off": null,
+          "minimal": null,
+          "low": "low",
+          "medium": null,
+          "high": "high",
+          "xhigh": null,
+          "max": "max"
+        },
+        "input": [
+          "text"
+        ],
+        "cost": {
+          "input": 1.4,
+          "output": 4.4,
+          "cacheRead": 0.26,
+          "cacheWrite": 0
+        },
+        "compat": {
+          "supportsStore": false,
+          "supportsDeveloperRole": false,
+          "supportsReasoningEffort": true,
+          "maxTokensField": "max_tokens",
+          "thinkingFormat": "zai",
+          "supportsStrictMode": true,
+          "zaiToolStream": true
+        },
+        "contextWindow": 1000000,
+        "maxTokens": 131072,
+        "type": "chat"
+      },
+      {
+        "id": "glm-5.3-flash",
+        "name": "GLM-5.3-Flash",
+        "api": "openai-completions",
+        "provider": "zai",
+        "baseUrl": "https://api.z.ai/api/coding/paas/v4",
+        "reasoning": true,
+        "thinkingLevelMap": {
+          "off": null,
+          "minimal": null,
+          "low": "low",
+          "medium": null,
+          "high": "high",
+          "xhigh": null,
+          "max": "max"
+        },
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 0.15,
+          "output": 0.5,
+          "cacheRead": 0.03,
+          "cacheWrite": 0
+        },
+        "compat": {
+          "supportsStore": false,
+          "supportsDeveloperRole": false,
+          "supportsReasoningEffort": true,
+          "maxTokensField": "max_tokens",
+          "thinkingFormat": "zai",
+          "supportsStrictMode": true,
+          "zaiToolStream": true
+        },
+        "contextWindow": 1000000,
+        "maxTokens": 131072,
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        },
+        "type": "chat"
+      },
+      {
+        "id": "glm-5.3-highspeed",
+        "name": "GLM-5.3 Highspeed",
+        "api": "openai-completions",
+        "provider": "zai",
+        "baseUrl": "https://api.z.ai/api/coding/paas/v4",
+        "reasoning": true,
+        "thinkingLevelMap": {
+          "off": null,
+          "minimal": null,
+          "low": "low",
+          "medium": null,
+          "high": "high",
+          "xhigh": null,
+          "max": "max"
+        },
+        "input": [
+          "text"
+        ],
+        "cost": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "compat": {
+          "supportsStore": false,
+          "supportsDeveloperRole": false,
+          "supportsReasoningEffort": true,
+          "maxTokensField": "max_tokens",
+          "thinkingFormat": "zai",
+          "supportsStrictMode": true,
+          "zaiToolStream": true
+        },
+        "contextWindow": 1000000,
+        "maxTokens": 131072,
+        "type": "chat"
+      }
+    ],
+    "lastModified": 1792571066000,
+    "etag": "W/\"96c69ce1bbd6a0e17fe652b1e6df93a9\"",
+    "checkedAt": 1792576194754
   }
 }

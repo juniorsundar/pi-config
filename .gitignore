@@ -28,3 +28,4 @@
 /profiles/*/sessions/
 /profiles/*/cache/
 /claude-bridge.json
+/pi-blackhole
