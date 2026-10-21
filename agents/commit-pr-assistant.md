@@ -1,7 +1,7 @@
 ---
 name: commit-pr-assistant
 description: Prepare commit messages, PR summaries, changelogs, and reviewer notes from current git diffs without loading the main session context.
-model: openai-codex/gpt-6-luna
+model: openai/gpt-6-luna
 inheritProjectContext: true
 inheritSkills: false
 tools: read, bash
