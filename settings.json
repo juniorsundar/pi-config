@@ -31,11 +31,11 @@
     "omniroute/ds-web/deepseek-v4-flash-think",
     "zai/glm-5.3",
     "zai/glm-5.3-flash",
-    "claude-bridge/claude-fable-5-1",
-    "claude-bridge/claude-fable-5",
-    "claude-bridge/claude-opus-5-5",
-    "claude-bridge/claude-sonnet-5-5",
-    "claude-bridge/claude-haiku-5-5",
+    "omniroute/cc/claude-fable-5-1",
+    "omniroute/cc/claude-fable-5",
+    "omniroute/cc/claude-opus-5-5",
+    "omniroute/cc/claude-sonnet-5-5",
+    "omniroute/cc/claude-haiku-5-5",
     "omniroute/agy/gemini-3.8-flash-high",
     "omniroute/agy/gemini-3.7-flash-tiered"
   ],
@@ -43,7 +43,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "1.3.0",
+  "lastChangelogVersion": "1.4.0",
   "packages": [
     "npm:@juicesharp/rpiv-todo",
     "npm:@juicesharp/rpiv-ask-user-question",
