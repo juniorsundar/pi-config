@@ -35,7 +35,9 @@
     "claude-bridge/claude-fable-5",
     "claude-bridge/claude-opus-5-5",
     "claude-bridge/claude-sonnet-5-5",
-    "claude-bridge/claude-haiku-5-5"
+    "claude-bridge/claude-haiku-5-5",
+    "omniroute/agy/gemini-3.8-flash-high",
+    "omniroute/agy/gemini-3.7-flash-tiered"
   ],
   "hideThinkingBlock": true,
   "images": {
@@ -49,8 +51,7 @@
     "npm:pi-blackhole",
     "git:github.com/juicesharp/rpiv-mono",
     "git:github.com/juniorsundar/my-pi-mono",
-    "git:github.com/juniorsundar/writer-skills",
-    "npm:pi-claude-bridge"
+    "git:github.com/juniorsundar/writer-skills"
   ],
   "shellCommandPrefix": "export DIRENV_LOG_FORMAT=''; if command -v direnv >/dev/null 2>&1; then eval \"$(direnv export bash 2>/dev/null)\"; fi",
   "deepresearch": {

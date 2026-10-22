@@ -2,7 +2,7 @@
 name: reviewer
 description: Review specialist for code diffs, plans, proposed solutions, codebase health, and PR/issue validation. Spawning task MUST include a review checklist or depth level (light / deep). Without one, default to light — 5 turns max, verify stated criteria only, then stop.
 tools: read, grep, find, ls, bash, edit, write
-model: openai/gpt-5.6-terra
+model: zai/glm-5.3-flash
 thinking: medium
 systemPromptMode: replace
 inheritProjectContext: true
