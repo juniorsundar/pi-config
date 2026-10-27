@@ -4756,7 +4756,7 @@
     ],
     "lastModified": 1793014527000,
     "etag": "W/\"1851065827b1e3be68012118c96c1c10\"",
-    "checkedAt": 1793073904409
+    "checkedAt": 1793092157863
   },
   "openai-codex": {
     "models": [
@@ -6872,7 +6872,7 @@
         ],
         "cost": {
           "input": 0.02,
-          "output": 0.137854,
+          "output": 1,
           "cacheRead": 0.015,
           "cacheWrite": 0
         },
@@ -6916,9 +6916,9 @@
           "text"
         ],
         "cost": {
-          "input": 0.2211,
+          "input": 0.2541,
           "output": 8,
-          "cacheRead": 0.22,
+          "cacheRead": 0.25,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
@@ -7080,9 +7080,9 @@
           "image"
         ],
         "cost": {
-          "input": 0.19,
-          "output": 8.94,
-          "cacheRead": 0.19,
+          "input": 0.169,
+          "output": 20,
+          "cacheRead": 0.159,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
@@ -7484,7 +7484,7 @@
           "image"
         ],
         "cost": {
-          "input": 0.0513,
+          "input": 0.0451,
           "output": 0.0701,
           "cacheRead": 0.03,
           "cacheWrite": 0
@@ -9316,9 +9316,9 @@
           "text"
         ],
         "cost": {
-          "input": 0.2211,
+          "input": 0.2541,
           "output": 8,
-          "cacheRead": 0.22,
+          "cacheRead": 0.25,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
@@ -9353,9 +9353,9 @@
           "image"
         ],
         "cost": {
-          "input": 0.02,
-          "output": 0.137854,
-          "cacheRead": 0.015,
+          "input": 0.010265,
+          "output": 2.143588,
+          "cacheRead": 0.01815,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
@@ -9401,7 +9401,7 @@
         ],
         "cost": {
           "input": 0.02,
-          "output": 0.137854,
+          "output": 1,
           "cacheRead": 0.015,
           "cacheWrite": 0
         },
@@ -12937,9 +12937,9 @@
           "image"
         ],
         "cost": {
-          "input": 0.19,
-          "output": 8.94,
-          "cacheRead": 0.19,
+          "input": 0.169,
+          "output": 20,
+          "cacheRead": 0.159,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
@@ -20047,8 +20047,8 @@
           "cacheRead": 0.042,
           "cacheWrite": 0
         },
-        "contextWindow": 1048576,
-        "maxTokens": 64000,
+        "contextWindow": 262144,
+        "maxTokens": 235929,
         "compat": {
           "supportsDeveloperRole": false,
           "thinkingFormat": "openrouter",
@@ -20902,13 +20902,13 @@
           "image"
         ],
         "cost": {
-          "input": 0.091,
-          "output": 0.182,
-          "cacheRead": 0.00182,
+          "input": 0.1,
+          "output": 0.28,
+          "cacheRead": 0.003,
           "cacheWrite": 0
         },
-        "contextWindow": 1048576,
-        "maxTokens": 943718,
+        "contextWindow": 1048320,
+        "maxTokens": 131072,
         "compat": {
           "supportsDeveloperRole": false,
           "thinkingFormat": "openrouter",
@@ -20939,13 +20939,13 @@
           "image"
         ],
         "cost": {
-          "input": 0.387,
-          "output": 0.783,
-          "cacheRead": 0.00324,
+          "input": 0.36975,
+          "output": 0.7395,
+          "cacheRead": 0.0034,
           "cacheWrite": 0
         },
-        "contextWindow": 1048576,
-        "maxTokens": 943718,
+        "contextWindow": 1050000,
+        "maxTokens": 945000,
         "compat": {
           "supportsDeveloperRole": false,
           "thinkingFormat": "openrouter",
@@ -21400,7 +21400,7 @@
           "image"
         ],
         "cost": {
-          "input": 0.0513,
+          "input": 0.0451,
           "output": 0.0701,
           "cacheRead": 0.03,
           "cacheWrite": 0
@@ -23862,9 +23862,9 @@
           "text"
         ],
         "cost": {
-          "input": 0.06,
+          "input": 0.12,
           "output": 0,
-          "cacheRead": 0,
+          "cacheRead": 0.12,
           "cacheWrite": 0
         },
         "contextWindow": 262144,
@@ -24388,6 +24388,114 @@
       },
       {
         "type": "chat",
+        "id": "openai/gpt-6.1-terra-pro",
+        "name": "OpenAI: GPT-6.1 Terra Pro",
+        "api": "openai-completions",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "provider": "openrouter",
+        "reasoning": true,
+        "thinkingLevelMap": {
+          "off": null,
+          "minimal": null,
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 1,
+          "output": 5,
+          "cacheRead": 0.05,
+          "cacheWrite": 1.25,
+          "tiers": [
+            {
+              "inputTokensAbove": 272000,
+              "input": 2,
+              "output": 7.5,
+              "cacheRead": 0.1,
+              "cacheWrite": 2.5
+            }
+          ]
+        },
+        "contextWindow": 1050000,
+        "maxTokens": 128000,
+        "compat": {
+          "thinkingFormat": "openrouter",
+          "supportsStrictMode": true,
+          "sendSessionAffinityHeaders": true
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
+      },
+      {
+        "type": "chat",
+        "id": "openai/gpt-6.1-terra-pro:batch",
+        "name": "OpenAI: GPT-6.1 Terra Pro (batch)",
+        "api": "openai-completions",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "provider": "openrouter",
+        "reasoning": true,
+        "thinkingLevelMap": {
+          "off": null,
+          "minimal": null,
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 0.5,
+          "output": 2.5,
+          "cacheRead": 0.025,
+          "cacheWrite": 0.625,
+          "tiers": [
+            {
+              "inputTokensAbove": 272000,
+              "input": 1,
+              "output": 3.75,
+              "cacheRead": 0.05,
+              "cacheWrite": 1.25
+            }
+          ]
+        },
+        "contextWindow": 1050000,
+        "maxTokens": 128000,
+        "compat": {
+          "thinkingFormat": "openrouter",
+          "supportsStrictMode": true,
+          "sendSessionAffinityHeaders": true
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
+      },
+      {
+        "type": "chat",
         "id": "openai/gpt-6.1-terra:batch",
         "name": "OpenAI: GPT-6.1 Terra (batch)",
         "api": "openai-completions",
@@ -24485,7 +24593,7 @@
         }
       }
     ],
-    "checkedAt": 1793075401535
+    "checkedAt": 1793092159871
   },
   "openai": {
     "models": [
@@ -26525,7 +26633,7 @@
     ],
     "lastModified": 1793046867000,
     "etag": "W/\"fb27388143bf00b0c681cc7ab76c3ef8\"",
-    "checkedAt": 1793073921962
+    "checkedAt": 1793092157795
   },
   "zai": {
     "models": [
@@ -26791,6 +26899,6 @@
     ],
     "lastModified": 1792571066000,
     "etag": "W/\"96c69ce1bbd6a0e17fe652b1e6df93a9\"",
-    "checkedAt": 1793073904687
+    "checkedAt": 1793092157875
   }
 }

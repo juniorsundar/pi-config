@@ -2,6 +2,9 @@
   "defaultModel": "gpt-6-luna",
   "defaultProvider": "openai",
   "defaultThinkingLevel": "high",
+  "defaultTools": [
+    "+codemode"
+  ],
   "doubleEscapeAction": "tree",
   "enableInstallTelemetry": false,
   "enableSkillCommands": true,
