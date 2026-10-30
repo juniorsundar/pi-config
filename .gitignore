@@ -29,3 +29,4 @@
 /profiles/*/cache/
 /claude-bridge.json
 /pi-blackhole
+/claude-sdk
