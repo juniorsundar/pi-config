@@ -34,13 +34,11 @@
     "omniroute/ds-web/deepseek-v4-flash-think",
     "zai/glm-5.3",
     "zai/glm-5.3-flash",
-    "claude-sdk/claude-fable-5-1",
-    "claude-sdk/claude-fable-5",
-    "claude-sdk/claude-opus-5-5",
-    "claude-sdk/claude-sonnet-5-5",
-    "claude-sdk/claude-haiku-5-5",
     "omniroute/agy/gemini-3.8-flash-high",
-    "omniroute/agy/gemini-3.7-flash-tiered"
+    "omniroute/cc/claude-haiku-5-5",
+    "omniroute/cc/claude-sonnet-5-5",
+    "omniroute/cc/claude-opus-5-5",
+    "omniroute/cc/claude-fable-5-1"
   ],
   "hideThinkingBlock": true,
   "images": {
@@ -52,7 +50,6 @@
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@dietrichgebert/ponytail",
     "npm:pi-blackhole",
-    "npm:pi-claude-subscription",
     "git:github.com/juicesharp/rpiv-mono",
     "git:github.com/juniorsundar/my-pi-mono",
     "git:github.com/juniorsundar/writer-skills"

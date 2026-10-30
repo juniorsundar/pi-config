@@ -6935,9 +6935,9 @@
           "text"
         ],
         "cost": {
-          "input": 0.056,
+          "input": 0.0388,
           "output": 0.3,
-          "cacheRead": 0.055,
+          "cacheRead": 0.0378,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
@@ -7064,7 +7064,7 @@
           "image"
         ],
         "cost": {
-          "input": 0.17,
+          "input": 0.171,
           "output": 9.75,
           "cacheRead": 0.17,
           "cacheWrite": 0
@@ -7468,9 +7468,9 @@
           "image"
         ],
         "cost": {
-          "input": 0.0285,
-          "output": 0.0923,
-          "cacheRead": 0.0285,
+          "input": 0.0345,
+          "output": 0.0823,
+          "cacheRead": 0.03,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
@@ -8748,9 +8748,9 @@
           "text"
         ],
         "cost": {
-          "input": 0.056,
+          "input": 0.0388,
           "output": 0.3,
-          "cacheRead": 0.055,
+          "cacheRead": 0.0378,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
@@ -10435,9 +10435,9 @@
           "image"
         ],
         "cost": {
-          "input": 0.03,
-          "output": 0.09,
-          "cacheRead": 0.015,
+          "input": 0.033,
+          "output": 0.099,
+          "cacheRead": 0.017,
           "cacheWrite": 0
         },
         "contextWindow": 262144,
@@ -12488,7 +12488,7 @@
           "image"
         ],
         "cost": {
-          "input": 0.17,
+          "input": 0.171,
           "output": 9.75,
           "cacheRead": 0.17,
           "cacheWrite": 0
@@ -17102,13 +17102,13 @@
           "image"
         ],
         "cost": {
-          "input": 0.08,
-          "output": 0.13,
-          "cacheRead": 0.04,
+          "input": 0.051,
+          "output": 0.075,
+          "cacheRead": 0,
           "cacheWrite": 0
         },
         "contextWindow": 262144,
-        "maxTokens": 65536,
+        "maxTokens": 40960,
         "compat": {
           "supportsDeveloperRole": false,
           "thinkingFormat": "openrouter",
@@ -19694,9 +19694,9 @@
           "image"
         ],
         "cost": {
-          "input": 0.0285,
-          "output": 0.0923,
-          "cacheRead": 0.0285,
+          "input": 0.0345,
+          "output": 0.0823,
+          "cacheRead": 0.03,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
@@ -23119,7 +23119,7 @@
         }
       }
     ],
-    "checkedAt": 1793355308628
+    "checkedAt": 1793358921638
   },
   "openai": {
     "models": [
@@ -25456,5 +25456,244 @@
     "lastModified": 1793193923000,
     "etag": "W/\"f3472afa98a3b1a29b3ed0d9ac4047ad\"",
     "checkedAt": 1793352807795
+  },
+  "claude-code": {
+    "models": [
+      {
+        "id": "default",
+        "name": "Default (Claude Opus 5.5)",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 4,
+          "output": 20,
+          "cacheRead": 0.2,
+          "cacheWrite": 5
+        },
+        "contextWindow": 1000000,
+        "maxTokens": 128000,
+        "thinkingLevelMap": {
+          "off": null,
+          "minimal": null,
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "promptCache": {
+          "short": 300,
+          "long": 3600
+        },
+        "inputLimits": {
+          "maxRequestBytes": 33554432,
+          "images": {
+            "maxPerRequest": 600,
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        },
+        "type": "chat",
+        "api": "claude-code-stream-json",
+        "provider": "claude-code",
+        "baseUrl": "process://claude-code"
+      },
+      {
+        "id": "claude-opus-5-5",
+        "name": "Claude Opus 5.5",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 4,
+          "output": 20,
+          "cacheRead": 0.2,
+          "cacheWrite": 5
+        },
+        "contextWindow": 1000000,
+        "maxTokens": 128000,
+        "thinkingLevelMap": {
+          "off": null,
+          "minimal": null,
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "promptCache": {
+          "short": 300,
+          "long": 3600
+        },
+        "inputLimits": {
+          "maxRequestBytes": 33554432,
+          "images": {
+            "maxPerRequest": 600,
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        },
+        "type": "chat",
+        "api": "claude-code-stream-json",
+        "provider": "claude-code",
+        "baseUrl": "process://claude-code"
+      },
+      {
+        "id": "claude-fable-5-1",
+        "name": "Claude Fable 5.1",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 10,
+          "output": 50,
+          "cacheRead": 0.25,
+          "cacheWrite": 12.5
+        },
+        "contextWindow": 1000000,
+        "maxTokens": 128000,
+        "thinkingLevelMap": {
+          "off": null,
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "promptCache": {
+          "short": 300,
+          "long": 3600
+        },
+        "inputLimits": {
+          "maxRequestBytes": 33554432,
+          "images": {
+            "maxPerRequest": 600,
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        },
+        "type": "chat",
+        "api": "claude-code-stream-json",
+        "provider": "claude-code",
+        "baseUrl": "process://claude-code"
+      },
+      {
+        "id": "claude-sonnet-5-5",
+        "name": "Claude Sonnet 5.5",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 2,
+          "output": 10,
+          "cacheRead": 0.1,
+          "cacheWrite": 2.5
+        },
+        "contextWindow": 1000000,
+        "maxTokens": 128000,
+        "thinkingLevelMap": {
+          "off": null,
+          "minimal": null,
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "promptCache": {
+          "short": 300,
+          "long": 3600
+        },
+        "inputLimits": {
+          "maxRequestBytes": 33554432,
+          "images": {
+            "maxPerRequest": 600,
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        },
+        "type": "chat",
+        "api": "claude-code-stream-json",
+        "provider": "claude-code",
+        "baseUrl": "process://claude-code"
+      },
+      {
+        "id": "claude-haiku-5-5",
+        "name": "Claude Haiku 5.5",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 0.1,
+          "output": 0.5,
+          "cacheRead": 0.01,
+          "cacheWrite": 0.125,
+          "tiers": [
+            {
+              "inputTokensAbove": 100000,
+              "input": 0.5,
+              "output": 2.5,
+              "cacheRead": 0.05,
+              "cacheWrite": 0.625
+            }
+          ]
+        },
+        "contextWindow": 1000000,
+        "maxTokens": 128000,
+        "thinkingLevelMap": {
+          "minimal": null,
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "promptCache": {
+          "short": 300,
+          "long": 3600
+        },
+        "inputLimits": {
+          "maxRequestBytes": 33554432,
+          "images": {
+            "maxPerRequest": 600,
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        },
+        "type": "chat",
+        "api": "claude-code-stream-json",
+        "provider": "claude-code",
+        "baseUrl": "process://claude-code"
+      }
+    ],
+    "checkedAt": 1793358919569
   }
 }
