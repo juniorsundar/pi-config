@@ -1,5 +1,30 @@
 {
   "providers": {
+    "ds4": {
+      "baseUrl": "http://100.125.54.80:8080/v1",
+      "api": "openai-completions",
+      "apiKey": "ds4-local",
+      "compat": {
+        "supportsStore": false,
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": false,
+        "supportsUsageInStreaming": true,
+        "supportsStrictMode": false,
+        "maxTokensField": "max_tokens",
+        "thinkingFormat": "deepseek",
+        "requiresReasoningContentOnAssistantMessages": true
+      },
+      "models": [
+        {
+          "id": "qwen3.8-flash-next",
+          "name": "Dwarf Star Qwen",
+          "reasoning": true,
+          "input": ["text"],
+          "contextWindow": 204800,
+          "maxTokens": 16384
+        }
+      ]
+    },
     "llama.cpp": {
       "modelOverrides": {
         "qwen3.8-27b": {

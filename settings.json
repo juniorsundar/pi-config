@@ -38,7 +38,8 @@
     "omniroute/cc/claude-haiku-5-5",
     "omniroute/cc/claude-sonnet-5-5",
     "omniroute/cc/claude-opus-5-5",
-    "omniroute/cc/claude-fable-5-1"
+    "omniroute/cc/claude-fable-5-1",
+    "ds4/qwen3.8-flash-next"
   ],
   "hideThinkingBlock": true,
   "images": {
