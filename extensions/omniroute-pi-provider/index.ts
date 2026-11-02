@@ -318,43 +318,6 @@ export default async function (pi: ExtensionAPI) {
     models,
   });
 
-  // After the session starts, refresh the catalog in the background so the
-  // model list stays current without slowing startup. Re-register only when the
-  // list actually changes.
-  pi.on("session_start", async (_event, ctx) => {
-    try {
-      const token = await getOmniRouteToken();
-      const fresh = await fetchOmniRouteModels(token);
-
-      if (fresh.length === 0) return;
-
-      const signature = (list: ProviderModelConfig[]) =>
-        list.map((m) => m.id).join("\n");
-      if (signature(fresh) === signature(models) && fresh.length === models.length) {
-        // No drift — just refresh the cache timestamp occasionally.
-        return;
-      }
-
-      models = fresh;
-      saveModelCache(OMNIROUTE_API_BASE, models).catch((err) =>
-        ctx.ui.notify?.(
-          `[omniroute] Failed to save model cache on session_start: ${err instanceof Error ? err.message : err}`,
-          "error",
-        ),
-      );
-      ctx.modelRegistry.registerProvider("omniroute", {
-        ...OMNIROUTE_PROVIDER_CONFIG,
-        models,
-      });
-      ctx.ui.notify?.(`OmniRoute model list refreshed (${models.length} models)`, "info");
-    } catch (error) {
-      ctx.ui.notify?.(
-        `[omniroute] Failed to refresh models at session start: ${error instanceof Error ? error.message : error}`,
-        "error",
-      );
-    }
-  });
-
   // Command: force-rebuild the disk cache with fresh model data.
   pi.registerCommand("omniroute-rebuild-cache", {
     description: "Rebuild the cached OmniRoute model list from the gateway",
