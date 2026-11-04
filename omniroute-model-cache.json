@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-02T01:26:57.643Z",
+  "updatedAt": "2026-11-04T01:47:26.473Z",
   "base": "http://localhost:20128/v1",
   "models": [
     {
@@ -397,8 +397,7 @@
       "name": "auto/best-chaos",
       "reasoning": true,
       "input": [
-        "text",
-        "image"
+        "text"
       ],
       "cost": {
         "input": 0,
@@ -414,8 +413,7 @@
       "name": "auto/chaos",
       "reasoning": true,
       "input": [
-        "text",
-        "image"
+        "text"
       ],
       "cost": {
         "input": 0,
@@ -761,8 +759,40 @@
       "maxTokens": 131072
     },
     {
-      "id": "agy/gemini-3.8-flash-medium",
-      "name": "Gemini 3.8 Flash (Medium)",
+      "id": "agy/gpt-oss-120b-medium",
+      "name": "agy/GPT-OSS 120B (Medium)",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 131072,
+      "maxTokens": 32768
+    },
+    {
+      "id": "agy/gemini-4-argon-low",
+      "name": "gemini-4-argon-low",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 65536
+    },
+    {
+      "id": "agy/claude-sonnet-5-5-low",
+      "name": "agy/claude-sonnet-5-5-low",
       "reasoning": true,
       "input": [
         "text",
@@ -774,8 +804,8 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
+      "contextWindow": 1000000,
+      "maxTokens": 128000
     },
     {
       "id": "agy/gemini-4-argon-medium",
@@ -794,8 +824,8 @@
       "maxTokens": 65536
     },
     {
-      "id": "agy/gemini-3.8-flash-high",
-      "name": "Gemini 3.8 Flash (High)",
+      "id": "agy/gemini-3.1-flash-lite",
+      "name": "agy/Gemini 3.1 Flash Lite",
       "reasoning": true,
       "input": [
         "text",
@@ -808,7 +838,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 65536
+      "maxTokens": 65535
     },
     {
       "id": "agy/claude-opus-5-5-high",
@@ -828,8 +858,42 @@
       "maxTokens": 128000
     },
     {
-      "id": "agy/claude-sonnet-5-5-low",
-      "name": "agy/claude-sonnet-5-5-low",
+      "id": "agy/gemini-3.8-flash-high",
+      "name": "Gemini 3.8 Flash (High)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "agy/claude-opus-5-5-low",
+      "name": "agy/claude-opus-5-5-low",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "agy/claude-opus-5-5-medium",
+      "name": "agy/claude-opus-5-5-medium",
       "reasoning": true,
       "input": [
         "text",
@@ -878,25 +942,8 @@
       "maxTokens": 65536
     },
     {
-      "id": "agy/gemini-3.1-flash-image",
-      "name": "agy/gemini-3.1-flash-image",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 65536
-    },
-    {
-      "id": "agy/gemini-3.1-flash-lite",
-      "name": "agy/Gemini 3.1 Flash Lite",
+      "id": "agy/gemini-3.8-flash-medium",
+      "name": "Gemini 3.8 Flash (Medium)",
       "reasoning": true,
       "input": [
         "text",
@@ -909,43 +956,11 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 65535
-    },
-    {
-      "id": "agy/gemini-4-argon-low",
-      "name": "gemini-4-argon-low",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
       "maxTokens": 65536
     },
     {
-      "id": "agy/gpt-oss-120b-medium",
-      "name": "agy/GPT-OSS 120B (Medium)",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 131072,
-      "maxTokens": 32768
-    },
-    {
-      "id": "agy/claude-opus-5-5-medium",
-      "name": "agy/claude-opus-5-5-medium",
+      "id": "agy/gemini-3.8-flash-tiered",
+      "name": "agy/gemini-3.8-flash-tiered",
       "reasoning": true,
       "input": [
         "text",
@@ -957,8 +972,8 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
+      "contextWindow": 1048576,
+      "maxTokens": 65536
     },
     {
       "id": "agy/gemini-3.8-flash-low",
@@ -978,8 +993,8 @@
       "maxTokens": 65536
     },
     {
-      "id": "agy/gemini-3.5-flash-lite",
-      "name": "agy/gemini-3.5-flash-lite",
+      "id": "agy/claude-sonnet-5-5-medium",
+      "name": "agy/claude-sonnet-5-5-medium",
       "reasoning": true,
       "input": [
         "text",
@@ -992,7 +1007,24 @@
         "cacheWrite": 0
       },
       "contextWindow": 1000000,
-      "maxTokens": 65535
+      "maxTokens": 128000
+    },
+    {
+      "id": "agy/gemini-3.1-flash-image",
+      "name": "agy/gemini-3.1-flash-image",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 65536
     },
     {
       "id": "agy/claude-sonnet-5-5-high",
@@ -1012,8 +1044,8 @@
       "maxTokens": 128000
     },
     {
-      "id": "agy/claude-sonnet-5-5-medium",
-      "name": "agy/claude-sonnet-5-5-medium",
+      "id": "agy/gemini-3.5-flash-lite",
+      "name": "agy/gemini-3.5-flash-lite",
       "reasoning": true,
       "input": [
         "text",
@@ -1026,41 +1058,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "agy/claude-opus-5-5-low",
-      "name": "agy/claude-opus-5-5-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "agy/gemini-3.8-flash-tiered",
-      "name": "agy/gemini-3.8-flash-tiered",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
+      "maxTokens": 65535
     },
     {
       "id": "agy/claude-opus-4-6-thinking",
@@ -3147,8 +3145,126 @@
       "maxTokens": 64000
     },
     {
+      "id": "antigravity/gemini-3.1-flash-lite",
+      "name": "antigravity/Gemini 3.1 Flash Lite",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65535
+    },
+    {
       "id": "antigravity/claude-sonnet-5-5-low",
       "name": "antigravity/claude-sonnet-5-5-low",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "antigravity/gpt-oss-120b-medium",
+      "name": "antigravity/GPT-OSS 120B (Medium)",
+      "reasoning": true,
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 131072,
+      "maxTokens": 32768
+    },
+    {
+      "id": "antigravity/gemini-3-flash",
+      "name": "antigravity/gemini-3-flash",
+      "reasoning": false,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "antigravity/gemini-3.8-flash-tiered",
+      "name": "antigravity/gemini-3.8-flash-tiered",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "antigravity/claude-opus-5-5-low",
+      "name": "antigravity/claude-opus-5-5-low",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "antigravity/claude-opus-5-5-medium",
+      "name": "antigravity/claude-opus-5-5-medium",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "antigravity/claude-sonnet-5-5-medium",
+      "name": "antigravity/claude-sonnet-5-5-medium",
       "reasoning": true,
       "input": [
         "text",
@@ -3181,8 +3297,8 @@
       "maxTokens": 65535
     },
     {
-      "id": "antigravity/claude-opus-5-5-medium",
-      "name": "antigravity/claude-opus-5-5-medium",
+      "id": "antigravity/claude-opus-5-5-high",
+      "name": "antigravity/claude-opus-5-5-high",
       "reasoning": true,
       "input": [
         "text",
@@ -3196,128 +3312,10 @@
       },
       "contextWindow": 1000000,
       "maxTokens": 128000
-    },
-    {
-      "id": "antigravity/gemini-3.8-flash-tiered",
-      "name": "antigravity/gemini-3.8-flash-tiered",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
     },
     {
       "id": "antigravity/claude-sonnet-5-5-high",
       "name": "antigravity/claude-sonnet-5-5-high",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "antigravity/gemini-3-flash",
-      "name": "antigravity/gemini-3-flash",
-      "reasoning": false,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
-    },
-    {
-      "id": "antigravity/claude-sonnet-5-5-medium",
-      "name": "antigravity/claude-sonnet-5-5-medium",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "antigravity/claude-opus-5-5-low",
-      "name": "antigravity/claude-opus-5-5-low",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    {
-      "id": "antigravity/gpt-oss-120b-medium",
-      "name": "antigravity/GPT-OSS 120B (Medium)",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 131072,
-      "maxTokens": 32768
-    },
-    {
-      "id": "antigravity/gemini-3.1-flash-lite",
-      "name": "antigravity/Gemini 3.1 Flash Lite",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65535
-    },
-    {
-      "id": "antigravity/claude-opus-5-5-high",
-      "name": "antigravity/claude-opus-5-5-high",
       "reasoning": true,
       "input": [
         "text",
@@ -3449,8 +3447,42 @@
       "maxTokens": 128000
     },
     {
-      "id": "kc/deepseek/deepseek-v4.1-flash",
-      "name": "deepseek/deepseek-v4.1-flash",
+      "id": "kc/deepseek/deepseek-v4.1-flash-1017",
+      "name": "deepseek/deepseek-v4.1-flash-1017",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 393216
+    },
+    {
+      "id": "kc/z-ai/glm-5.3-flash",
+      "name": "z-ai/glm-5.3-flash",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 131072
+    },
+    {
+      "id": "kc/stealth/crouton-alpha",
+      "name": "stealth/crouton-alpha",
       "reasoning": true,
       "input": [
         "text",
@@ -3466,8 +3498,8 @@
       "maxTokens": 943718
     },
     {
-      "id": "kc/z-ai/glm-5.3-flash",
-      "name": "z-ai/glm-5.3-flash",
+      "id": "kc/z-ai/glm-5.3-flashx-legal",
+      "name": "z-ai/glm-5.3-flashx-legal",
       "reasoning": true,
       "input": [
         "text",
@@ -3551,22 +3583,6 @@
       "maxTokens": 943718
     },
     {
-      "id": "kc/recursive/flint-v1.0:free",
-      "name": "recursive/flint-v1.0:free",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 262144,
-      "maxTokens": 235929
-    },
-    {
       "id": "kc/minimax/minimax-m3.1-flash",
       "name": "minimax/minimax-m3.1-flash",
       "reasoning": true,
@@ -3584,23 +3600,6 @@
       "maxTokens": 524288
     },
     {
-      "id": "kc/deepseek/deepseek-v4.1-flash-1017",
-      "name": "deepseek/deepseek-v4.1-flash-1017",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 393216
-    },
-    {
       "id": "kc/elorian/glimpse",
       "name": "elorian/glimpse",
       "reasoning": true,
@@ -3616,22 +3615,6 @@
       },
       "contextWindow": 262144,
       "maxTokens": 256000
-    },
-    {
-      "id": "kc/xingchen-agi/xing4.0-29b-a4b:free",
-      "name": "xingchen-agi/xing4.0-29b-a4b:free",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 262144,
-      "maxTokens": 235929
     },
     {
       "id": "kc/reflection/beam-1.0-501b-a23b",
@@ -3731,7 +3714,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 131072
+      "maxTokens": 943718
     },
     {
       "id": "kc/nvidia/nemotron-3.5-super-vl",
@@ -3748,7 +3731,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 235929
+      "maxTokens": 943718
     },
     {
       "id": "kc/unbiased/pareto-26.10",
@@ -4508,6 +4491,23 @@
       "maxTokens": 32768
     },
     {
+      "id": "kc/deepseek/deepseek-v4.1-flash",
+      "name": "deepseek/deepseek-v4.1-flash",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 943718
+    },
+    {
       "id": "kc/inception/mercury-2.5",
       "name": "inception/mercury-2.5",
       "reasoning": true,
@@ -4871,7 +4871,7 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 1000000,
+      "contextWindow": 1024000,
       "maxTokens": 235929
     },
     {
@@ -5005,22 +5005,6 @@
         "cacheWrite": 0
       },
       "contextWindow": 128000,
-      "maxTokens": 8192
-    },
-    {
-      "id": "kc/liquid/lfm-2.5-2.6b:free",
-      "name": "liquid/lfm-2.5-2.6b:free",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 65536,
       "maxTokens": 8192
     },
     {
@@ -5690,23 +5674,6 @@
       },
       "contextWindow": 131072,
       "maxTokens": 117964
-    },
-    {
-      "id": "kc/nvidia/nemotron-3.5-content-safety:free",
-      "name": "nvidia/nemotron-3.5-content-safety:free",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 128000,
-      "maxTokens": 8192
     },
     {
       "id": "kc/nvidia/nemotron-3-ultra-550b-a55b",
@@ -7793,7 +7760,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 262144,
-      "maxTokens": 16384
+      "maxTokens": 235929
     },
     {
       "id": "kc/moonshotai/kimi-k2-0905",
@@ -9125,38 +9092,6 @@
       "maxTokens": 16384
     },
     {
-      "id": "kc/nousresearch/hermes-3-llama-3.1-70b",
-      "name": "nousresearch/hermes-3-llama-3.1-70b",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 131072,
-      "maxTokens": 16384
-    },
-    {
-      "id": "kc/nousresearch/hermes-3-llama-3.1-405b",
-      "name": "nousresearch/hermes-3-llama-3.1-405b",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 131072,
-      "maxTokens": 16384
-    },
-    {
       "id": "kc/sao10k/l3-lunaris-8b",
       "name": "sao10k/l3-lunaris-8b",
       "reasoning": true,
@@ -9203,7 +9138,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 131072,
-      "maxTokens": 16384
+      "maxTokens": 8192
     },
     {
       "id": "kc/meta-llama/llama-3.1-8b-instruct",
@@ -9615,22 +9550,6 @@
       },
       "contextWindow": 262144,
       "maxTokens": 32768
-    },
-    {
-      "id": "kc/inclusionai/ling-3.1-flash-1019-free",
-      "name": "inclusionai/ling-3.1-flash-1019-free",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 262144
     },
     {
       "id": "kc/byteplus-coding/bytedance-seed-code",

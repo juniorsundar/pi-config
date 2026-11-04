@@ -10,13 +10,8 @@
 /trust.json
 **/__pycache__
 /kilo-model-cache.json
-/mcp-cache.json
-/mcp-onboarding.json
+/mcp-*.json
 /.serena
-/mcp-adapter.json
-/mcp-auth.json
-/pi-blackhole/*-pending.json
-/pi-blackhole/*-pending.stale.json
 /bin
 /install
 /profiles/*/auth.json
@@ -28,5 +23,7 @@
 /profiles/*/sessions/
 /profiles/*/cache/
 /claude-bridge.json
-/pi-blackhole
+/pi-blackhole*
 /claude-sdk
+/claude-account-source.txt
+/pi-web-*
