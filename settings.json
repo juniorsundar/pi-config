@@ -39,7 +39,8 @@
     "omniroute/cc/claude-sonnet-5-5",
     "omniroute/cc/claude-opus-5-5",
     "omniroute/cc/claude-fable-5-1",
-    "ds4/qwen3.8-flash-next"
+    "ds4/qwen3.8-flash-next",
+    "ds4/qwen3.8-flash-next-chat"
   ],
   "hideThinkingBlock": true,
   "images": {
@@ -76,5 +77,7 @@
   "extensionChangelogVersions": {
     "{\"source\":\"npm:pi-blackhole\",\"scope\":\"user\"}": "0.5.17"
   },
-  "subagents": { "enabled": false }
+  "subagents": {
+    "enabled": false
+  }
 }

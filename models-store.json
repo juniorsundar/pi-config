@@ -6072,7 +6072,7 @@
     ],
     "lastModified": 1793798473000,
     "etag": "W/\"62d41b097ffe7a0959b6d9b0e0afbc70\"",
-    "checkedAt": 1793864925968
+    "checkedAt": 1793935768362
   },
   "llama.cpp": {
     "models": [
@@ -7174,9 +7174,9 @@
           "image"
         ],
         "cost": {
-          "input": 0.1539,
-          "output": 10.5539,
-          "cacheRead": 0.15,
+          "input": 0.1624,
+          "output": 9.3388,
+          "cacheRead": 0.16,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
@@ -7578,9 +7578,9 @@
           "image"
         ],
         "cost": {
-          "input": 0.0285,
-          "output": 0.0923,
-          "cacheRead": 0.0285,
+          "input": 0.0335,
+          "output": 0.083,
+          "cacheRead": 0.03,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
@@ -12589,9 +12589,9 @@
           "image"
         ],
         "cost": {
-          "input": 0.1539,
-          "output": 10.5539,
-          "cacheRead": 0.15,
+          "input": 0.1624,
+          "output": 9.3388,
+          "cacheRead": 0.16,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
@@ -16250,9 +16250,9 @@
           "text"
         ],
         "cost": {
-          "input": 0.004,
-          "output": 0.017,
-          "cacheRead": 0.003,
+          "input": 0.006,
+          "output": 0.025,
+          "cacheRead": 0.005,
           "cacheWrite": 0
         },
         "contextWindow": 131072,
@@ -20147,9 +20147,9 @@
           "image"
         ],
         "cost": {
-          "input": 0.0285,
-          "output": 0.0923,
-          "cacheRead": 0.0285,
+          "input": 0.0335,
+          "output": 0.083,
+          "cacheRead": 0.03,
           "cacheWrite": 0
         },
         "contextWindow": 1048576,
@@ -23349,7 +23349,7 @@
         }
       }
     ],
-    "checkedAt": 1793934423671
+    "checkedAt": 1793937261913
   },
   "openai": {
     "models": [
