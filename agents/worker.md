@@ -1,12 +1,22 @@
 ---
-name: worker
 description: Implementation agent for normal tasks and approved execution plans
-model: opencode-go/deepseek-v4.1-flash
+display_name: worker
+tools: read, grep, find, ls, bash, edit, write
+load_skills: false
+load_extensions: false
+codemode: 'off'
+enabled: true
+inherit_context: false
+run_in_background: false
+prompt_mode: append
+skills: false
+extensions: false
+model: omniroute/opencode-go/deepseek-v4.1-flash
 thinking: high
+name: worker
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
-tools: read, grep, find, ls, bash, edit, write
 ---
 
 You are `worker`: the implementation subagent.

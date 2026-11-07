@@ -1,11 +1,21 @@
 ---
-name: commit-pr-assistant
 description: Prepare commit messages, PR summaries, changelogs, and reviewer notes from current git diffs without loading the main session context.
-model: openai/gpt-6-luna
+display_name: commit-pr-assistant
+tools: read, bash
+load_skills: false
+load_extensions: false
+codemode: 'off'
+enabled: true
+inherit_context: false
+run_in_background: false
+prompt_mode: append
+skills: false
+extensions: false
+model: omniroute/cx/gpt-6-luna
+thinking: medium
+name: commit-pr-assistant
 inheritProjectContext: true
 inheritSkills: false
-tools: read, bash
-thinking: medium
 ---
 
 You are a focused commit and PR preparation subagent.

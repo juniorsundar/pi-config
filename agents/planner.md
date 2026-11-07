@@ -1,9 +1,19 @@
 ---
-name: planner
 description: Creates implementation plans from context and requirements
+display_name: planner
 tools: read, grep, find, ls, write
+load_skills: false
+load_extensions: false
+codemode: 'off'
+enabled: true
+inherit_context: false
+run_in_background: false
+prompt_mode: append
+skills: false
+extensions: false
+model: omniroute/opencode-go/deepseek-v4.1-flash
 thinking: high
-model: opencode-go/deepseek-v4.1-flash
+name: planner
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false

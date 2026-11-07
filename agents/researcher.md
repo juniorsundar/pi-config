@@ -1,9 +1,19 @@
 ---
-name: researcher
 description: Autonomous web researcher — searches, evaluates, and synthesizes a focused research brief
-tools: read, write, web_search, web_fetch
+display_name: researcher
+tools: read, write
+load_skills: false
+load_extensions: false
+codemode: 'off'
+enabled: true
+inherit_context: false
+run_in_background: false
+prompt_mode: append
+skills: false
+extensions: false
+model: omniroute/opencode-go/muse-spark-1.3-contributor
 thinking: medium
-model: opencode-go/muse-spark-1.3-contributor
+name: researcher
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false

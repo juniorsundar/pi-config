@@ -1,9 +1,19 @@
 ---
-name: scout
 description: Fast codebase recon that returns compressed context for handoff
-model: opencode-go/deepseek-v4.1-flash
+display_name: scout
 tools: read, grep, find, ls, bash, write
+load_skills: false
+load_extensions: false
+codemode: 'off'
+enabled: true
+inherit_context: false
+run_in_background: false
+prompt_mode: append
+skills: false
+extensions: false
+model: omniroute/opencode-go/deepseek-v4.1-flash
 thinking: high
+name: scout
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false

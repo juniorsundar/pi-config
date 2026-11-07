@@ -1,9 +1,9 @@
 ---
-name: image-reader
 description: Multimodal vision specialist — reads images and returns a structured visual description. Use when the orchestrator or main model cannot process images directly and a faithful description (or OCR) is needed.
 model: ds4/qwen3.8-flash-next
 tools: read, web_fetch, write
 thinking: low
+name: image-reader
 systemPromptMode: replace
 inheritProjectContext: false
 inheritSkills: false
