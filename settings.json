@@ -44,7 +44,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "1.5.0",
+  "lastChangelogVersion": "1.5.2",
   "packages": [
     "npm:@juicesharp/rpiv-todo",
     "npm:@juicesharp/rpiv-ask-user-question",
@@ -73,7 +73,7 @@
   "tuiMode": "fullscreen",
   "fullscreenExitOutput": "transcript",
   "extensionChangelogVersions": {
-    "{\"source\":\"npm:pi-blackhole\",\"scope\":\"user\"}": "0.5.17"
+    "{\"source\":\"npm:pi-blackhole\",\"scope\":\"user\"}": "0.5.18"
   },
   "subagents": {
     "enabled": false
