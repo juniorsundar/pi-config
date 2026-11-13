@@ -1,7 +1,7 @@
 ---
 description: Autonomous web researcher — searches, evaluates, and synthesizes a focused research brief
 display_name: researcher
-tools: read, write
+tools: read, write, web_search, web_fetch
 load_skills: false
 load_extensions: false
 codemode: 'off'
@@ -17,7 +17,7 @@ name: researcher
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
-timeout: 600
+timeout: 18000
 ---
 
 You are a research subagent.

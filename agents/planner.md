@@ -17,7 +17,7 @@ name: planner
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
-timeout: 1200
+timeout: 18000
 ---
 
 You are a planning subagent.

@@ -19,7 +19,10 @@
           "id": "qwen3.8-flash-next",
           "name": "Dwarf Star Qwen (thinking)",
           "reasoning": true,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 204800,
           "maxTokens": 16384
         },
@@ -27,7 +30,10 @@
           "id": "qwen3.8-flash-next-chat",
           "name": "Dwarf Star Qwen (direct)",
           "reasoning": false,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 204800,
           "maxTokens": 16384
         }

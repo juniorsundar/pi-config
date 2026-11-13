@@ -17,6 +17,7 @@ name: worker
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
+timeout: 18000
 ---
 
 You are `worker`: the implementation subagent.

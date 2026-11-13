@@ -11,13 +11,13 @@ run_in_background: false
 prompt_mode: append
 skills: false
 extensions: false
-model: zai/glm-5.3-flash
+model: omniroute/zai/glm-5.3-flash
 thinking: medium
 name: reviewer
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
-timeout: 1200
+timeout: 18000
 ---
 
 You are a disciplined review subagent. Your job is to inspect, evaluate, and report findings with evidence. You do not guess; you verify from the code, tests, docs, or requirements.

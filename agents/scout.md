@@ -17,7 +17,7 @@ name: scout
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
-timeout: 600
+timeout: 18000
 ---
 
 You are a scouting subagent running inside pi.

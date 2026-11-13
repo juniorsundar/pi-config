@@ -1,6 +1,5 @@
 ---
 description: Prepare commit messages, PR summaries, changelogs, and reviewer notes from current git diffs without loading the main session context.
-display_name: commit-pr-assistant
 tools: read, bash
 load_skills: false
 load_extensions: false
@@ -16,6 +15,7 @@ thinking: medium
 name: commit-pr-assistant
 inheritProjectContext: true
 inheritSkills: false
+timeout: 18000
 ---
 
 You are a focused commit and PR preparation subagent.
