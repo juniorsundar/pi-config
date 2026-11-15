@@ -165,7 +165,8 @@ export default function (pi: ExtensionAPI) {
     return JSON.parse(r.stdout);
   }
 
-  const focus = (terminal: string) => pi.exec("herdr-app", ["do", "agent.focus", "--terminal", terminal]);
+  // Subagents have no pane: they float over the tab when they need the user, or when clicked in the agents list.
+  const focus = (terminal: string) => pi.exec("herdr-app", ["do", "terminal.peek", "--terminal", terminal]);
 
   async function close(terminal: string): Promise<void> {
     await pi.exec("hc", ["kill", terminal]);
@@ -173,36 +174,15 @@ export default function (pi: ExtensionAPI) {
     open.delete(terminal);
   }
 
-  // One at a time, so subagents started together land in the same tab.
-  let paneLock: Promise<unknown> = Promise.resolve();
-  function openPane(name: string, piArgs: string[]): Promise<string> {
-    const pane = paneLock.then(async () => {
-      const space: string | undefined = (await run("hc", ["get", me])).labels?.["herdr.space"];
-      const findTab = (window: any, pred: (tab: any) => boolean): string | undefined =>
-        window?.spaces?.find((s: any) => s.id === space)?.tabs?.find(pred)?.id;
-      const ls = () => run("herdr-app", ["ls"]).catch(() => undefined); // no window: terminals still run
-      const window = space ? await ls() : undefined;
-      const tab = findTab(window, (t) => t.name === TAB);
-      const labels = !space ? [] : ["--label", `herdr.space=${space}`, ...(tab ? ["--label", `herdr.tab=${tab}`] : [])];
-      const { address } = await run("hc", [
-        "run", "--bg", "--json", "--no-notify", "--name", name, "--cwd", cwd, ...labels,
-        // Yolo keeps the mutation extension's hard blocks (protected paths, catastrophic shell) but
-        // skips its approval dialogs, which nobody answers in an unattended subagent pane.
-        "--", "env", `${CHILD_ENV}=1`, "PI_PERMISSION_PROFILE=yolo", "pi", ...piArgs,
-      ]);
-      // herdr put it in a fresh tab: name that tab so later subagents join it.
-      for (let i = 0; window && !tab && i < 20; i++) {
-        const made = findTab(await ls(), (t) => t.terminals?.some((x: any) => x.terminal === address));
-        if (made) {
-          await pi.exec("herdr-app", ["do", "tab.rename", "--id", made, "--name", TAB]);
-          break;
-        }
-        await sleep(250);
-      }
-      return address as string;
-    });
-    paneLock = pane.catch(() => undefined);
-    return pane;
+  // No herdr.space/herdr.tab labels: herdr lists it under its parent (this terminal) without a pane.
+  async function openPane(name: string, piArgs: string[]): Promise<string> {
+    const { address } = await run("hc", [
+      "run", "--bg", "--json", "--no-notify", "--name", name, "--cwd", cwd, "--parent", me,
+      // Yolo keeps the mutation extension's hard blocks (protected paths, catastrophic shell) but
+      // skips its approval dialogs, which nobody answers in an unattended subagent.
+      "--", "env", `${CHILD_ENV}=1`, "PI_PERMISSION_PROFILE=yolo", "pi", ...piArgs,
+    ]);
+    return address as string;
   }
 
   /**
@@ -309,11 +289,11 @@ export default function (pi: ExtensionAPI) {
       label: "Subagent",
       description:
         `Delegate work to subagents: separate interactive pi sessions with their own context, each visible to the user ` +
-        `as a pane in the "${TAB}" herdr tab. Run one with agent + title + task, or several in parallel with tasks. ` +
+        `under this agent in herdr's agents list, floating over the tab when it needs them. Run one with agent + title + task, or several in parallel with tasks. ` +
         `By default the call blocks and returns each subagent's final answer. With background: true it returns ids at once ` +
         `and each answer arrives later as a message. action "send" passes a follow-up to a background subagent that is ` +
         `still working.\n\nAgents:\n${agents.map((a) => `- ${a.name}: ${a.description}`).join("\n")}`,
-      promptSnippet: "Delegate a task to a subagent running in its own herdr pane",
+      promptSnippet: "Delegate a task to a subagent running in its own herdr terminal",
       promptGuidelines: [
         "Give every subagent a short, human-readable title: the user browses subagents by title.",
         "After starting a subagent with background: true, do not wait or poll: its result arrives as a message.",
