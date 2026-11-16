@@ -93,7 +93,8 @@ export default function (pi: ExtensionAPI) {
     render(width: number): string[] {
       if (folded(this.id)) return [];
       if (!this.bg) return this.child.render(width);
-      const lines = this.child.render(Math.max(1, width - 2 * this.pad));
+      // Copy: components return their cached array, and padding it in place grows it on every redraw.
+      const lines = this.child.render(Math.max(1, width - 2 * this.pad)).slice();
       if (this.part === "call") lines.unshift("");
       if (this.part === "result" || !hasResult.has(this.id)) lines.push("");
       const left = " ".repeat(this.pad);
