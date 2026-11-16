@@ -11,6 +11,8 @@ run_in_background: false
 prompt_mode: append
 skills: false
 extensions: false
+inheritExtensions: false
+extraArgs: -e ../extensions/omniroute-pi-provider/index.ts -e ../git/github.com/juniorsundar/my-pi-mono/extensions/web-search/index.ts
 model: omniroute/opencode-go/muse-spark-1.3-contributor
 thinking: medium
 name: researcher

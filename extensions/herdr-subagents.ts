@@ -82,8 +82,8 @@ function loadAgents(cwd: string, trusted: boolean): Map<string, Agent> {
           ...(tools ? ["--tools", String(tools).replace(/\s+/g, "")] : []),
           ...(fm.inheritProjectContext === false ? ["-nc"] : []),
           ...(fm.inheritSkills === false || fm.skills === false ? ["-ns"] : []),
-          // `extensions: false` is deliberately not read: providers and web tools are extensions.
-          ...(fm.inheritExtensions === false ? ["-ne"] : []),
+          ...(fm.inheritExtensions === false || fm.extensions === false ? ["-ne"] : []),
+          ...extraArgs(fm, dir),
         ],
         prompt: body.trim(),
         promptFlag: String(fm.systemPromptMode).toLowerCase() === "append" ? "--append-system-prompt" : "--system-prompt",
@@ -92,6 +92,19 @@ function loadAgents(cwd: string, trusted: boolean): Map<string, Agent> {
     }
   }
   return agents;
+}
+
+/** Literal pi flags from frontmatter; paths resolve against `dir` (agents dir), `~/` against HOME. */
+function extraArgs(fm: Record<string, any>, dir: string): string[] {
+  const raw = Array.isArray(fm.extraArgs) ? fm.extraArgs : typeof fm.extraArgs === "string" ? [fm.extraArgs] : [];
+  const home = process.env.HOME ?? "";
+  return raw.flatMap((item) => String(item).split(/\s+/).filter(Boolean)).map((arg) =>
+    arg.startsWith("~/") && home
+      ? path.join(home, arg.slice(2))
+      : arg.startsWith("./") || arg.startsWith("../")
+        ? path.resolve(dir, arg)
+        : arg,
+  );
 }
 
 function age(created: number): string {

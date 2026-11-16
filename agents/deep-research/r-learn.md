@@ -7,6 +7,8 @@ thinking: low
 systemPromptMode: replace
 inheritProjectContext: false
 inheritSkills: false
+inheritExtensions: false
+extraArgs: -e ../git/github.com/juniorsundar/my-pi-mono/extensions/web-search/index.ts
 timeout: 600
 ---
 

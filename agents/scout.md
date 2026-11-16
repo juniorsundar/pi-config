@@ -11,6 +11,8 @@ run_in_background: false
 prompt_mode: append
 skills: false
 extensions: false
+inheritExtensions: false
+extraArgs: -e ../extensions/omniroute-pi-provider/index.ts
 model: omniroute/opencode-go/deepseek-v4.1-flash
 thinking: high
 name: scout

@@ -4,6 +4,8 @@ tools: read, write, web_fetch
 enabled: true
 skills: false
 extensions: false
+inheritExtensions: false
+extraArgs: -e ../extensions/omniroute-pi-provider/index.ts -e ../git/github.com/juniorsundar/my-pi-mono/extensions/web-search/index.ts
 model: ds4/qwen3.8-flash-next
 thinking: low
 name: image-reader

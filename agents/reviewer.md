@@ -11,6 +11,8 @@ run_in_background: false
 prompt_mode: append
 skills: false
 extensions: false
+inheritExtensions: false
+extraArgs: -e ../extensions/omniroute-pi-provider/index.ts
 model: omniroute/zai/glm-5.3-flash
 thinking: medium
 name: reviewer

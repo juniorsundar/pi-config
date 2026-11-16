@@ -11,12 +11,12 @@
         "--project-from-cwd"
       ],
       "requestTimeoutMs": 120000,
-      "directTools": true
+      "exposure": "direct"
     },
     "context7": {
       "url": "https://mcp.context7.com/mcp",
       "bearerTokenStore": true,
-      "directTools": true
+      "exposure": "direct"
     },
     "tasknotes": {
       "url": "http://127.0.0.1:2020/mcp",

@@ -7,6 +7,8 @@ thinking: low
 systemPromptMode: replace
 inheritProjectContext: false
 inheritSkills: false
+inheritExtensions: false
+extraArgs: -e ../extensions/omniroute-pi-provider/index.ts
 timeout: 120
 ---
 
