@@ -74,8 +74,5 @@
   "fullscreenExitOutput": "transcript",
   "extensionChangelogVersions": {
     "{\"source\":\"npm:pi-blackhole\",\"scope\":\"user\"}": "0.5.18"
-  },
-  "subagents": {
-    "enabled": false
   }
 }
