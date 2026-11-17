@@ -5104,7 +5104,7 @@
     ],
     "lastModified": 1794829935000,
     "etag": "W/\"c1263bc64c19af4fce6a4b7eb3393cb0\"",
-    "checkedAt": 1794880994133
+    "checkedAt": 1794910711511
   },
   "openai-codex": {
     "models": [
@@ -6434,7 +6434,7 @@
     ],
     "lastModified": 1794318915000,
     "etag": "W/\"df29ce52198fbf32d274b2cdcaf27bb8\"",
-    "checkedAt": 1794880993895
+    "checkedAt": 1794910711347
   },
   "llama.cpp": {
     "models": [
@@ -11059,13 +11059,13 @@
           "image"
         ],
         "cost": {
-          "input": 0.063,
-          "output": 0.106,
-          "cacheRead": 0.032,
+          "input": 0.1,
+          "output": 0.34,
+          "cacheRead": 0.1,
           "cacheWrite": 0
         },
         "contextWindow": 262144,
-        "maxTokens": 16384,
+        "maxTokens": 235929,
         "compat": {
           "supportsDeveloperRole": false,
           "thinkingFormat": "openrouter",
@@ -12623,9 +12623,9 @@
           "text"
         ],
         "cost": {
-          "input": 0.01541,
-          "output": 0.0201,
-          "cacheRead": 0.01005,
+          "input": 0.01656,
+          "output": 0.0216,
+          "cacheRead": 0.0108,
           "cacheWrite": 0
         },
         "contextWindow": 128000,
@@ -23103,7 +23103,7 @@
         "cost": {
           "input": 0.02,
           "output": 0,
-          "cacheRead": 0.02,
+          "cacheRead": 0,
           "cacheWrite": 0
         },
         "contextWindow": 65536,
@@ -23126,10 +23126,10 @@
         "cost": {
           "input": 0.042,
           "output": 0,
-          "cacheRead": 0.042,
+          "cacheRead": 0,
           "cacheWrite": 0
         },
-        "contextWindow": 32768,
+        "contextWindow": 65536,
         "compat": {
           "imageInput": "state-image-urls",
           "sendImageOptInHeader": false
@@ -24369,6 +24369,43 @@
       },
       {
         "type": "chat",
+        "id": "tencent/hy4-flash",
+        "name": "Tencent: Hy4 flash",
+        "api": "openai-completions",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "provider": "openrouter",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 0.035,
+          "output": 0.1405,
+          "cacheRead": 0.0015,
+          "cacheWrite": 0
+        },
+        "contextWindow": 1048576,
+        "maxTokens": 65536,
+        "compat": {
+          "supportsDeveloperRole": false,
+          "thinkingFormat": "openrouter",
+          "supportsStrictMode": true,
+          "sendSessionAffinityHeaders": true
+        },
+        "inputLimits": {
+          "images": {
+            "resize": {
+              "maxWidth": 2000,
+              "maxHeight": 2000,
+              "maxBytes": 4718592,
+              "jpegQuality": 80
+            }
+          }
+        }
+      },
+      {
+        "type": "chat",
         "id": "thinkingmachines/inkling-2-small",
         "name": "Thinking Machines: Inkling 2 Small",
         "api": "openai-completions",
@@ -24674,6 +24711,52 @@
       },
       {
         "type": "classifier",
+        "id": "liquid/d1.2",
+        "name": "LiquidAI: d1.2",
+        "api": "typesafe-system-one",
+        "provider": "openrouter",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 0.02,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "contextWindow": 65536,
+        "compat": {
+          "imageInput": "state-image-urls",
+          "sendImageOptInHeader": false
+        }
+      },
+      {
+        "type": "classifier",
+        "id": "liquid/d1.2-ultra",
+        "name": "LiquidAI: d1.2-ultra",
+        "api": "typesafe-system-one",
+        "provider": "openrouter",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 0.042,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "contextWindow": 65536,
+        "compat": {
+          "imageInput": "state-image-urls",
+          "sendImageOptInHeader": false
+        }
+      },
+      {
+        "type": "classifier",
         "id": "parallel/decisions-fast",
         "name": "Parallel: Decisions Fast",
         "api": "typesafe-system-one",
@@ -24741,7 +24824,7 @@
         }
       }
     ],
-    "checkedAt": 1794891455478
+    "checkedAt": 1794910833551
   },
   "openai": {
     "models": [
@@ -26858,7 +26941,7 @@
     ],
     "lastModified": 1794829927000,
     "etag": "W/\"d371d3bacf92e3ff236be1284e2a50f5\"",
-    "checkedAt": 1794880993984
+    "checkedAt": 1794910711355
   },
   "zai": {
     "models": [
@@ -27124,7 +27207,7 @@
     ],
     "lastModified": 1793367493000,
     "etag": "W/\"f3472afa98a3b1a29b3ed0d9ac4047ad\"",
-    "checkedAt": 1794880994372
+    "checkedAt": 1794910711625
   },
   "claude-code": {
     "models": [

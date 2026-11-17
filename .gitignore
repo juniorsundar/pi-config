@@ -23,7 +23,7 @@
 /profiles/*/sessions/
 /profiles/*/cache/
 /claude-bridge.json
-/pi-blackhole*
+/pi-blackhole/*-pending*
 /claude-sdk
 /claude-account-source.txt
 /pi-web-*
