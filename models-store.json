@@ -11059,13 +11059,13 @@
           "image"
         ],
         "cost": {
-          "input": 0.1,
-          "output": 0.34,
-          "cacheRead": 0.1,
+          "input": 0.063,
+          "output": 0.106,
+          "cacheRead": 0.032,
           "cacheWrite": 0
         },
         "contextWindow": 262144,
-        "maxTokens": 235929,
+        "maxTokens": 16384,
         "compat": {
           "supportsDeveloperRole": false,
           "thinkingFormat": "openrouter",
@@ -12623,9 +12623,9 @@
           "text"
         ],
         "cost": {
-          "input": 0.01656,
-          "output": 0.0216,
-          "cacheRead": 0.0108,
+          "input": 0.01541,
+          "output": 0.0201,
+          "cacheRead": 0.01005,
           "cacheWrite": 0
         },
         "contextWindow": 128000,
@@ -24741,7 +24741,7 @@
         }
       }
     ],
-    "checkedAt": 1794880995507
+    "checkedAt": 1794891455478
   },
   "openai": {
     "models": [

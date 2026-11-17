@@ -47,7 +47,6 @@
   "lastChangelogVersion": "1.5.2",
   "packages": [
     "npm:@juicesharp/rpiv-todo",
-    "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@dietrichgebert/ponytail",
     "npm:pi-blackhole",
     "git:github.com/juicesharp/rpiv-mono",
