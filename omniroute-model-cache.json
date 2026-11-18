@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-17T03:50:25.291Z",
+  "updatedAt": "2026-11-18T05:37:48.795Z",
   "base": "http://localhost:20128/v1",
   "models": [
     {
@@ -731,8 +731,8 @@
       "maxTokens": 1048576
     },
     {
-      "id": "agy/gemini-3.8-flash-tiered",
-      "name": "agy/Gemini 3.8 Flash Tiered",
+      "id": "agy/gemini-3.5-flash-lite",
+      "name": "agy/Gemini 3.5 Flash Lite",
       "reasoning": true,
       "input": [
         "text",
@@ -744,8 +744,8 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
+      "contextWindow": 1000000,
+      "maxTokens": 65535
     },
     {
       "id": "agy/gpt-oss-120b-medium",
@@ -764,8 +764,8 @@
       "maxTokens": 32768
     },
     {
-      "id": "agy/claude-opus-5-5-high",
-      "name": "agy/Claude Opus 5.5 (High)",
+      "id": "agy/gemini-3.1-flash-lite",
+      "name": "agy/Gemini 3.1 Flash Lite",
       "reasoning": true,
       "input": [
         "text",
@@ -778,109 +778,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 128000
-    },
-    {
-      "id": "agy/gemini-3-flash",
-      "name": "agy/Gemini 3 Flash",
-      "reasoning": false,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
-    },
-    {
-      "id": "agy/gemini-4-hydrogen-tiered-xhigh",
-      "name": "Gemini 4 Hydrogen (XHigh)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 262144
-    },
-    {
-      "id": "agy/claude-opus-5-5-low",
-      "name": "agy/Claude Opus 5.5 (Low)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 128000
-    },
-    {
-      "id": "agy/gemini-3.8-flash-low",
-      "name": "agy/Gemini 3.8 Flash (Low)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
-    },
-    {
-      "id": "agy/gemini-4-hydrogen-tiered-high",
-      "name": "Gemini 4 Hydrogen (High)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 262144
-    },
-    {
-      "id": "agy/gemini-4-hydrogen-medium",
-      "name": "Gemini 4 Hydrogen (Medium)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 262144
+      "maxTokens": 65535
     },
     {
       "id": "agy/gemini-4-hydrogen-xhigh",
@@ -917,8 +815,76 @@
       "maxTokens": 65536
     },
     {
-      "id": "agy/claude-sonnet-5-5-high",
-      "name": "agy/Claude Sonnet 5.5 (High)",
+      "id": "agy/gemini-4-argon-high",
+      "name": "Gemini 4 Argon (High)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "agy/gemini-4-hydrogen-sonar",
+      "name": "agy/Gemini 4 Hydrogen Sonar",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 65536
+    },
+    {
+      "id": "agy/gemini-3.8-flash-low",
+      "name": "agy/Gemini 3.8 Flash (Low)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "agy/claude-opus-5-5-low",
+      "name": "agy/Claude Opus 5.5 (Low)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 128000
+    },
+    {
+      "id": "agy/claude-sonnet-5-5-low",
+      "name": "agy/Claude Sonnet 5.5 (Low)",
       "reasoning": true,
       "input": [
         "text",
@@ -951,40 +917,6 @@
       "maxTokens": 128000
     },
     {
-      "id": "agy/gemini-4-carbon-disabled",
-      "name": "Gemini 4 Carbon",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 262144
-    },
-    {
-      "id": "agy/claude-opus-5-5-medium",
-      "name": "agy/Claude Opus 5.5 (Medium)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 128000
-    },
-    {
       "id": "agy/gemini-4-argon-medium",
       "name": "Gemini 4 Argon (Medium)",
       "reasoning": true,
@@ -1002,93 +934,8 @@
       "maxTokens": 65536
     },
     {
-      "id": "agy/gemini-3.1-flash-lite",
-      "name": "agy/Gemini 3.1 Flash Lite",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65535
-    },
-    {
-      "id": "agy/gemini-4-argon-high",
-      "name": "Gemini 4 Argon (High)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
-    },
-    {
-      "id": "agy/gemini-3.8-flash-high",
-      "name": "agy/Gemini 3.8 Flash (High)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
-    },
-    {
-      "id": "agy/gemini-4-hydrogen-high",
+      "id": "agy/gemini-4-hydrogen-tiered-high",
       "name": "Gemini 4 Hydrogen (High)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 262144
-    },
-    {
-      "id": "agy/claude-sonnet-5-5-low",
-      "name": "agy/Claude Sonnet 5.5 (Low)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 128000
-    },
-    {
-      "id": "agy/gemini-4-hydrogen-low",
-      "name": "Gemini 4 Hydrogen (Low)",
       "reasoning": true,
       "input": [
         "text",
@@ -1121,8 +968,59 @@
       "maxTokens": 65536
     },
     {
-      "id": "agy/gemini-3.5-flash-lite",
-      "name": "agy/Gemini 3.5 Flash Lite",
+      "id": "agy/claude-opus-5-5-medium",
+      "name": "agy/Claude Opus 5.5 (Medium)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 128000
+    },
+    {
+      "id": "agy/gemini-3.8-flash-tiered",
+      "name": "agy/Gemini 3.8 Flash Tiered",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "agy/gemini-3-flash",
+      "name": "agy/Gemini 3 Flash",
+      "reasoning": false,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "agy/gemini-4-carbon-disabled",
+      "name": "Gemini 4 Carbon",
       "reasoning": true,
       "input": [
         "text",
@@ -1135,7 +1033,126 @@
         "cacheWrite": 0
       },
       "contextWindow": 1000000,
-      "maxTokens": 65535
+      "maxTokens": 262144
+    },
+    {
+      "id": "agy/claude-sonnet-5-5-high",
+      "name": "agy/Claude Sonnet 5.5 (High)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 128000
+    },
+    {
+      "id": "agy/gemini-4-hydrogen-low",
+      "name": "Gemini 4 Hydrogen (Low)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 262144
+    },
+    {
+      "id": "agy/gemini-4-hydrogen-high",
+      "name": "Gemini 4 Hydrogen (High)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 262144
+    },
+    {
+      "id": "agy/claude-opus-5-5-high",
+      "name": "agy/Claude Opus 5.5 (High)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 128000
+    },
+    {
+      "id": "agy/gemini-3.8-flash-high",
+      "name": "agy/Gemini 3.8 Flash (High)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "agy/gemini-4-hydrogen-tiered-xhigh",
+      "name": "Gemini 4 Hydrogen (XHigh)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 262144
+    },
+    {
+      "id": "agy/gemini-4-hydrogen-medium",
+      "name": "Gemini 4 Hydrogen (Medium)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 262144
     },
     {
       "id": "agy/claude-opus-4-6-thinking",
@@ -3297,8 +3314,8 @@
       "maxTokens": 64000
     },
     {
-      "id": "antigravity/gemini-3.8-flash-low",
-      "name": "antigravity/Gemini 3.8 Flash (Low)",
+      "id": "antigravity/gemini-4-hydrogen-sonar",
+      "name": "antigravity/Gemini 4 Hydrogen Sonar",
       "reasoning": true,
       "input": [
         "text",
@@ -3310,12 +3327,12 @@
         "cacheRead": 0,
         "cacheWrite": 0
       },
-      "contextWindow": 1048576,
+      "contextWindow": 1000000,
       "maxTokens": 65536
     },
     {
-      "id": "antigravity/claude-sonnet-5-5-medium",
-      "name": "antigravity/Claude Sonnet 5.5 (Medium)",
+      "id": "antigravity/claude-opus-5-5-medium",
+      "name": "antigravity/Claude Opus 5.5 (Medium)",
       "reasoning": true,
       "input": [
         "text",
@@ -3331,8 +3348,8 @@
       "maxTokens": 128000
     },
     {
-      "id": "antigravity/gemini-3.8-flash-tiered",
-      "name": "antigravity/Gemini 3.8 Flash Tiered",
+      "id": "antigravity/gemini-3.8-flash-high",
+      "name": "antigravity/Gemini 3.8 Flash (High)",
       "reasoning": true,
       "input": [
         "text",
@@ -3365,8 +3382,8 @@
       "maxTokens": 128000
     },
     {
-      "id": "antigravity/claude-opus-5-5-medium",
-      "name": "antigravity/Claude Opus 5.5 (Medium)",
+      "id": "antigravity/gemini-3.1-flash-lite",
+      "name": "antigravity/Gemini 3.1 Flash Lite",
       "reasoning": true,
       "input": [
         "text",
@@ -3379,7 +3396,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 128000
+      "maxTokens": 65535
     },
     {
       "id": "antigravity/gemini-3-flash",
@@ -3399,8 +3416,8 @@
       "maxTokens": 65536
     },
     {
-      "id": "antigravity/claude-opus-5-5-low",
-      "name": "antigravity/Claude Opus 5.5 (Low)",
+      "id": "antigravity/claude-opus-5-5-high",
+      "name": "antigravity/Claude Opus 5.5 (High)",
       "reasoning": true,
       "input": [
         "text",
@@ -3414,6 +3431,40 @@
       },
       "contextWindow": 1048576,
       "maxTokens": 128000
+    },
+    {
+      "id": "antigravity/gemini-3.8-flash-tiered",
+      "name": "antigravity/Gemini 3.8 Flash Tiered",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "antigravity/gemini-3.8-flash-medium",
+      "name": "antigravity/Gemini 3.8 Flash (Medium)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
     },
     {
       "id": "antigravity/gemini-3.5-flash-lite",
@@ -3449,8 +3500,25 @@
       "maxTokens": 32768
     },
     {
-      "id": "antigravity/gemini-3.8-flash-high",
-      "name": "antigravity/Gemini 3.8 Flash (High)",
+      "id": "antigravity/claude-sonnet-5-5-medium",
+      "name": "antigravity/Claude Sonnet 5.5 (Medium)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 128000
+    },
+    {
+      "id": "antigravity/gemini-3.8-flash-low",
+      "name": "antigravity/Gemini 3.8 Flash (Low)",
       "reasoning": true,
       "input": [
         "text",
@@ -3483,8 +3551,8 @@
       "maxTokens": 128000
     },
     {
-      "id": "antigravity/claude-opus-5-5-high",
-      "name": "antigravity/Claude Opus 5.5 (High)",
+      "id": "antigravity/claude-opus-5-5-low",
+      "name": "antigravity/Claude Opus 5.5 (Low)",
       "reasoning": true,
       "input": [
         "text",
@@ -3498,40 +3566,6 @@
       },
       "contextWindow": 1048576,
       "maxTokens": 128000
-    },
-    {
-      "id": "antigravity/gemini-3.8-flash-medium",
-      "name": "antigravity/Gemini 3.8 Flash (Medium)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
-    },
-    {
-      "id": "antigravity/gemini-3.1-flash-lite",
-      "name": "antigravity/Gemini 3.1 Flash Lite",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65535
     },
     {
       "id": "cx/codex-auto-review",
@@ -3636,8 +3670,59 @@
       "maxTokens": 128000
     },
     {
+      "id": "cx/gpt-6.2-sol",
+      "name": "GPT-6.2-Sol",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
+      "id": "cx/gpt-6.2-astra",
+      "name": "GPT-6.2-Astra",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
       "id": "cx/gpt-6.1-terra",
       "name": "GPT-6.1 Terra",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
+      "id": "cx/gpt-reserve",
+      "name": "GPT-Reserve",
       "reasoning": true,
       "input": [
         "text",
@@ -3668,23 +3753,6 @@
       },
       "contextWindow": 872000,
       "maxTokens": 128000
-    },
-    {
-      "id": "cx/gpt-reserve",
-      "name": "GPT-Reserve",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 872000,
-      "maxTokens": 174400
     },
     {
       "id": "cx/gpt-6-luna",
@@ -4231,6 +4299,176 @@
       "maxTokens": 128000
     },
     {
+      "id": "cx/gpt-6.2-sol-low",
+      "name": "GPT-6.2-Sol (low)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
+      "id": "cx/gpt-6.2-sol-medium",
+      "name": "GPT-6.2-Sol (medium)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
+      "id": "cx/gpt-6.2-sol-high",
+      "name": "GPT-6.2-Sol (high)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
+      "id": "cx/gpt-6.2-sol-xhigh",
+      "name": "GPT-6.2-Sol (xhigh)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
+      "id": "cx/gpt-6.2-sol-max",
+      "name": "GPT-6.2-Sol (max)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
+      "id": "cx/gpt-6.2-astra-low",
+      "name": "GPT-6.2-Astra (low)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
+      "id": "cx/gpt-6.2-astra-medium",
+      "name": "GPT-6.2-Astra (medium)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
+      "id": "cx/gpt-6.2-astra-high",
+      "name": "GPT-6.2-Astra (high)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
+      "id": "cx/gpt-6.2-astra-xhigh",
+      "name": "GPT-6.2-Astra (xhigh)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
+      "id": "cx/gpt-6.2-astra-max",
+      "name": "GPT-6.2-Astra (max)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
       "id": "cx/gpt-6.1-terra-low",
       "name": "GPT-6.1 Terra (low)",
       "reasoning": true,
@@ -4301,6 +4539,91 @@
     {
       "id": "cx/gpt-6.1-terra-max",
       "name": "GPT-6.1 Terra (max)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
+      "id": "cx/gpt-reserve-low",
+      "name": "GPT-Reserve (low)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
+      "id": "cx/gpt-reserve-medium",
+      "name": "GPT-Reserve (medium)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
+      "id": "cx/gpt-reserve-high",
+      "name": "GPT-Reserve (high)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
+      "id": "cx/gpt-reserve-xhigh",
+      "name": "GPT-Reserve (xhigh)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 872000,
+      "maxTokens": 174400
+    },
+    {
+      "id": "cx/gpt-reserve-max",
+      "name": "GPT-Reserve (max)",
       "reasoning": true,
       "input": [
         "text",
@@ -4399,91 +4722,6 @@
       },
       "contextWindow": 872000,
       "maxTokens": 128000
-    },
-    {
-      "id": "cx/gpt-reserve-low",
-      "name": "GPT-Reserve (low)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 872000,
-      "maxTokens": 174400
-    },
-    {
-      "id": "cx/gpt-reserve-medium",
-      "name": "GPT-Reserve (medium)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 872000,
-      "maxTokens": 174400
-    },
-    {
-      "id": "cx/gpt-reserve-high",
-      "name": "GPT-Reserve (high)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 872000,
-      "maxTokens": 174400
-    },
-    {
-      "id": "cx/gpt-reserve-xhigh",
-      "name": "GPT-Reserve (xhigh)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 872000,
-      "maxTokens": 174400
-    },
-    {
-      "id": "cx/gpt-reserve-max",
-      "name": "GPT-Reserve (max)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 872000,
-      "maxTokens": 174400
     },
     {
       "id": "cx/gpt-6-luna-low",
@@ -4585,6 +4823,142 @@
       },
       "contextWindow": 128000,
       "maxTokens": 25600
+    },
+    {
+      "id": "openrouter/openai/gpt-6.2-astra-pro",
+      "name": "OpenAI: GPT-6.2 Astra Pro",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openrouter/openai/gpt-6.2-astra-pro:batch",
+      "name": "OpenAI: GPT-6.2 Astra Pro (batch)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openrouter/openai/gpt-6.2-astra",
+      "name": "OpenAI: GPT-6.2 Astra",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openrouter/openai/gpt-6.2-astra:batch",
+      "name": "OpenAI: GPT-6.2 Astra (batch)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openrouter/openai/gpt-6.2-sol-pro",
+      "name": "OpenAI: GPT-6.2 Sol Pro",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openrouter/openai/gpt-6.2-sol-pro:batch",
+      "name": "OpenAI: GPT-6.2 Sol Pro (batch)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openrouter/openai/gpt-6.2-sol",
+      "name": "OpenAI: GPT-6.2 Sol",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openrouter/openai/gpt-6.2-sol:batch",
+      "name": "OpenAI: GPT-6.2 Sol (batch)",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000
     },
     {
       "id": "openrouter/tencent/hy4-flash",
@@ -6283,7 +6657,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 393216
+      "maxTokens": 943718
     },
     {
       "id": "openrouter/deepseek/deepseek-v4.1-flash:batch",
@@ -6621,7 +6995,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 131072
+      "maxTokens": 943717
     },
     {
       "id": "openrouter/z-ai/glm-5.3-flash:batch",
@@ -9069,7 +9443,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 262144,
-      "maxTokens": 81920
+      "maxTokens": 65536
     },
     {
       "id": "openrouter/qwen/qwen3.5-122b-a10b",
@@ -10170,7 +10544,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 262144,
-      "maxTokens": 16384
+      "maxTokens": 235929
     },
     {
       "id": "openrouter/moonshotai/kimi-k2-0905",
@@ -10727,7 +11101,7 @@
         "cacheWrite": 0
       },
       "contextWindow": 256000,
-      "maxTokens": 26214
+      "maxTokens": 16384
     },
     {
       "id": "openrouter/google/gemini-2.5-flash",

@@ -48,7 +48,7 @@
   "packages": [
     "npm:@juicesharp/rpiv-todo",
     "npm:@dietrichgebert/ponytail",
-    "npm:pi-blackhole",
+    "npm:@sting8k/pi-vcc",
     "git:github.com/juicesharp/rpiv-mono",
     "git:github.com/juniorsundar/my-pi-mono",
     "git:github.com/juniorsundar/writer-skills"
@@ -72,6 +72,7 @@
   "tuiMode": "fullscreen",
   "fullscreenExitOutput": "transcript",
   "extensionChangelogVersions": {
-    "{\"source\":\"npm:pi-blackhole\",\"scope\":\"user\"}": "0.5.18"
+    "{\"source\":\"npm:pi-blackhole\",\"scope\":\"user\"}": "0.5.18",
+    "{\"source\":\"npm:@sting8k/pi-vcc\",\"scope\":\"user\"}": "0.11.2"
   }
 }
