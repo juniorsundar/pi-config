@@ -1,5 +1,6 @@
 {
-  "updatedAt": "2026-11-18T05:37:48.795Z",
+  "version": 2,
+  "updatedAt": "2026-11-19T04:09:41.359Z",
   "base": "http://localhost:20128/v1",
   "models": [
     {
@@ -748,25 +749,18 @@
       "maxTokens": 65535
     },
     {
-      "id": "agy/gpt-oss-120b-medium",
-      "name": "agy/GPT-OSS 120B (Medium)",
+      "id": "agy/claude-opus-5-5-medium",
+      "name": "agy/Claude Opus 5.5 (Medium)",
       "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
       },
-      "contextWindow": 131072,
-      "maxTokens": 32768
-    },
-    {
-      "id": "agy/gemini-3.1-flash-lite",
-      "name": "agy/Gemini 3.1 Flash Lite",
-      "reasoning": true,
       "input": [
         "text",
         "image"
@@ -778,12 +772,99 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 65535
+      "maxTokens": 128000
+    },
+    {
+      "id": "agy/gemini-4-hydrogen-medium",
+      "name": "Gemini 4 Hydrogen (Medium)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 262144
+    },
+    {
+      "id": "agy/claude-opus-5-5-high",
+      "name": "agy/Claude Opus 5.5 (High)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 128000
+    },
+    {
+      "id": "agy/gemini-3.8-flash-high",
+      "name": "agy/Gemini 3.8 Flash (High)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
     },
     {
       "id": "agy/gemini-4-hydrogen-xhigh",
       "name": "Gemini 4 Hydrogen (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -796,227 +877,6 @@
       },
       "contextWindow": 1000000,
       "maxTokens": 262144
-    },
-    {
-      "id": "agy/gemini-3.8-flash-medium",
-      "name": "agy/Gemini 3.8 Flash (Medium)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
-    },
-    {
-      "id": "agy/gemini-4-argon-high",
-      "name": "Gemini 4 Argon (High)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
-    },
-    {
-      "id": "agy/gemini-4-hydrogen-sonar",
-      "name": "agy/Gemini 4 Hydrogen Sonar",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 65536
-    },
-    {
-      "id": "agy/gemini-3.8-flash-low",
-      "name": "agy/Gemini 3.8 Flash (Low)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
-    },
-    {
-      "id": "agy/claude-opus-5-5-low",
-      "name": "agy/Claude Opus 5.5 (Low)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 128000
-    },
-    {
-      "id": "agy/claude-sonnet-5-5-low",
-      "name": "agy/Claude Sonnet 5.5 (Low)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 128000
-    },
-    {
-      "id": "agy/claude-sonnet-5-5-medium",
-      "name": "agy/Claude Sonnet 5.5 (Medium)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 128000
-    },
-    {
-      "id": "agy/gemini-4-argon-medium",
-      "name": "Gemini 4 Argon (Medium)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
-    },
-    {
-      "id": "agy/gemini-4-hydrogen-tiered-high",
-      "name": "Gemini 4 Hydrogen (High)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 262144
-    },
-    {
-      "id": "agy/gemini-4-argon-low",
-      "name": "Gemini 4 Argon (Low)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
-    },
-    {
-      "id": "agy/claude-opus-5-5-medium",
-      "name": "agy/Claude Opus 5.5 (Medium)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 128000
-    },
-    {
-      "id": "agy/gemini-3.8-flash-tiered",
-      "name": "agy/Gemini 3.8 Flash Tiered",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
-    },
-    {
-      "id": "agy/gemini-3-flash",
-      "name": "agy/Gemini 3 Flash",
-      "reasoning": false,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
     },
     {
       "id": "agy/gemini-4-carbon-disabled",
@@ -1036,77 +896,18 @@
       "maxTokens": 262144
     },
     {
-      "id": "agy/claude-sonnet-5-5-high",
-      "name": "agy/Claude Sonnet 5.5 (High)",
+      "id": "agy/gemini-3.8-flash-medium",
+      "name": "agy/Gemini 3.8 Flash (Medium)",
       "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
       },
-      "contextWindow": 1048576,
-      "maxTokens": 128000
-    },
-    {
-      "id": "agy/gemini-4-hydrogen-low",
-      "name": "Gemini 4 Hydrogen (Low)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 262144
-    },
-    {
-      "id": "agy/gemini-4-hydrogen-high",
-      "name": "Gemini 4 Hydrogen (High)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 262144
-    },
-    {
-      "id": "agy/claude-opus-5-5-high",
-      "name": "agy/Claude Opus 5.5 (High)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 128000
-    },
-    {
-      "id": "agy/gemini-3.8-flash-high",
-      "name": "agy/Gemini 3.8 Flash (High)",
-      "reasoning": true,
       "input": [
         "text",
         "image"
@@ -1121,9 +922,44 @@
       "maxTokens": 65536
     },
     {
-      "id": "agy/gemini-4-hydrogen-tiered-xhigh",
-      "name": "Gemini 4 Hydrogen (XHigh)",
+      "id": "agy/gemini-4-argon-low",
+      "name": "Gemini 4 Argon (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "agy/gemini-4-neon-high",
+      "name": "Gemini 4 Neon (High)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1138,9 +974,18 @@
       "maxTokens": 262144
     },
     {
-      "id": "agy/gemini-4-hydrogen-medium",
-      "name": "Gemini 4 Hydrogen (Medium)",
+      "id": "agy/gemini-4-hydrogen-tiered-high",
+      "name": "Gemini 4 Hydrogen (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1153,6 +998,437 @@
       },
       "contextWindow": 1000000,
       "maxTokens": 262144
+    },
+    {
+      "id": "agy/claude-sonnet-5-5-high",
+      "name": "agy/Claude Sonnet 5.5 (High)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 128000
+    },
+    {
+      "id": "agy/gemini-4-neon-medium",
+      "name": "Gemini 4 Neon (Medium)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 262144
+    },
+    {
+      "id": "agy/gpt-oss-120b-medium",
+      "name": "agy/GPT-OSS 120B (Medium)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 131072,
+      "maxTokens": 32768
+    },
+    {
+      "id": "agy/claude-sonnet-5-5-low",
+      "name": "agy/Claude Sonnet 5.5 (Low)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 128000
+    },
+    {
+      "id": "agy/gemini-3-flash",
+      "name": "agy/Gemini 3 Flash",
+      "reasoning": false,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "agy/gemini-3.1-flash-lite",
+      "name": "agy/Gemini 3.1 Flash Lite",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65535
+    },
+    {
+      "id": "agy/gemini-4-hydrogen-low",
+      "name": "Gemini 4 Hydrogen (Low)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 262144
+    },
+    {
+      "id": "agy/gemini-4-hydrogen-sonar",
+      "name": "agy/Gemini 4 Hydrogen Sonar",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 65536
+    },
+    {
+      "id": "agy/gemini-4-hydrogen-tiered-xhigh",
+      "name": "Gemini 4 Hydrogen (XHigh)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 262144
+    },
+    {
+      "id": "agy/claude-opus-5-5-low",
+      "name": "agy/Claude Opus 5.5 (Low)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 128000
+    },
+    {
+      "id": "agy/gemini-4-argon-medium",
+      "name": "Gemini 4 Argon (Medium)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "agy/gemini-4-argon-high",
+      "name": "Gemini 4 Argon (High)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "agy/gemini-3.8-flash-low",
+      "name": "agy/Gemini 3.8 Flash (Low)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "agy/gemini-4-neon-xhigh",
+      "name": "Gemini 4 Neon (XHigh)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 262144
+    },
+    {
+      "id": "agy/gemini-4-neon-low",
+      "name": "Gemini 4 Neon (Low)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 262144
+    },
+    {
+      "id": "agy/claude-sonnet-5-5-medium",
+      "name": "agy/Claude Sonnet 5.5 (Medium)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 128000
+    },
+    {
+      "id": "agy/gemini-4-hydrogen-high",
+      "name": "Gemini 4 Hydrogen (High)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 262144
+    },
+    {
+      "id": "agy/gemini-3.8-flash-tiered",
+      "name": "agy/Gemini 3.8 Flash Tiered",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
     },
     {
       "id": "agy/claude-opus-4-6-thinking",
@@ -1226,6 +1502,15 @@
       "id": "agy/claude-opus-4-6-thinking-low",
       "name": "Claude Opus 4.6 Thinking Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1243,6 +1528,15 @@
       "id": "agy/claude-opus-4-6-thinking-medium",
       "name": "Claude Opus 4.6 Thinking Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1260,6 +1554,15 @@
       "id": "agy/claude-opus-4-6-thinking-high",
       "name": "Claude Opus 4.6 Thinking High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1277,6 +1580,15 @@
       "id": "agy/claude-sonnet-4-6-low",
       "name": "agy/Claude Sonnet 4.6 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1294,6 +1606,15 @@
       "id": "agy/claude-sonnet-4-6-medium",
       "name": "agy/Claude Sonnet 4.6 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1311,6 +1632,15 @@
       "id": "agy/claude-sonnet-4-6-high",
       "name": "agy/Claude Sonnet 4.6 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1617,6 +1947,15 @@
       "id": "cc/claude-fable-5-2-low",
       "name": "Claude Fable 5.2 (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1634,6 +1973,15 @@
       "id": "cc/claude-fable-5-2-medium",
       "name": "Claude Fable 5.2 (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1651,6 +1999,15 @@
       "id": "cc/claude-fable-5-2-high",
       "name": "Claude Fable 5.2 (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1668,6 +2025,15 @@
       "id": "cc/claude-fable-5-2-xhigh",
       "name": "Claude Fable 5.2 (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1685,6 +2051,15 @@
       "id": "cc/claude-haiku-5-5-low",
       "name": "cc/Claude Haiku 5.5 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1702,6 +2077,15 @@
       "id": "cc/claude-haiku-5-5-medium",
       "name": "cc/Claude Haiku 5.5 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1719,6 +2103,15 @@
       "id": "cc/claude-haiku-5-5-high",
       "name": "cc/Claude Haiku 5.5 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1736,6 +2129,15 @@
       "id": "cc/claude-haiku-5-5-xhigh",
       "name": "cc/Claude Haiku 5.5 Xhigh",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1753,6 +2155,15 @@
       "id": "cc/claude-sonnet-5-5-low",
       "name": "Claude Sonnet 5.5 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1770,6 +2181,15 @@
       "id": "cc/claude-sonnet-5-5-medium",
       "name": "Claude Sonnet 5.5 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1787,6 +2207,15 @@
       "id": "cc/claude-sonnet-5-5-high",
       "name": "Claude Sonnet 5.5 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1804,6 +2233,15 @@
       "id": "cc/claude-sonnet-5-5-xhigh",
       "name": "Claude Sonnet 5.5 Xhigh",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1821,6 +2259,15 @@
       "id": "cc/claude-opus-5-5-low",
       "name": "Claude Opus 5.5 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1838,6 +2285,15 @@
       "id": "cc/claude-opus-5-5-medium",
       "name": "Claude Opus 5.5 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1855,6 +2311,15 @@
       "id": "cc/claude-opus-5-5-high",
       "name": "Claude Opus 5.5 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1872,6 +2337,15 @@
       "id": "cc/claude-opus-5-5-xhigh",
       "name": "Claude Opus 5.5 Xhigh",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1889,6 +2363,15 @@
       "id": "cc/claude-fable-5-1-low",
       "name": "Claude Fable 5.1 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1906,6 +2389,15 @@
       "id": "cc/claude-fable-5-1-medium",
       "name": "Claude Fable 5.1 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1923,6 +2415,15 @@
       "id": "cc/claude-fable-5-1-high",
       "name": "Claude Fable 5.1 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1940,6 +2441,15 @@
       "id": "cc/claude-fable-5-1-xhigh",
       "name": "Claude Fable 5.1 Xhigh",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1957,6 +2467,15 @@
       "id": "cc/claude-opus-5-low",
       "name": "cc/Claude Opus 5 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1974,6 +2493,15 @@
       "id": "cc/claude-opus-5-medium",
       "name": "cc/Claude Opus 5 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -1991,6 +2519,15 @@
       "id": "cc/claude-opus-5-high",
       "name": "cc/Claude Opus 5 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2008,6 +2545,15 @@
       "id": "cc/claude-opus-5-xhigh",
       "name": "cc/Claude Opus 5 Xhigh",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2025,6 +2571,15 @@
       "id": "cc/claude-sonnet-5-low",
       "name": "Claude Sonnet 5 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2042,6 +2597,15 @@
       "id": "cc/claude-sonnet-5-medium",
       "name": "Claude Sonnet 5 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2059,6 +2623,15 @@
       "id": "cc/claude-sonnet-5-high",
       "name": "Claude Sonnet 5 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2076,6 +2649,15 @@
       "id": "cc/claude-sonnet-5-xhigh",
       "name": "Claude Sonnet 5 Xhigh",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2093,6 +2675,15 @@
       "id": "cc/claude-fable-5-low",
       "name": "Claude Fable 5 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2110,6 +2701,15 @@
       "id": "cc/claude-fable-5-medium",
       "name": "Claude Fable 5 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2127,6 +2727,15 @@
       "id": "cc/claude-fable-5-high",
       "name": "Claude Fable 5 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2144,6 +2753,15 @@
       "id": "cc/claude-fable-5-xhigh",
       "name": "Claude Fable 5 Xhigh",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2161,6 +2779,15 @@
       "id": "cc/claude-opus-4-8-low",
       "name": "cc/Claude Opus 4.8 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2178,6 +2805,15 @@
       "id": "cc/claude-opus-4-8-medium",
       "name": "cc/Claude Opus 4.8 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2195,6 +2831,15 @@
       "id": "cc/claude-opus-4-8-high",
       "name": "cc/Claude Opus 4.8 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2212,6 +2857,15 @@
       "id": "cc/claude-opus-4-8-xhigh",
       "name": "cc/Claude Opus 4.8 Xhigh",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2229,6 +2883,15 @@
       "id": "cc/claude-opus-4-7-low",
       "name": "cc/Claude Opus 4.7 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2246,6 +2909,15 @@
       "id": "cc/claude-opus-4-7-medium",
       "name": "cc/Claude Opus 4.7 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2263,6 +2935,15 @@
       "id": "cc/claude-opus-4-7-high",
       "name": "cc/Claude Opus 4.7 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2280,6 +2961,15 @@
       "id": "cc/claude-opus-4-7-xhigh",
       "name": "cc/Claude Opus 4.7 Xhigh",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2297,6 +2987,15 @@
       "id": "cc/claude-sonnet-4-6-low",
       "name": "cc/Claude Sonnet 4.6 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2314,6 +3013,15 @@
       "id": "cc/claude-sonnet-4-6-medium",
       "name": "cc/Claude Sonnet 4.6 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2331,6 +3039,15 @@
       "id": "cc/claude-sonnet-4-6-high",
       "name": "cc/Claude Sonnet 4.6 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2348,6 +3065,15 @@
       "id": "cc/claude-opus-4-6-low",
       "name": "cc/Claude Opus 4.6 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2365,6 +3091,15 @@
       "id": "cc/claude-opus-4-6-medium",
       "name": "cc/Claude Opus 4.6 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2382,6 +3117,15 @@
       "id": "cc/claude-opus-4-6-high",
       "name": "cc/Claude Opus 4.6 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2399,6 +3143,15 @@
       "id": "cc/claude-opus-4-5-20251101-low",
       "name": "cc/Claude Opus 4.5 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2416,6 +3169,15 @@
       "id": "cc/claude-opus-4-5-20251101-medium",
       "name": "cc/Claude Opus 4.5 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2433,6 +3195,15 @@
       "id": "cc/claude-opus-4-5-20251101-high",
       "name": "cc/Claude Opus 4.5 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2450,6 +3221,15 @@
       "id": "cc/claude-haiku-4-5-20251001-low",
       "name": "Claude Haiku 4.5 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2467,6 +3247,15 @@
       "id": "cc/claude-haiku-4-5-20251001-medium",
       "name": "Claude Haiku 4.5 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2484,6 +3273,15 @@
       "id": "cc/claude-haiku-4-5-20251001-high",
       "name": "Claude Haiku 4.5 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2501,6 +3299,15 @@
       "id": "cc/claude-sonnet-4-5-20250929-low",
       "name": "Claude Sonnet 4.5 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2518,6 +3325,15 @@
       "id": "cc/claude-sonnet-4-5-20250929-medium",
       "name": "Claude Sonnet 4.5 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2535,6 +3351,15 @@
       "id": "cc/claude-sonnet-4-5-20250929-high",
       "name": "Claude Sonnet 4.5 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2722,6 +3547,15 @@
       "id": "cc/claude-haiku-5-5-max",
       "name": "cc/Claude Haiku 5.5 Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -2739,6 +3573,15 @@
       "id": "cc/claude-opus-5-5-max",
       "name": "Claude Opus 5.5 Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -2756,6 +3599,15 @@
       "id": "cc/claude-fable-5-1-max",
       "name": "Claude Fable 5.1 Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -2773,6 +3625,15 @@
       "id": "cc/claude-opus-5-max",
       "name": "cc/Claude Opus 5 Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -2790,6 +3651,15 @@
       "id": "cc/claude-fable-5-max",
       "name": "Claude Fable 5 Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -2807,6 +3677,15 @@
       "id": "cc/claude-opus-4-8-max",
       "name": "cc/Claude Opus 4.8 Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -2824,6 +3703,15 @@
       "id": "cc/claude-opus-4-7-max",
       "name": "cc/Claude Opus 4.7 Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -2841,6 +3729,15 @@
       "id": "cc/claude-opus-4-6-max",
       "name": "cc/Claude Opus 4.6 Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -2858,6 +3755,15 @@
       "id": "no-think/cc/claude-haiku-5-5-low",
       "name": "no-think/Claude Haiku 5.5 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2875,6 +3781,15 @@
       "id": "no-think/cc/claude-haiku-5-5-medium",
       "name": "no-think/Claude Haiku 5.5 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2892,6 +3807,15 @@
       "id": "no-think/cc/claude-haiku-5-5-high",
       "name": "no-think/Claude Haiku 5.5 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2909,6 +3833,15 @@
       "id": "no-think/cc/claude-haiku-5-5-xhigh",
       "name": "no-think/Claude Haiku 5.5 Xhigh",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2926,6 +3859,15 @@
       "id": "no-think/cc/claude-haiku-5-5-max",
       "name": "no-think/Claude Haiku 5.5 Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -2943,6 +3885,15 @@
       "id": "no-think/cc/claude-opus-5-low",
       "name": "no-think/Claude Opus 5 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2960,6 +3911,15 @@
       "id": "no-think/cc/claude-opus-5-medium",
       "name": "no-think/Claude Opus 5 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2977,6 +3937,15 @@
       "id": "no-think/cc/claude-opus-5-high",
       "name": "no-think/Claude Opus 5 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -2994,6 +3963,15 @@
       "id": "no-think/cc/claude-opus-5-xhigh",
       "name": "no-think/Claude Opus 5 Xhigh",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3011,6 +3989,15 @@
       "id": "no-think/cc/claude-opus-5-max",
       "name": "no-think/Claude Opus 5 Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -3028,6 +4015,15 @@
       "id": "no-think/cc/claude-opus-4-8-low",
       "name": "no-think/Claude Opus 4.8 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3045,6 +4041,15 @@
       "id": "no-think/cc/claude-opus-4-8-medium",
       "name": "no-think/Claude Opus 4.8 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3062,6 +4067,15 @@
       "id": "no-think/cc/claude-opus-4-8-high",
       "name": "no-think/Claude Opus 4.8 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3079,6 +4093,15 @@
       "id": "no-think/cc/claude-opus-4-8-xhigh",
       "name": "no-think/Claude Opus 4.8 Xhigh",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3096,6 +4119,15 @@
       "id": "no-think/cc/claude-opus-4-8-max",
       "name": "no-think/Claude Opus 4.8 Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -3113,6 +4145,15 @@
       "id": "no-think/cc/claude-opus-4-7-low",
       "name": "no-think/Claude Opus 4.7 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3130,6 +4171,15 @@
       "id": "no-think/cc/claude-opus-4-7-medium",
       "name": "no-think/Claude Opus 4.7 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3147,6 +4197,15 @@
       "id": "no-think/cc/claude-opus-4-7-high",
       "name": "no-think/Claude Opus 4.7 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3164,6 +4223,15 @@
       "id": "no-think/cc/claude-opus-4-7-xhigh",
       "name": "no-think/Claude Opus 4.7 Xhigh",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3181,6 +4249,15 @@
       "id": "no-think/cc/claude-opus-4-7-max",
       "name": "no-think/Claude Opus 4.7 Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -3198,6 +4275,15 @@
       "id": "no-think/cc/claude-opus-4-6-low",
       "name": "no-think/Claude Opus 4.6 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3215,6 +4301,15 @@
       "id": "no-think/cc/claude-opus-4-6-medium",
       "name": "no-think/Claude Opus 4.6 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3232,6 +4327,15 @@
       "id": "no-think/cc/claude-opus-4-6-high",
       "name": "no-think/Claude Opus 4.6 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3249,6 +4353,15 @@
       "id": "no-think/cc/claude-opus-4-6-max",
       "name": "no-think/Claude Opus 4.6 Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -3266,6 +4379,15 @@
       "id": "no-think/cc/claude-opus-4-5-20251101-low",
       "name": "no-think/Claude Opus 4.5 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3283,6 +4405,15 @@
       "id": "no-think/cc/claude-opus-4-5-20251101-medium",
       "name": "no-think/Claude Opus 4.5 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3300,6 +4431,15 @@
       "id": "no-think/cc/claude-opus-4-5-20251101-high",
       "name": "no-think/Claude Opus 4.5 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3312,6 +4452,127 @@
       },
       "contextWindow": 200000,
       "maxTokens": 64000
+    },
+    {
+      "id": "antigravity/gemini-3.8-flash-tiered",
+      "name": "antigravity/Gemini 3.8 Flash Tiered",
+      "reasoning": true,
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "antigravity/claude-sonnet-5-5-low",
+      "name": "antigravity/Claude Sonnet 5.5 (Low)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 128000
+    },
+    {
+      "id": "antigravity/claude-opus-5-5-medium",
+      "name": "antigravity/Claude Opus 5.5 (Medium)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 128000
+    },
+    {
+      "id": "antigravity/claude-opus-5-5-high",
+      "name": "antigravity/Claude Opus 5.5 (High)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 128000
+    },
+    {
+      "id": "antigravity/claude-opus-5-5-low",
+      "name": "antigravity/Claude Opus 5.5 (Low)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 128000
     },
     {
       "id": "antigravity/gemini-4-hydrogen-sonar",
@@ -3331,9 +4592,18 @@
       "maxTokens": 65536
     },
     {
-      "id": "antigravity/claude-opus-5-5-medium",
-      "name": "antigravity/Claude Opus 5.5 (Medium)",
+      "id": "antigravity/gemini-3.8-flash-medium",
+      "name": "antigravity/Gemini 3.8 Flash (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3345,12 +4615,21 @@
         "cacheWrite": 0
       },
       "contextWindow": 1048576,
-      "maxTokens": 128000
+      "maxTokens": 65536
     },
     {
       "id": "antigravity/gemini-3.8-flash-high",
       "name": "antigravity/Gemini 3.8 Flash (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3368,6 +4647,15 @@
       "id": "antigravity/claude-sonnet-5-5-high",
       "name": "antigravity/Claude Sonnet 5.5 (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3399,6 +4687,57 @@
       "maxTokens": 65535
     },
     {
+      "id": "antigravity/gemini-3.8-flash-low",
+      "name": "antigravity/Gemini 3.8 Flash (Low)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text",
+        "image"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "antigravity/gpt-oss-120b-medium",
+      "name": "antigravity/GPT-OSS 120B (Medium)",
+      "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
+      "input": [
+        "text"
+      ],
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "contextWindow": 131072,
+      "maxTokens": 32768
+    },
+    {
       "id": "antigravity/gemini-3-flash",
       "name": "antigravity/Gemini 3 Flash",
       "reasoning": false,
@@ -3416,9 +4755,18 @@
       "maxTokens": 65536
     },
     {
-      "id": "antigravity/claude-opus-5-5-high",
-      "name": "antigravity/Claude Opus 5.5 (High)",
+      "id": "antigravity/claude-sonnet-5-5-medium",
+      "name": "antigravity/Claude Sonnet 5.5 (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3431,40 +4779,6 @@
       },
       "contextWindow": 1048576,
       "maxTokens": 128000
-    },
-    {
-      "id": "antigravity/gemini-3.8-flash-tiered",
-      "name": "antigravity/Gemini 3.8 Flash Tiered",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
-    },
-    {
-      "id": "antigravity/gemini-3.8-flash-medium",
-      "name": "antigravity/Gemini 3.8 Flash (Medium)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
     },
     {
       "id": "antigravity/gemini-3.5-flash-lite",
@@ -3482,90 +4796,6 @@
       },
       "contextWindow": 1000000,
       "maxTokens": 65535
-    },
-    {
-      "id": "antigravity/gpt-oss-120b-medium",
-      "name": "antigravity/GPT-OSS 120B (Medium)",
-      "reasoning": true,
-      "input": [
-        "text"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 131072,
-      "maxTokens": 32768
-    },
-    {
-      "id": "antigravity/claude-sonnet-5-5-medium",
-      "name": "antigravity/Claude Sonnet 5.5 (Medium)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 128000
-    },
-    {
-      "id": "antigravity/gemini-3.8-flash-low",
-      "name": "antigravity/Gemini 3.8 Flash (Low)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65536
-    },
-    {
-      "id": "antigravity/claude-sonnet-5-5-low",
-      "name": "antigravity/Claude Sonnet 5.5 (Low)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 128000
-    },
-    {
-      "id": "antigravity/claude-opus-5-5-low",
-      "name": "antigravity/Claude Opus 5.5 (Low)",
-      "reasoning": true,
-      "input": [
-        "text",
-        "image"
-      ],
-      "cost": {
-        "input": 0,
-        "output": 0,
-        "cacheRead": 0,
-        "cacheWrite": 0
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 128000
     },
     {
       "id": "cx/codex-auto-review",
@@ -3792,6 +5022,15 @@
       "id": "cx/codex-auto-review-low",
       "name": "cx/codex-auto-review (low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3809,6 +5048,15 @@
       "id": "cx/codex-auto-review-medium",
       "name": "cx/codex-auto-review (medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3826,6 +5074,15 @@
       "id": "cx/codex-auto-review-high",
       "name": "cx/codex-auto-review (high)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3843,6 +5100,15 @@
       "id": "cx/codex-auto-review-xhigh",
       "name": "cx/codex-auto-review (xhigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3860,6 +5126,15 @@
       "id": "cx/codex-auto-review-max",
       "name": "cx/codex-auto-review (max)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -3877,6 +5152,15 @@
       "id": "cx/gpt-6-astra-low",
       "name": "cx/gpt-6-astra (low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3894,6 +5178,15 @@
       "id": "cx/gpt-6-astra-medium",
       "name": "cx/gpt-6-astra (medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3911,6 +5204,15 @@
       "id": "cx/gpt-6-astra-high",
       "name": "cx/gpt-6-astra (high)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3928,6 +5230,15 @@
       "id": "cx/gpt-6-astra-xhigh",
       "name": "cx/gpt-6-astra (xhigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3945,6 +5256,15 @@
       "id": "cx/gpt-6-astra-max",
       "name": "cx/gpt-6-astra (max)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -3962,6 +5282,15 @@
       "id": "cx/gpt-6.1-sol-low",
       "name": "cx/gpt-6.1-sol (low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3979,6 +5308,15 @@
       "id": "cx/gpt-6.1-sol-medium",
       "name": "cx/gpt-6.1-sol (medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -3996,6 +5334,15 @@
       "id": "cx/gpt-6.1-sol-high",
       "name": "cx/gpt-6.1-sol (high)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4013,6 +5360,15 @@
       "id": "cx/gpt-6.1-sol-xhigh",
       "name": "cx/gpt-6.1-sol (xhigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4030,6 +5386,15 @@
       "id": "cx/gpt-6.1-sol-max",
       "name": "cx/gpt-6.1-sol (max)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -4047,6 +5412,15 @@
       "id": "cx/gpt-5.6-sol-low",
       "name": "cx/gpt-5.6-sol (low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4064,6 +5438,15 @@
       "id": "cx/gpt-5.6-sol-medium",
       "name": "cx/gpt-5.6-sol (medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4081,6 +5464,15 @@
       "id": "cx/gpt-5.6-sol-high",
       "name": "cx/gpt-5.6-sol (high)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4098,6 +5490,15 @@
       "id": "cx/gpt-5.6-sol-xhigh",
       "name": "cx/gpt-5.6-sol (xhigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4115,6 +5516,15 @@
       "id": "cx/gpt-5.6-sol-max",
       "name": "cx/gpt-5.6-sol (max)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -4132,6 +5542,15 @@
       "id": "cx/gpt-5.6-terra-low",
       "name": "cx/gpt-5.6-terra (low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4149,6 +5568,15 @@
       "id": "cx/gpt-5.6-terra-medium",
       "name": "cx/gpt-5.6-terra (medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4166,6 +5594,15 @@
       "id": "cx/gpt-5.6-terra-high",
       "name": "cx/gpt-5.6-terra (high)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4183,6 +5620,15 @@
       "id": "cx/gpt-5.6-terra-xhigh",
       "name": "cx/gpt-5.6-terra (xhigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4200,6 +5646,15 @@
       "id": "cx/gpt-5.6-terra-max",
       "name": "cx/gpt-5.6-terra (max)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -4217,6 +5672,15 @@
       "id": "cx/gpt-5.6-luna-low",
       "name": "cx/gpt-5.6-luna (low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4234,6 +5698,15 @@
       "id": "cx/gpt-5.6-luna-medium",
       "name": "cx/gpt-5.6-luna (medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4251,6 +5724,15 @@
       "id": "cx/gpt-5.6-luna-high",
       "name": "cx/gpt-5.6-luna (high)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4268,6 +5750,15 @@
       "id": "cx/gpt-5.6-luna-xhigh",
       "name": "cx/gpt-5.6-luna (xhigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4285,6 +5776,15 @@
       "id": "cx/gpt-5.6-luna-max",
       "name": "cx/gpt-5.6-luna (max)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -4302,6 +5802,15 @@
       "id": "cx/gpt-6.2-sol-low",
       "name": "GPT-6.2-Sol (low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4319,6 +5828,15 @@
       "id": "cx/gpt-6.2-sol-medium",
       "name": "GPT-6.2-Sol (medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4336,6 +5854,15 @@
       "id": "cx/gpt-6.2-sol-high",
       "name": "GPT-6.2-Sol (high)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4353,6 +5880,15 @@
       "id": "cx/gpt-6.2-sol-xhigh",
       "name": "GPT-6.2-Sol (xhigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4370,6 +5906,15 @@
       "id": "cx/gpt-6.2-sol-max",
       "name": "GPT-6.2-Sol (max)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -4387,6 +5932,15 @@
       "id": "cx/gpt-6.2-astra-low",
       "name": "GPT-6.2-Astra (low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4404,6 +5958,15 @@
       "id": "cx/gpt-6.2-astra-medium",
       "name": "GPT-6.2-Astra (medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4421,6 +5984,15 @@
       "id": "cx/gpt-6.2-astra-high",
       "name": "GPT-6.2-Astra (high)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4438,6 +6010,15 @@
       "id": "cx/gpt-6.2-astra-xhigh",
       "name": "GPT-6.2-Astra (xhigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4455,6 +6036,15 @@
       "id": "cx/gpt-6.2-astra-max",
       "name": "GPT-6.2-Astra (max)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -4472,6 +6062,15 @@
       "id": "cx/gpt-6.1-terra-low",
       "name": "GPT-6.1 Terra (low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4489,6 +6088,15 @@
       "id": "cx/gpt-6.1-terra-medium",
       "name": "GPT-6.1 Terra (medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4506,6 +6114,15 @@
       "id": "cx/gpt-6.1-terra-high",
       "name": "GPT-6.1 Terra (high)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4523,6 +6140,15 @@
       "id": "cx/gpt-6.1-terra-xhigh",
       "name": "GPT-6.1 Terra (xhigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4540,6 +6166,15 @@
       "id": "cx/gpt-6.1-terra-max",
       "name": "GPT-6.1 Terra (max)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -4557,6 +6192,15 @@
       "id": "cx/gpt-reserve-low",
       "name": "GPT-Reserve (low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4574,6 +6218,15 @@
       "id": "cx/gpt-reserve-medium",
       "name": "GPT-Reserve (medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4591,6 +6244,15 @@
       "id": "cx/gpt-reserve-high",
       "name": "GPT-Reserve (high)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4608,6 +6270,15 @@
       "id": "cx/gpt-reserve-xhigh",
       "name": "GPT-Reserve (xhigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4625,6 +6296,15 @@
       "id": "cx/gpt-reserve-max",
       "name": "GPT-Reserve (max)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -4642,6 +6322,15 @@
       "id": "cx/gpt-6-sol-low",
       "name": "cx/gpt-6-sol (low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4659,6 +6348,15 @@
       "id": "cx/gpt-6-sol-medium",
       "name": "cx/gpt-6-sol (medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4676,6 +6374,15 @@
       "id": "cx/gpt-6-sol-high",
       "name": "cx/gpt-6-sol (high)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4693,6 +6400,15 @@
       "id": "cx/gpt-6-sol-xhigh",
       "name": "cx/gpt-6-sol (xhigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4710,6 +6426,15 @@
       "id": "cx/gpt-6-sol-max",
       "name": "cx/gpt-6-sol (max)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -4727,6 +6452,15 @@
       "id": "cx/gpt-6-luna-low",
       "name": "cx/gpt-6-luna (low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4744,6 +6478,15 @@
       "id": "cx/gpt-6-luna-medium",
       "name": "cx/gpt-6-luna (medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4761,6 +6504,15 @@
       "id": "cx/gpt-6-luna-high",
       "name": "cx/gpt-6-luna (high)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4778,6 +6530,15 @@
       "id": "cx/gpt-6-luna-xhigh",
       "name": "cx/gpt-6-luna (xhigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -4795,6 +6556,15 @@
       "id": "cx/gpt-6-luna-max",
       "name": "cx/gpt-6-luna (max)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -12489,6 +14259,15 @@
       "id": "openrouter/anthropic/claude-fable-5.2-low",
       "name": "Anthropic: Claude Fable 5.2 (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12506,6 +14285,15 @@
       "id": "openrouter/anthropic/claude-fable-5.2-medium",
       "name": "Anthropic: Claude Fable 5.2 (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12523,6 +14311,15 @@
       "id": "openrouter/anthropic/claude-fable-5.2-high",
       "name": "Anthropic: Claude Fable 5.2 (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12540,6 +14337,15 @@
       "id": "openrouter/anthropic/claude-fable-5.2-xhigh",
       "name": "Anthropic: Claude Fable 5.2 (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12557,6 +14363,15 @@
       "id": "openrouter/anthropic/claude-fable-5.2:batch-low",
       "name": "Anthropic: Claude Fable 5.2 (batch) (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12574,6 +14389,15 @@
       "id": "openrouter/anthropic/claude-fable-5.2:batch-medium",
       "name": "Anthropic: Claude Fable 5.2 (batch) (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12591,6 +14415,15 @@
       "id": "openrouter/anthropic/claude-fable-5.2:batch-high",
       "name": "Anthropic: Claude Fable 5.2 (batch) (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12608,6 +14441,15 @@
       "id": "openrouter/anthropic/claude-fable-5.2:batch-xhigh",
       "name": "Anthropic: Claude Fable 5.2 (batch) (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12625,6 +14467,15 @@
       "id": "openrouter/anthropic/claude-haiku-5.5-low",
       "name": "Anthropic: Claude Haiku 5.5 (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12642,6 +14493,15 @@
       "id": "openrouter/anthropic/claude-haiku-5.5-medium",
       "name": "Anthropic: Claude Haiku 5.5 (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12659,6 +14519,15 @@
       "id": "openrouter/anthropic/claude-haiku-5.5-high",
       "name": "Anthropic: Claude Haiku 5.5 (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12676,6 +14545,15 @@
       "id": "openrouter/anthropic/claude-haiku-5.5-xhigh",
       "name": "Anthropic: Claude Haiku 5.5 (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12693,6 +14571,15 @@
       "id": "openrouter/anthropic/claude-sonnet-5.5-low",
       "name": "Anthropic: Claude Sonnet 5.5 (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12710,6 +14597,15 @@
       "id": "openrouter/anthropic/claude-sonnet-5.5-medium",
       "name": "Anthropic: Claude Sonnet 5.5 (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12727,6 +14623,15 @@
       "id": "openrouter/anthropic/claude-sonnet-5.5-high",
       "name": "Anthropic: Claude Sonnet 5.5 (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12744,6 +14649,15 @@
       "id": "openrouter/anthropic/claude-sonnet-5.5-xhigh",
       "name": "Anthropic: Claude Sonnet 5.5 (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12761,6 +14675,15 @@
       "id": "openrouter/anthropic/claude-sonnet-5.5:batch-low",
       "name": "Anthropic: Claude Sonnet 5.5 (batch) (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12778,6 +14701,15 @@
       "id": "openrouter/anthropic/claude-sonnet-5.5:batch-medium",
       "name": "Anthropic: Claude Sonnet 5.5 (batch) (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12795,6 +14727,15 @@
       "id": "openrouter/anthropic/claude-sonnet-5.5:batch-high",
       "name": "Anthropic: Claude Sonnet 5.5 (batch) (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12812,6 +14753,15 @@
       "id": "openrouter/anthropic/claude-sonnet-5.5:batch-xhigh",
       "name": "Anthropic: Claude Sonnet 5.5 (batch) (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12829,6 +14779,15 @@
       "id": "openrouter/anthropic/claude-opus-5.5-low",
       "name": "Anthropic: Claude Opus 5.5 (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12846,6 +14805,15 @@
       "id": "openrouter/anthropic/claude-opus-5.5-medium",
       "name": "Anthropic: Claude Opus 5.5 (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12863,6 +14831,15 @@
       "id": "openrouter/anthropic/claude-opus-5.5-high",
       "name": "Anthropic: Claude Opus 5.5 (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12880,6 +14857,15 @@
       "id": "openrouter/anthropic/claude-opus-5.5-xhigh",
       "name": "Anthropic: Claude Opus 5.5 (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12897,6 +14883,15 @@
       "id": "openrouter/anthropic/claude-opus-5.5:batch-low",
       "name": "Anthropic: Claude Opus 5.5 (batch) (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12914,6 +14909,15 @@
       "id": "openrouter/anthropic/claude-opus-5.5:batch-medium",
       "name": "Anthropic: Claude Opus 5.5 (batch) (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12931,6 +14935,15 @@
       "id": "openrouter/anthropic/claude-opus-5.5:batch-high",
       "name": "Anthropic: Claude Opus 5.5 (batch) (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12948,6 +14961,15 @@
       "id": "openrouter/anthropic/claude-opus-5.5:batch-xhigh",
       "name": "Anthropic: Claude Opus 5.5 (batch) (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12965,6 +14987,15 @@
       "id": "openrouter/anthropic/claude-fable-5.1-low",
       "name": "Anthropic: Claude Fable 5.1 (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12982,6 +15013,15 @@
       "id": "openrouter/anthropic/claude-fable-5.1-medium",
       "name": "Anthropic: Claude Fable 5.1 (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -12999,6 +15039,15 @@
       "id": "openrouter/anthropic/claude-fable-5.1-high",
       "name": "Anthropic: Claude Fable 5.1 (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13016,6 +15065,15 @@
       "id": "openrouter/anthropic/claude-fable-5.1-xhigh",
       "name": "Anthropic: Claude Fable 5.1 (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13033,6 +15091,15 @@
       "id": "openrouter/anthropic/claude-fable-5.1:batch-low",
       "name": "Anthropic: Claude Fable 5.1 (batch) (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13050,6 +15117,15 @@
       "id": "openrouter/anthropic/claude-fable-5.1:batch-medium",
       "name": "Anthropic: Claude Fable 5.1 (batch) (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13067,6 +15143,15 @@
       "id": "openrouter/anthropic/claude-fable-5.1:batch-high",
       "name": "Anthropic: Claude Fable 5.1 (batch) (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13084,6 +15169,15 @@
       "id": "openrouter/anthropic/claude-fable-5.1:batch-xhigh",
       "name": "Anthropic: Claude Fable 5.1 (batch) (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13101,6 +15195,15 @@
       "id": "openrouter/anthropic/claude-opus-5-low",
       "name": "Anthropic: Claude Opus 5 (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13118,6 +15221,15 @@
       "id": "openrouter/anthropic/claude-opus-5-medium",
       "name": "Anthropic: Claude Opus 5 (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13135,6 +15247,15 @@
       "id": "openrouter/anthropic/claude-opus-5-high",
       "name": "Anthropic: Claude Opus 5 (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13152,6 +15273,15 @@
       "id": "openrouter/anthropic/claude-opus-5-xhigh",
       "name": "Anthropic: Claude Opus 5 (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13169,6 +15299,15 @@
       "id": "openrouter/anthropic/claude-opus-5:batch-low",
       "name": "Anthropic: Claude Opus 5 (batch) (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13186,6 +15325,15 @@
       "id": "openrouter/anthropic/claude-opus-5:batch-medium",
       "name": "Anthropic: Claude Opus 5 (batch) (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13203,6 +15351,15 @@
       "id": "openrouter/anthropic/claude-opus-5:batch-high",
       "name": "Anthropic: Claude Opus 5 (batch) (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13220,6 +15377,15 @@
       "id": "openrouter/anthropic/claude-opus-5:batch-xhigh",
       "name": "Anthropic: Claude Opus 5 (batch) (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13237,6 +15403,15 @@
       "id": "openrouter/anthropic/claude-sonnet-5-low",
       "name": "Anthropic: Claude Sonnet 5 (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13254,6 +15429,15 @@
       "id": "openrouter/anthropic/claude-sonnet-5-medium",
       "name": "Anthropic: Claude Sonnet 5 (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13271,6 +15455,15 @@
       "id": "openrouter/anthropic/claude-sonnet-5-high",
       "name": "Anthropic: Claude Sonnet 5 (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13288,6 +15481,15 @@
       "id": "openrouter/anthropic/claude-sonnet-5-xhigh",
       "name": "Anthropic: Claude Sonnet 5 (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13305,6 +15507,15 @@
       "id": "openrouter/anthropic/claude-sonnet-5:batch-low",
       "name": "Anthropic: Claude Sonnet 5 (batch) (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13322,6 +15533,15 @@
       "id": "openrouter/anthropic/claude-sonnet-5:batch-medium",
       "name": "Anthropic: Claude Sonnet 5 (batch) (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13339,6 +15559,15 @@
       "id": "openrouter/anthropic/claude-sonnet-5:batch-high",
       "name": "Anthropic: Claude Sonnet 5 (batch) (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13356,6 +15585,15 @@
       "id": "openrouter/anthropic/claude-sonnet-5:batch-xhigh",
       "name": "Anthropic: Claude Sonnet 5 (batch) (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13373,6 +15611,15 @@
       "id": "openrouter/anthropic/claude-fable-5-low",
       "name": "Anthropic: Claude Fable 5 (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13390,6 +15637,15 @@
       "id": "openrouter/anthropic/claude-fable-5-medium",
       "name": "Anthropic: Claude Fable 5 (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13407,6 +15663,15 @@
       "id": "openrouter/anthropic/claude-fable-5-high",
       "name": "Anthropic: Claude Fable 5 (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13424,6 +15689,15 @@
       "id": "openrouter/anthropic/claude-fable-5-xhigh",
       "name": "Anthropic: Claude Fable 5 (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13441,6 +15715,15 @@
       "id": "openrouter/anthropic/claude-fable-5:batch-low",
       "name": "Anthropic: Claude Fable 5 (batch) (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13458,6 +15741,15 @@
       "id": "openrouter/anthropic/claude-fable-5:batch-medium",
       "name": "Anthropic: Claude Fable 5 (batch) (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13475,6 +15767,15 @@
       "id": "openrouter/anthropic/claude-fable-5:batch-high",
       "name": "Anthropic: Claude Fable 5 (batch) (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13492,6 +15793,15 @@
       "id": "openrouter/anthropic/claude-fable-5:batch-xhigh",
       "name": "Anthropic: Claude Fable 5 (batch) (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13509,6 +15819,15 @@
       "id": "openrouter/anthropic/claude-opus-4.8-low",
       "name": "Anthropic: Claude Opus 4.8 (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13526,6 +15845,15 @@
       "id": "openrouter/anthropic/claude-opus-4.8-medium",
       "name": "Anthropic: Claude Opus 4.8 (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13543,6 +15871,15 @@
       "id": "openrouter/anthropic/claude-opus-4.8-high",
       "name": "Anthropic: Claude Opus 4.8 (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13560,6 +15897,15 @@
       "id": "openrouter/anthropic/claude-opus-4.8-xhigh",
       "name": "Anthropic: Claude Opus 4.8 (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13577,6 +15923,15 @@
       "id": "openrouter/anthropic/claude-opus-4.7-low",
       "name": "Anthropic: Claude Opus 4.7 (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13594,6 +15949,15 @@
       "id": "openrouter/anthropic/claude-opus-4.7-medium",
       "name": "Anthropic: Claude Opus 4.7 (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13611,6 +15975,15 @@
       "id": "openrouter/anthropic/claude-opus-4.7-high",
       "name": "Anthropic: Claude Opus 4.7 (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13628,6 +16001,15 @@
       "id": "openrouter/anthropic/claude-opus-4.7-xhigh",
       "name": "Anthropic: Claude Opus 4.7 (XHigh)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13645,6 +16027,15 @@
       "id": "openrouter/anthropic/claude-sonnet-4.6-low",
       "name": "Anthropic: Claude Sonnet 4.6 (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13662,6 +16053,15 @@
       "id": "openrouter/anthropic/claude-sonnet-4.6-medium",
       "name": "Anthropic: Claude Sonnet 4.6 (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13679,6 +16079,15 @@
       "id": "openrouter/anthropic/claude-sonnet-4.6-high",
       "name": "Anthropic: Claude Sonnet 4.6 (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13696,6 +16105,15 @@
       "id": "openrouter/anthropic/claude-opus-4.6-low",
       "name": "Anthropic: Claude Opus 4.6 (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13713,6 +16131,15 @@
       "id": "openrouter/anthropic/claude-opus-4.6-medium",
       "name": "Anthropic: Claude Opus 4.6 (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13730,6 +16157,15 @@
       "id": "openrouter/anthropic/claude-opus-4.6-high",
       "name": "Anthropic: Claude Opus 4.6 (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13747,6 +16183,15 @@
       "id": "openrouter/anthropic/claude-haiku-4.5-low",
       "name": "Anthropic: Claude Haiku 4.5 (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13764,6 +16209,15 @@
       "id": "openrouter/anthropic/claude-haiku-4.5-medium",
       "name": "Anthropic: Claude Haiku 4.5 (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13781,6 +16235,15 @@
       "id": "openrouter/anthropic/claude-haiku-4.5-high",
       "name": "Anthropic: Claude Haiku 4.5 (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13798,6 +16261,15 @@
       "id": "openrouter/anthropic/claude-sonnet-4.5-low",
       "name": "Anthropic: Claude Sonnet 4.5 (Low)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13815,6 +16287,15 @@
       "id": "openrouter/anthropic/claude-sonnet-4.5-medium",
       "name": "Anthropic: Claude Sonnet 4.5 (Medium)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -13832,6 +16313,15 @@
       "id": "openrouter/anthropic/claude-sonnet-4.5-high",
       "name": "Anthropic: Claude Sonnet 4.5 (High)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -14103,6 +16593,15 @@
       "id": "opencode-go/glm-5.2-high",
       "name": "GLM-5.2 (high effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -14119,6 +16618,15 @@
       "id": "opencode-go/glm-5.2-max",
       "name": "GLM-5.2 (max effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text"
       ],
@@ -14334,6 +16842,15 @@
       "id": "opencode-go/mimo-v2.5-high",
       "name": "MiMo-V2.5 (high effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -14351,6 +16868,15 @@
       "id": "opencode-go/mimo-v2.5-max",
       "name": "MiMo-V2.5 (max effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -14450,6 +16976,15 @@
       "id": "opencode-go/qwen3.7-max-high",
       "name": "Qwen3.7 Max (high effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -14466,6 +17001,15 @@
       "id": "opencode-go/qwen3.7-max-max",
       "name": "Qwen3.7 Max (max effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text"
       ],
@@ -14498,6 +17042,15 @@
       "id": "opencode-go/qwen3.7-plus-high",
       "name": "Qwen3.7 Plus (high effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -14514,6 +17067,15 @@
       "id": "opencode-go/qwen3.7-plus-max",
       "name": "Qwen3.7 Plus (max effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text"
       ],
@@ -14546,6 +17108,15 @@
       "id": "opencode-go/qwen3.6-plus-high",
       "name": "Qwen3.6 Plus (high effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -14562,6 +17133,15 @@
       "id": "opencode-go/qwen3.6-plus-max",
       "name": "Qwen3.6 Plus (max effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text"
       ],
@@ -14610,6 +17190,15 @@
       "id": "opencode-go/hy3-low",
       "name": "Hunyuan3 (low effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -14626,6 +17215,15 @@
       "id": "opencode-go/hy3-high",
       "name": "Hunyuan3 (high effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -14675,6 +17273,15 @@
       "id": "opencode-go/muse-spark-1.2-contributor-minimal",
       "name": "Muse Spark 1.2 Contributor (minimal effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": "minimal",
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -14692,6 +17299,15 @@
       "id": "opencode-go/muse-spark-1.2-contributor-low",
       "name": "Muse Spark 1.2 Contributor (low effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -14709,6 +17325,15 @@
       "id": "opencode-go/muse-spark-1.2-contributor-medium",
       "name": "Muse Spark 1.2 Contributor (medium effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -14726,6 +17351,15 @@
       "id": "opencode-go/muse-spark-1.2-contributor-high",
       "name": "Muse Spark 1.2 Contributor (high effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -14743,6 +17377,15 @@
       "id": "opencode-go/muse-spark-1.2-contributor-xhigh",
       "name": "Muse Spark 1.2 Contributor (xhigh effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -14777,6 +17420,15 @@
       "id": "opencode-go/muse-spark-1.3-contributor-minimal",
       "name": "Muse Spark 1.3 Contributor (minimal effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": "minimal",
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -14794,6 +17446,15 @@
       "id": "opencode-go/muse-spark-1.3-contributor-low",
       "name": "Muse Spark 1.3 Contributor (low effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -14811,6 +17472,15 @@
       "id": "opencode-go/muse-spark-1.3-contributor-medium",
       "name": "Muse Spark 1.3 Contributor (medium effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -14828,6 +17498,15 @@
       "id": "opencode-go/muse-spark-1.3-contributor-high",
       "name": "Muse Spark 1.3 Contributor (high effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -14845,6 +17524,15 @@
       "id": "opencode-go/muse-spark-1.3-contributor-xhigh",
       "name": "Muse Spark 1.3 Contributor (xhigh effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -14862,6 +17550,15 @@
       "id": "opencode-go/muse-spark-1.3-contributor-max",
       "name": "Muse Spark 1.3 Contributor (max effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -14895,6 +17592,15 @@
       "id": "opencode-go/grok-4.5-low",
       "name": "Grok 4.5 (low effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -14911,6 +17617,15 @@
       "id": "opencode-go/grok-4.5-medium",
       "name": "Grok 4.5 (medium effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -14927,6 +17642,15 @@
       "id": "opencode-go/grok-4.5-high",
       "name": "Grok 4.5 (high effort)",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -15286,6 +18010,15 @@
       "id": "opencode-go/claude-haiku-5-5-low",
       "name": "opencode-go/Claude Haiku 5.5 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -15303,6 +18036,15 @@
       "id": "opencode-go/claude-haiku-5-5-medium",
       "name": "opencode-go/Claude Haiku 5.5 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -15320,6 +18062,15 @@
       "id": "opencode-go/claude-haiku-5-5-high",
       "name": "opencode-go/Claude Haiku 5.5 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -15337,6 +18088,15 @@
       "id": "opencode-go/claude-haiku-5-5-xhigh",
       "name": "opencode-go/Claude Haiku 5.5 Xhigh",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -15371,6 +18131,15 @@
       "id": "opencode-go/grok-4.6-low",
       "name": "Grok 4.6 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -15387,6 +18156,15 @@
       "id": "opencode-go/grok-4.6-medium",
       "name": "Grok 4.6 Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -15403,6 +18181,15 @@
       "id": "opencode-go/grok-4.6-high",
       "name": "Grok 4.6 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -15419,6 +18206,15 @@
       "id": "opencode-go/grok-4.6-xhigh",
       "name": "Grok 4.6 Xhigh",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -15451,6 +18247,15 @@
       "id": "opencode-go/deepseek-v4-pro-low",
       "name": "DeepSeek V4 Pro Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -15467,6 +18272,15 @@
       "id": "opencode-go/deepseek-v4-pro-high",
       "name": "DeepSeek V4 Pro High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -15483,6 +18297,15 @@
       "id": "opencode-go/deepseek-v4-pro-max",
       "name": "DeepSeek V4 Pro Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text"
       ],
@@ -15515,6 +18338,15 @@
       "id": "opencode-go/deepseek-v4-flash-low",
       "name": "DeepSeek V4 Flash Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -15531,6 +18363,15 @@
       "id": "opencode-go/deepseek-v4-flash-high",
       "name": "DeepSeek V4 Flash High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -15547,6 +18388,15 @@
       "id": "opencode-go/deepseek-v4-flash-max",
       "name": "DeepSeek V4 Flash Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text"
       ],
@@ -15580,6 +18430,15 @@
       "id": "opencode-go/deepseek-v4-flash-vision-exp-low",
       "name": "DeepSeek V4 Flash Vision Exp Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -15597,6 +18456,15 @@
       "id": "opencode-go/deepseek-v4-flash-vision-exp-high",
       "name": "DeepSeek V4 Flash Vision Exp High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -15614,6 +18482,15 @@
       "id": "opencode-go/deepseek-v4-flash-vision-exp-max",
       "name": "DeepSeek V4 Flash Vision Exp Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -15631,6 +18508,15 @@
       "id": "opencode-go/gpt-5.6-luna-low",
       "name": "GPT-5.6 Luna Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -15648,6 +18534,15 @@
       "id": "opencode-go/gpt-5.6-luna-medium",
       "name": "GPT-5.6 Luna Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -15665,6 +18560,15 @@
       "id": "opencode-go/gpt-5.6-luna-high",
       "name": "GPT-5.6 Luna High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -15682,6 +18586,15 @@
       "id": "opencode-go/gpt-5.6-luna-xhigh",
       "name": "GPT-5.6 Luna Xhigh",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -15699,6 +18612,15 @@
       "id": "opencode-go/gpt-5.6-luna-max",
       "name": "GPT-5.6 Luna Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -15733,6 +18655,15 @@
       "id": "opencode-go/gpt-6-luna-low",
       "name": "GPT-6 Luna Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -15750,6 +18681,15 @@
       "id": "opencode-go/gpt-6-luna-medium",
       "name": "GPT-6 Luna Medium",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": "medium",
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -15767,6 +18707,15 @@
       "id": "opencode-go/gpt-6-luna-high",
       "name": "GPT-6 Luna High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -15784,6 +18733,15 @@
       "id": "opencode-go/gpt-6-luna-xhigh",
       "name": "GPT-6 Luna Xhigh",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": "xhigh",
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -15801,6 +18759,15 @@
       "id": "opencode-go/gpt-6-luna-max",
       "name": "GPT-6 Luna Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"
@@ -15818,6 +18785,15 @@
       "id": "opencode-go/ox-alpha-free-low",
       "name": "Ox Alpha Free Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -15834,6 +18810,15 @@
       "id": "opencode-go/ox-alpha-free-high",
       "name": "Ox Alpha Free High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -15850,6 +18835,15 @@
       "id": "opencode-go/ox-alpha-free-max",
       "name": "Ox Alpha Free Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text"
       ],
@@ -15995,6 +18989,15 @@
       "id": "zai/glm-5.3-low",
       "name": "GLM 5.3 Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -16011,6 +19014,15 @@
       "id": "zai/glm-5.3-high",
       "name": "GLM 5.3 High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text"
       ],
@@ -16027,6 +19039,15 @@
       "id": "zai/glm-5.3-max",
       "name": "GLM 5.3 Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text"
       ],
@@ -16043,6 +19064,15 @@
       "id": "zai/glm-5.3-flash-low",
       "name": "GLM 5.3 Flash Low",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -16060,6 +19090,15 @@
       "id": "zai/glm-5.3-flash-high",
       "name": "GLM 5.3 Flash High",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
       "input": [
         "text",
         "image"
@@ -16077,6 +19116,15 @@
       "id": "zai/glm-5.3-flash-max",
       "name": "GLM 5.3 Flash Max",
       "reasoning": true,
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": null,
+        "medium": null,
+        "high": null,
+        "xhigh": null,
+        "max": "max"
+      },
       "input": [
         "text",
         "image"

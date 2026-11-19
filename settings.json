@@ -9,8 +9,6 @@
   "enableInstallTelemetry": false,
   "enableSkillCommands": true,
   "enabledModels": [
-    "omniroute/antigravity/claude-opus-5-5-high",
-    "omniroute/antigravity/claude-sonnet-5-5-high",
     "omniroute/cx/gpt-6.2-astra",
     "omniroute/cx/gpt-6.2-sol",
     "omniroute/cx/gpt-6.1-sol",
@@ -33,7 +31,18 @@
     "omniroute/cc/claude-sonnet-5-5",
     "omniroute/cc/claude-haiku-5-5",
     "ds4/qwen3.8-flash-next",
-    "ds4/qwen3.8-flash-next-chat"
+    "ds4/qwen3.8-flash-next-chat",
+    "omniroute/agy/gemini-4-neon-xhigh",
+    "omniroute/agy/gemini-4-neon-high",
+    "omniroute/agy/gemini-4-neon-medium",
+    "omniroute/agy/gemini-4-neon-low",
+    "omniroute/agy/gemini-4-hydrogen-xhigh",
+    "omniroute/agy/gemini-4-hydrogen-high",
+    "omniroute/agy/gemini-4-hydrogen-medium",
+    "omniroute/agy/gemini-4-hydrogen-low",
+    "omniroute/agy/gemini-4-argon-high",
+    "omniroute/agy/gemini-4-argon-medium",
+    "omniroute/agy/gemini-4-argon-low"
   ],
   "hideThinkingBlock": true,
   "images": {

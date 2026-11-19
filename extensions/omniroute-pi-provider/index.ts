@@ -38,6 +38,7 @@ const OMNIROUTE_MODELS_ENDPOINT = `${OMNIROUTE_API_BASE}/models`;
 
 const MODELS_FETCH_TIMEOUT_MS = 15_000;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_VERSION = 2;
 const CACHE_FILENAME = "omniroute-model-cache.json";
 
 // =============================================================================
@@ -88,6 +89,7 @@ async function getOmniRouteToken(): Promise<string | undefined> {
 // =============================================================================
 
 interface ModelCache {
+  version?: number;
   updatedAt: string;
   base: string;
   models: ProviderModelConfig[];
@@ -101,6 +103,7 @@ async function loadModelCache(expectedBase: string): Promise<ModelCache | null> 
   try {
     const raw = await readFile(cachePath(), "utf-8");
     const data = JSON.parse(raw) as ModelCache;
+    if (data.version !== CACHE_VERSION) return null;
     const updatedAt = new Date(data.updatedAt).getTime();
     if (isNaN(updatedAt) || Date.now() - updatedAt > CACHE_TTL_MS) {
       console.log("[omniroute] Model cache expired or invalid");
@@ -127,7 +130,7 @@ async function saveModelCache(
     await writeFile(
       cachePath(),
       JSON.stringify(
-        { updatedAt: new Date().toISOString(), base, models },
+        { version: CACHE_VERSION, updatedAt: new Date().toISOString(), base, models },
         null,
         2,
       ),
@@ -190,22 +193,74 @@ function supportsImages(m: OmniRouteModel): boolean {
   );
 }
 
+const ALL_THINKING_LEVELS = [
+  "off",
+  "minimal",
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+] as const;
+type ThinkingLevelKey = (typeof ALL_THINKING_LEVELS)[number];
+type PinnedThinkingLevel = Exclude<ThinkingLevelKey, "off">;
+
+const THINKING_LEVEL_SUFFIX_RE = /-(minimal|low|medium|high|xhigh|max)$/i;
+
+function pinnedThinkingLevel(
+  id: string,
+  allIds: ReadonlySet<string>,
+): PinnedThinkingLevel | undefined {
+  const match = id.match(THINKING_LEVEL_SUFFIX_RE);
+  if (!match) return undefined;
+  const level = match[1].toLowerCase() as PinnedThinkingLevel;
+  // Avoid pinning model names that naturally end in "-max" (e.g. qwen4-max)
+  // unless sibling thinking tiers exist for the same base model.
+  if (level === "max") {
+    const base = id.slice(0, -4);
+    if (
+      !allIds.has(`${base}-high`) &&
+      !allIds.has(`${base}-medium`) &&
+      !allIds.has(`${base}-low`)
+    ) {
+      return undefined;
+    }
+  }
+  return level;
+}
+
+function pinnedThinkingLevelMap(
+  level: PinnedThinkingLevel,
+): Record<ThinkingLevelKey, string | null> {
+  const map = {} as Record<ThinkingLevelKey, string | null>;
+  for (const candidate of ALL_THINKING_LEVELS) {
+    map[candidate] = candidate === level ? level : null;
+  }
+  return map;
+}
+
 function supportsReasoning(m: OmniRouteModel): boolean {
   return m.capabilities?.reasoning === true || m.capabilities?.thinking === true;
 }
 
-function mapOmniRouteModel(m: OmniRouteModel): ProviderModelConfig {
+function mapOmniRouteModel(
+  m: OmniRouteModel,
+  allIds: ReadonlySet<string>,
+): ProviderModelConfig {
   const contextWindow = m.context_length && m.context_length > 0
     ? m.context_length
     : 128_000;
   const maxTokens = m.max_output_tokens && m.max_output_tokens > 0
     ? m.max_output_tokens
     : Math.ceil(contextWindow * 0.2);
+  const reasoning = supportsReasoning(m);
+  const pinnedLevel = reasoning ? pinnedThinkingLevel(m.id, allIds) : undefined;
 
   return {
     id: m.id,
     name: m.name ?? m.id,
-    reasoning: supportsReasoning(m),
+    reasoning,
+    ...(pinnedLevel ? { thinkingLevelMap: pinnedThinkingLevelMap(pinnedLevel) } : {}),
     input: supportsImages(m) ? ["text", "image"] : ["text"],
     // OmniRoute's catalog doesn't expose reliable per-token pricing; leave at 0
     // so usage tracking still works (cost will read as $0 unless the gateway
@@ -254,6 +309,11 @@ async function fetchOmniRouteModels(
     throw new Error("Invalid OmniRoute models response: missing data array");
   }
 
+  const allIds = new Set<string>();
+  for (const m of json.data) {
+    if (m && typeof m.id === "string" && m.id.length > 0) allIds.add(m.id);
+  }
+
   const seen = new Set<string>();
   const models: ProviderModelConfig[] = [];
   for (const m of json.data) {
@@ -261,7 +321,7 @@ async function fetchOmniRouteModels(
     if (!isChatModel(m)) continue;
     if (seen.has(m.id)) continue; // catalog emits alias + provider-id duplicates
     seen.add(m.id);
-    models.push(mapOmniRouteModel(m));
+    models.push(mapOmniRouteModel(m, allIds));
   }
   return models;
 }
