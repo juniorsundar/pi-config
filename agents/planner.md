@@ -12,7 +12,7 @@ prompt_mode: append
 skills: false
 extensions: false
 inheritExtensions: false
-extraArgs: -e ../extensions/omniroute-pi-provider/index.ts
+extraArgs: -e ../extensions/omniroute-pi-provider/index.ts -e ../git/github.com/juniorsundar/my-pi-mono/extensions/fold/index.ts
 model: omniroute/opencode-go/deepseek-v4.1-flash
 thinking: high
 name: planner

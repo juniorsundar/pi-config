@@ -11,7 +11,7 @@ prompt_mode: append
 skills: false
 extensions: false
 inheritExtensions: false
-extraArgs: -e ../extensions/omniroute-pi-provider/index.ts
+extraArgs: -e ../extensions/omniroute-pi-provider/index.ts -e ../git/github.com/juniorsundar/my-pi-mono/extensions/fold/index.ts
 model: omniroute/cx/gpt-6-luna
 thinking: medium
 name: commit-pr-assistant
