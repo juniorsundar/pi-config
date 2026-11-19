@@ -27,3 +27,6 @@
 /claude-sdk
 /claude-account-source.txt
 /pi-web-*
+/innovium-model-cache.json
+/omniroute-model-cache.json
+/models-store.json
