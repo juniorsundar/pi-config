@@ -1,6 +1,6 @@
 {
-  "defaultModel": "gpt-6-luna",
-  "defaultProvider": "openai",
+  "defaultModel": "opencode-go/deepseek-v4.1-flash",
+  "defaultProvider": "omniroute",
   "defaultThinkingLevel": "high",
   "defaultTools": [
     "+codemode"
