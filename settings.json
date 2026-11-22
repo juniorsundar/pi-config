@@ -23,8 +23,6 @@
     "omniroute/ds-web/deepseek-v4-pro-think",
     "omniroute/ds-web/deepseek-v4-flash",
     "omniroute/ds-web/deepseek-v4-flash-think",
-    "omniroute/zai/glm-5.3",
-    "omniroute/zai/glm-5.3-flash",
     "omniroute/cc/claude-fable-5-2",
     "omniroute/cc/claude-fable-5-1",
     "omniroute/cc/claude-opus-5-5",
@@ -48,7 +46,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "1.5.2",
+  "lastChangelogVersion": "1.6.0",
   "packages": [
     "npm:@juicesharp/rpiv-todo",
     "npm:@dietrichgebert/ponytail",

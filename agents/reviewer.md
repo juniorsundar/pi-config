@@ -13,7 +13,7 @@ skills: false
 extensions: false
 inheritExtensions: false
 extraArgs: -e ../extensions/omniroute-pi-provider/index.ts -e ../git/github.com/juniorsundar/my-pi-mono/extensions/fold/index.ts
-model: omniroute/zai/glm-5.3-flash
+model: omniroute/opencode-go/deepseek-v4.1-flash
 thinking: medium
 name: reviewer
 systemPromptMode: replace
