@@ -39,7 +39,7 @@
   "images": {
     "blockImages": false
   },
-  "lastChangelogVersion": "1.6.1",
+  "lastChangelogVersion": "1.7.0",
   "packages": [
     "npm:@juicesharp/rpiv-todo",
     "npm:@dietrichgebert/ponytail",
@@ -73,6 +73,6 @@
   "extensionChangelogVersions": {
     "{\"source\":\"npm:pi-blackhole\",\"scope\":\"user\"}": "0.5.18",
     "{\"source\":\"npm:@sting8k/pi-vcc\",\"scope\":\"user\"}": "0.12.1",
-    "{\"source\":\"git:github.com/fdkevin0/pi-agy-acp\",\"scope\":\"user\"}": "0.2.3"
+    "{\"source\":\"git:github.com/fdkevin0/pi-agy-acp\",\"scope\":\"user\"}": "0.2.4"
   }
 }
